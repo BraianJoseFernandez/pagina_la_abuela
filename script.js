@@ -35,3 +35,36 @@ function showCategory(category) {
 window.addEventListener('DOMContentLoaded', () => {
   showCategory('pizzas');
 });
+// Nuevo código para esconder el menú al hacer scroll en móvil
+let lastScrollY = window.scrollY;
+const menuFixed = document.querySelector('.menu-fixed');
+const header = document.querySelector('header.hero-bg'); // Para conocer la altura del header
+
+// Función para determinar si estamos en un dispositivo móvil (o pantalla pequeña)
+function isMobileView() {
+    return window.innerWidth < 768; // Tailwind's 'md' breakpoint
+}
+
+window.addEventListener('scroll', () => {
+    // Solo aplica el efecto si estamos en vista móvil
+    if (isMobileView()) {
+        if (window.scrollY > lastScrollY && window.scrollY > header.offsetHeight) {
+            // Scrolling down and past the header, hide the menu
+            menuFixed.classList.add('hidden-on-scroll');
+        } else if (window.scrollY < lastScrollY) {
+            // Scrolling up, show the menu
+            menuFixed.classList.remove('hidden-on-scroll');
+        }
+        lastScrollY = window.scrollY;
+    } else {
+        // Si no es vista móvil, asegúrate de que el menú esté visible
+        menuFixed.classList.remove('hidden-on-scroll');
+    }
+});
+
+// Asegurarse de que el menú se muestre si se cambia el tamaño de la ventana a escritorio
+window.addEventListener('resize', () => {
+    if (!isMobileView()) {
+        menuFixed.classList.remove('hidden-on-scroll');
+    }
+});
