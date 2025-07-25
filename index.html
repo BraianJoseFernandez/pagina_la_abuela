@@ -54,43 +54,65 @@
     <div class="menu-fixed">
         <div class="container mx-auto px-4 py-6">
             <div class="flex flex-wrap justify-center gap-4">
-                <button onclick="showCategory('pizzas')"
+                <button onclick="showCategory('opciones/pizzas.html')"
                     class="category-btn active px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-pizza-slice mr-2"></i>Pizzas
                 </button>
-                <button onclick="showCategory('empanadas')"
+                <button onclick="showCategory('opciones/empanadas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-cookie-bite mr-2"></i>Empanadas
                 </button>
-                <button onclick="showCategory('hamburguesas')"
+                <button onclick="showCategory('opciones/hamburguesas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-hamburger mr-2"></i>Hamburguesas
                 </button>
-                <button onclick="showCategory('lomitos')"
+                <button onclick="showCategory('opciones/figazas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-bread-slice mr-2"></i>Lomitos
+                    <i class="fas fa-bread-loaf mr-2"></i>Figazas
                 </button>
-                <button onclick="showCategory('tartas')"
+                <button onclick="showCategory('opciones/comidas-al-plato.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-birthday-cake mr-2"></i>Tartas
+                    <i class="fas fa-utensils mr-2"></i>Comidas al Plato
                 </button>
-                <button onclick="showCategory('picadas')"
+                <button onclick="showCategory('opciones/lomitos.html')"
+                    class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
+                    <i class="fas fa-hotdog mr-2"></i>Lomitos
+                </button>
+                <button onclick="showCategory('opciones/tartas.html')"
+                    class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
+                    <i class="fas fa-pie mr-2"></i>Tartas
+                </button>
+                <button onclick="showCategory('opciones/tortillas.html')"
+                    class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
+                    <i class="fas fa-egg mr-2"></i>Tortillas
+                </button>
+                <button onclick="showCategory('opciones/sandwichs.html')"
+                    class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
+                    <i class="fas fa-sandwich-alt mr-2"></i>Sandwiches
+                </button>
+                <button onclick="showCategory('opciones/tostados.html')"
+                    class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
+                    <i class="fa-solid fa-toast mr-2"></i>Tostados
+                </button>
+                <button onclick="showCategory('opciones/picadas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-cheese mr-2"></i>Picadas
                 </button>
-                <button onclick="showCategory('bebidas')"
+                <button onclick="showCategory('opciones/bebidas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-glass-cheers mr-2"></i>Bebidas
+                    <i class="fas fa-bottle-water mr-2"></i>Bebidas
                 </button>
-                <button onclick="showCategory('otros')"
+                <button onclick="showCategory('opciones/extras.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-plus mr-2"></i>Otros
+                    <i class="fas fa-plus-circle mr-2"></i>Extras
                 </button>
             </div>
         </div>
     </div>
 
-    <main id="menu-content" class="container mx-auto px-4 py-12"></main>
+    <main id="menu-content" class="container mx-auto px-4 py-12">
+        <div id="menu-sections-container"></div>
+    </main>
 </body>
 
 </html>

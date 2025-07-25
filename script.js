@@ -1,70 +1,62 @@
-// Aquí puedes agregar tus scripts personalizados. Ejemplo de función para mostrar categorías:
-function showCategory(category) {
+// Función para mostrar categorías dinámicamente
+function showCategory(filename) {
   // Quita la clase activa de todos los botones
   document.querySelectorAll('.category-btn').forEach(btn => {
-    btn.classList.remove('active');
+      btn.classList.remove('active');
   });
 
   // Agrega la clase activa al botón correspondiente
-  const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(category));
+  // Asegúrate de que el 'filename' coincida con lo que se pasa en onclick
+  const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(filename));
   if (btn) {
-    btn.classList.add('active');
+      btn.classList.add('active');
   }
 
   // Carga el contenido de la categoría desde su archivo HTML
-  // Actualizado para buscar en la carpeta 'opciones'
-  fetch(`opciones/${category}.html`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.text();
-    })
-    .then(html => {
-      document.getElementById('menu-content').innerHTML = html;
-      // Scroll to the top of the loaded content, or adjust as needed
-      document.getElementById('menu-content').scrollIntoView({ behavior: 'smooth' });
-    })
-    .catch(error => {
-      console.error('Error loading category content:', error);
-      document.getElementById('menu-content').innerHTML = `<p class="text-center text-red-500 text-xl">Error al cargar la categoría "${category}".</p>`;
-    });
+  fetch(`${filename}`) // ¡Importante: la ruta ahora incluye 'opciones/'!
+      .then(response => {
+          if (!response.ok) {
+              if (response.status === 404) {
+                  return Promise.reject('Archivo no encontrado');
+              }
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+      })
+      .then(html => {
+          document.getElementById('menu-sections-container').innerHTML = html;
+      })
+      .catch(error => {
+          console.error('Error al cargar la categoría:', error);
+          document.getElementById('menu-sections-container').innerHTML = `<p class="text-purple-500 text-center text-xl">Menú sin disponibilidad por el momento.</p>`;
+      });
 }
 
-// Mostrar la primera categoría por defecto al cargar
-window.addEventListener('DOMContentLoaded', () => {
-  showCategory('pizzas');
-});
-// Nuevo código para esconder el menú al hacer scroll en móvil
-let lastScrollY = window.scrollY;
+// Lógica para el menú fijo en scroll
+let lastScrollTop = 0;
 const menuFixed = document.querySelector('.menu-fixed');
-const header = document.querySelector('header.hero-bg'); // Para conocer la altura del header
-
-// Función para determinar si estamos en un dispositivo móvil (o pantalla pequeña)
-function isMobileView() {
-    return window.innerWidth < 768; // Tailwind's 'md' breakpoint
-}
+const heroHeight = document.querySelector('.hero-bg').offsetHeight; // Altura del header hero
 
 window.addEventListener('scroll', () => {
-    // Solo aplica el efecto si estamos en vista móvil
-    if (isMobileView()) {
-        if (window.scrollY > lastScrollY && window.scrollY > header.offsetHeight) {
-            // Scrolling down and past the header, hide the menu
-            menuFixed.classList.add('hidden-on-scroll');
-        } else if (window.scrollY < lastScrollY) {
-            // Scrolling up, show the menu
-            menuFixed.classList.remove('hidden-on-scroll');
-        }
-        lastScrollY = window.scrollY;
-    } else {
-        // Si no es vista móvil, asegúrate de que el menú esté visible
-        menuFixed.classList.remove('hidden-on-scroll');
-    }
+  let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Si el scroll supera la altura del hero, se considera para mostrar/ocultar el menú fijo
+  if (scrollTop > heroHeight) {
+      if (scrollTop > lastScrollTop) {
+          // Scrolling down
+          menuFixed.classList.add('hidden-menu');
+      } else {
+          // Scrolling up
+          menuFixed.classList.remove('hidden-menu');
+      }
+      menuFixed.classList.add('scrolled'); // Asegura que el menú fijo esté visible y con estilos de scroll
+  } else {
+      menuFixed.classList.remove('scrolled', 'hidden-menu'); // Elimina los estilos de scroll si volvemos al hero
+  }
+  lastScrollTop = scrollTop;
 });
 
-// Asegurarse de que el menú se muestre si se cambia el tamaño de la ventana a escritorio
-window.addEventListener('resize', () => {
-    if (!isMobileView()) {
-        menuFixed.classList.remove('hidden-on-scroll');
-    }
+// Carga la primera categoría por defecto al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+  showCategory('opciones/pizzas.html');
 });
