@@ -1,7 +1,7 @@
 <section id="tartas" class="menu-category">
     <div class="text-center mb-12">
         <div class="category-icon">
-            <i class="fas fa-birthday-cake"></i>
+            <i class="fas fa-cookie"></i>
         </div>
         <h2 class="text-5xl font-bold section-title mb-4">
             Tartas
@@ -9,44 +9,113 @@
         <p class="text-gray-600 text-lg">
         </p>
     </div>
+
+    <div class="relative w-full max-w-2xl mx-auto overflow-hidden rounded-3xl shadow-2xl glass-card p-4 mb-12">
+        <div id="pizza-carousel" class="flex overflow-x-auto snap-x snap-mandatory pb-4"
+            style="-webkit-overflow-scrolling: touch;">
+            <img src="/imagenes/tartas/1.jpg" alt="Tartas surtidas de Cuarto"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/tartas/4.jpg" alt="Media tarta de pollo"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/tartas/3.jpg" alt="Tarta entera de carne"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/tartas/2.jpg" alt="Tarta de verdura de cuarto"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer snap-center"
+                onclick="showPizzaSweetAlert(this)">
+        </div>
+    </div>
+
     <div class="space-y-6">
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1518779578993-ec3a3038676a?w=120&h=120&fit=crop&crop=center"
-                    alt="Tarta de Jamón y Queso"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Tarta de Jamón y Queso</h3>
-                        <span class="price-tag text-xl ml-4">$4.500</span>
+                    <div class="flex justify-between">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Carne
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-md">Cuarto $4.500</span>
+                            <span class="price-tag text-md">Media $8.000</span>
+                            <span class="price-tag text-md">Entera $12.000</span>
+                        </div>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Clásica tarta con jamón cocido y mezcla de quesos</p>
                 </div>
             </div>
         </div>
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1579216075902-602c38d7a126?w=120&h=120&fit=crop&crop=center"
-                    alt="Tarta de Verdura" class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Tarta de Verdura</h3>
-                        <span class="price-tag text-xl ml-4">$4.200</span>
+                    <div class="flex justify-between">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pollo
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-md">Cuarto $4.500</span>
+                            <span class="price-tag text-md">Media $8.000</span>
+                            <span class="price-tag text-md">Entera $12.000</span>
+                        </div>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Rellena de acelga, cebolla y un toque de crema</p>
                 </div>
             </div>
         </div>
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1574005080036-7c9e0d164f9f?w=120&h=120&fit=crop&crop=center"
-                    alt="Tarta Caprese" class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Tarta Caprese</h3>
-                        <span class="price-tag text-xl ml-4">$4.800</span>
+                    <div class="flex justify-between">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Jamón y Queso
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-md">Cuarto $5.000</span>
+                            <span class="price-tag text-md">Media $9.000</span>
+                            <span class="price-tag text-md">Entera $14.000</span>
+                        </div>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Tomate, mozzarella, albahaca y un toque de orégano</p>
+                </div>
+            </div>
+        </div>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Verdura
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-md">Cuarto $4.500</span>
+                            <span class="price-tag text-md">Media $7.500</span>
+                            <span class="price-tag text-md">Entera $11.000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Humita
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-md">Cuarto $4.000</span>
+                            <span class="price-tag text-md">Media $7.000</span>
+                            <span class="price-tag text-md">Entera $10.000</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

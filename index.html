@@ -13,11 +13,12 @@
         href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Kalam:wght@400;700&family=Caveat:wght@400;700&family=Poppins:wght@300;400;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="script.js" defer></script>
 </head>
 
 <body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 font-sans">
-    <header class="hero-bg text-white py-20 relative">
+    <header class="hero-bg text-white py-10 relative">
         <div class="floating-icons">
             <i class="floating-icon fas fa-pizza-slice" style="top: 20%; left: 10%; animation-delay: 0s"></i>
             <i class="floating-icon fas fa-hamburger" style="top: 40%; right: 15%; animation-delay: 1s"></i>
@@ -34,22 +35,30 @@
             <p class="text-2xl opacity-90 font-light mb-8">
                 Cocinar con amor te alimenta el alma
             </p>
-            <div
-                class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit">
+            <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-phone text-yellow-300 relative top-[2px] phone-icon-animated"></i>
-                    <button class="text-2xl md:text-4xl font-medium leading-none"
-                        onclick="window.location.href='https://wa.me/message/DUGZZK7KFMZIG1'">3794-565528</button>
+                    <button class="text-2xl md:text-4xl font-medium leading-none" onclick="window.location.href='https://wa.me/message/DUGZZK7KFMZIG1'">3794-565528</button>
                 </div>
+              </div>
+              <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit mt-2">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-map-marker-alt text-yellow-300 relative top-[2px] location-icon-animated"></i>
-                    <button class="text-2xl md:text-4xl font-medium leading-none"
-                        onclick="window.open('https://maps.app.goo.gl/JAgMpxXPBgX4BGqbA?g_st=aw', '_blank')">Av.
-                        libertad 5445</button>
+                    <button class="text-2xl md:text-4xl font-medium leading-none" onclick="window.open('https://maps.app.goo.gl/JAgMpxXPBgX4BGqbA?g_st=aw', '_blank')">Av.
+                      libertad 5445</button>
                 </div>
+              </div>
+              <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit mt-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fab fa-instagram text-yellow-300 relative top-[3px] location-icon-animated"></i>
+                    <button class="text-2xl md:text-4xl font-medium leading-none" onclick="window.open('https://www.instagram.com/rotilaabuela?utm_source=qr&igsh=MW82Y2J1ODVhNzd3dA==', '_blank')">@RotiLaAbuela</button>
+                </div>
+              </div>
+            </div>
             </div>
         </div>
     </header>
+
 
     <div class="menu-fixed">
         <div class="container mx-auto px-4 py-6">
@@ -60,7 +69,7 @@
                 </button>
                 <button onclick="showCategory('empanadas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-cookie-bite mr-2"></i>Empanadas 
+                    <i class="fas fa-bowl-food mr-2"></i>Empanadas 
                 </button>
                 <button onclick="showCategory('hamburguesas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
@@ -68,7 +77,7 @@
                 </button>
                 <button onclick="showCategory('figazas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-bread-loaf mr-2"></i>Figazas 
+                    <i class="fas fas fa-stroopwafel mr-2"></i>Figazas 
                 </button>
                 <button onclick="showCategory('comidas_al_plato.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
@@ -80,39 +89,42 @@
                 </button>
                 <button onclick="showCategory('tartas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-pie mr-2"></i>Tartas
+                    <i class="fas fa-cookie mr-2"></i>Tartas
                 </button>
                 <button onclick="showCategory('tortillas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-egg mr-2"></i>Tortillas
+                    <i class="fas fa-egg mr-2"></i>Tortilla de papa
                 </button>
                 <button onclick="showCategory('sandwichs.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-sandwich-alt mr-2"></i>Sandwichs 
+                    <i class="fas fa-bacon mr-2"></i>Sandwich
                 </button>
                 <button onclick="showCategory('tostados.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-toast mr-2"></i>Tostados
+                    <i class="fas fa-bread-slice mr-2"></i>Tostados
                 </button>
                 <button onclick="showCategory('picadas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-cheese mr-2"></i>Picadas 
                 </button>
-                <button onclick="showCategory('bebidas.html')"
+                <!-- <button onclick="showCategory('bebidas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
                     <i class="fas fa-glass-cheers mr-2"></i>Bebidas
-                </button>
-                <button onclick="showCategory('extras.html')"
+                </button> -->
+                <button onclick="showCategory('ensaladas.html')"
                     class="category-btn px-8 py-4 rounded-full border-2 border-purple-300 text-purple-600 font-semibold relative z-10">
-                    <i class="fas fa-plus-circle mr-2"></i>Extras
+                    <i class="fas fa-plate-wheat mr-2"></i>Ensaladas
                 </button>
             </div>
         </div>
     </div>
 
-    <main id="menu-content" class="container mx-auto px-4 py-12">
-        <div id="menu-sections-container"></div>
-    </main>
+    <main class="flex-grow p-4 md:p-8 bg-white/50 backdrop-blur-sm rounded-t-3xl shadow-lg relative z-20 overflow-y-auto">
+      <div id="menu-content" class="container mx-auto py-8">
+          <div id="menu-sections-container">
+              </div>
+      </div>
+  </main>
 </body>
 
 </html>

@@ -79,5 +79,26 @@ window.addEventListener('resize', () => {
 
 // Carga la primera categoría por defecto al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    showCategory('pizzas.html'); // Asegúrate de cargar pizzas.html
+    showCategory('ensaladas.html'); // Asegúrate de cargar pizzas.html
 });
+
+// Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza
+function showPizzaSweetAlert(imageElement) {
+  Swal.fire({
+      imageUrl: imageElement.src,
+      imageAlt: imageElement.alt,
+      imageWidth: '80%', // Ajusta el ancho de la imagen en el modal
+      imageHeight: 'auto',
+      title: imageElement.alt,
+      showConfirmButton: false,
+      showCloseButton: true,
+      background: 'rgba(255, 255, 255, 0.9)',
+      backdrop: `
+          rgba(0,0,0,0.4)
+          url("/path/to/your/custom-loader.gif") // Si tienes un loader personalizado
+          left top
+          no-repeat
+      `
+  });
+}
+

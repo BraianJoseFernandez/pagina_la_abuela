@@ -1,30 +1,42 @@
 <section id="empanadas" class="menu-category">
     <div class="text-center mb-12">
         <div class="category-icon">
-            <i class="fas fa-cookie-bite"></i>
+            <i class="fas fa-bacon"></i>
         </div>
         <h2 class="text-5xl font-bold section-title mb-4">
-            Sandwichs
+            Sandwich
         </h2>
         <p class="text-gray-600 text-lg">
         </p>
     </div>
 
+    <div class="relative w-full max-w-2xl mx-auto overflow-hidden rounded-3xl shadow-2xl glass-card p-4 mb-12">
+        <div id="pizza-carousel" class="flex overflow-x-auto snap-x snap-mandatory pb-4 justify-center"
+            style="-webkit-overflow-scrolling: touch;">
+            <img src="/imagenes/sandwiches/IMG-20250725-WA0023.jpg"
+                alt='Promo de sandwich'
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/sandwiches/2.jpg" alt="Sandwich de pollo especial"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+        </div>
+    </div>
+
     <div class="space-y-6">
+        <p class="text-gray-600 text-3xl">Pan flauta (Milanesa de Carne o Pollo)
+        </p>
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=120&h=120&fit=crop&crop=center"
-                    alt="Empanada de Carne"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-2xl font-bold text-gray-800">
-                            Empanada de Carne
+                            Común
                         </h3>
-                        <span class="price-tag text-xl ml-4">$650</span>
+                        <span class="price-tag text-xl ml-4">$6.500</span>
                     </div>
                     <p class="text-gray-600 leading-relaxed">
-                        Carne picada, cebolla, huevo duro y aceitunas
+                        Pan Flauta, milanesa, mayonesa, lechuga, tomate.
                     </p>
                 </div>
             </div>
@@ -32,18 +44,80 @@
 
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=120&h=120&fit=crop&crop=center"
-                    alt="Empanada Pollo"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-2xl font-bold text-gray-800">
-                            Empanada de Pollo
+                            Especial
                         </h3>
-                        <span class="price-tag text-xl ml-4">$650</span>
+                        <span class="price-tag text-xl ml-4">$7.500</span>
                     </div>
                     <p class="text-gray-600 leading-relaxed">
-                        Pollo desmenuzado con verduras salteadas
+                        Pan Flauta, milanesa, mayonesa, lechuga, tomate, jamón, queso, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            Promo
+                        </h3>
+                        <span class="price-tag text-xl ml-4">$8.000</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Pan Flauta, milanesa, mayonesa, lechuga, tomate, jamón, queso, huevo, guarnición de papas fritas.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-gray-600 text-3xl">Pan figaza (Milanesa de Carne o Pollo)
+        </p>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            Común
+                        </h3>
+                        <span class="price-tag text-xl ml-4">$7.000</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Pan figaza, milanesa, mayonesa, lechuga, tomate.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            Especial
+                        </h3>
+                        <span class="price-tag text-xl ml-4">$8.000</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Pan figaza, milanesa, mayonesa, lechuga, tomate, jamón, queso, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            Promo
+                        </h3>
+                        <span class="price-tag text-xl ml-4">$9.000</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Pan figaza, milanesa, mayonesa, lechuga, tomate, jamón, queso, huevo, guarnición de papas fritas.
                     </p>
                 </div>
             </div>

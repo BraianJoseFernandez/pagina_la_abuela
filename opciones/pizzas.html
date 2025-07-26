@@ -1,341 +1,345 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu de Pizzas</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* CSS necesario para que funcionen los precios */
-        .price-tag {
-            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-    </style>
-</head>
-<body class="bg-gray-100 p-8">
-
-<section id="pizzas" class="menu-category max-w-4xl mx-auto">
-  <div class="text-center mb-12">
-    <div class="category-icon">
-      <i class="fas fa-pizza-slice"></i>
-    </div>
-    <h2 class="text-5xl font-bold section-title mb-4">Pizzas</h2>
-    <p class="text-gray-600 text-lg"></p>
-  </div>
-
-  <div class="space-y-6">
-    <!-- PIZZA 1: Muzzarella -->
-    <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-      <div class="flex items-center p-6">
-        <img
-          src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=120&h=120&fit=crop&crop=center"
-          alt="Pizza Margherita"
-          class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0"
-        />
-        <div class="flex-grow">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="text-2xl font-bold text-gray-800">Pizza Muzzarella</h3>
-            <div class="flex flex-col items-end ml-4 space-y-2">
-              <div class="flex items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style="margin-right: 4px"
-                >
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                    fill="#f59e42"
-                  />
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                    stroke="#b45309"
-                    stroke-width="2"
-                  />
-                  <path
-                    d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20V4Z"
-                    fill="#fffde4"
-                  />
-                  <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                  <circle cx="7" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="10" cy="17" r="1" fill="#e53e3e" />
-                </svg>
-                <span class="price-tag text-xl">$4.000</span>
-              </div>
-              <div class="flex items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="#f59e42"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style="margin-right: 4px"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="#b45309"
-                    stroke-width="2"
-                    fill="#f59e42"
-                  />
-                  <circle cx="12" cy="12" r="7" fill="#fffde4" />
-                  <circle cx="15" cy="10" r="1" fill="#e53e3e" />
-                  <circle cx="9" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="12" cy="16" r="1" fill="#e53e3e" />
-                  <circle cx="16" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                </svg>
-                <span class="price-tag text-xl">$8.000</span>
-              </div>
-            </div>
-          </div>
-          <p class="text-gray-600 leading-relaxed">
-            Muzzarella, salsa de tomate, orégano.
-          </p>
+<section id="pizzas" class="menu-category">
+    <div class="text-center mb-12">
+        <div class="category-icon">
+            <i class="fas fa-pizza-slice"></i>
         </div>
-      </div>
+        <h2 class="text-5xl font-bold section-title mb-4">
+            Pizzas
+        </h2>
     </div>
 
-    <!-- PIZZA 2: Humita -->
-    <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-      <div class="flex items-center p-6">
-        <img
-          src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=120&h=120&fit=crop&crop=center"
-          alt="Pizza Humita"
-          class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0"
-        />
-        <div class="flex-grow">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="text-2xl font-bold text-gray-800">Pizza Especial</h3>
-            <div class="flex flex-col items-end ml-4 space-y-2">
-              <div class="flex items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style="margin-right: 4px"
-                >
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                    fill="#f59e42"
-                  />
-                  <path
-                    d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                    stroke="#b45309"
-                    stroke-width="2"
-                  />
-                  <path
-                    d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20V4Z"
-                    fill="#fffde4"
-                  />
-                  <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                  <circle cx="7" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="10" cy="17" r="1" fill="#e53e3e" />
-                </svg>
-                <span class="price-tag text-xl">$4.800</span>
-              </div>
-              <div class="flex items-center">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="#f59e42"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style="margin-right: 4px"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="#b45309"
-                    stroke-width="2"
-                    fill="#f59e42"
-                  />
-                  <circle cx="12" cy="12" r="7" fill="#fffde4" />
-                  <circle cx="15" cy="10" r="1" fill="#e53e3e" />
-                  <circle cx="9" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="12" cy="16" r="1" fill="#e53e3e" />
-                  <circle cx="16" cy="14" r="1" fill="#e53e3e" />
-                  <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                </svg>
-                <span class="price-tag text-xl">$8.500</span>
-              </div>
-            </div>
-          </div>
-          <p class="text-gray-600 leading-relaxed">
-            Muzzarella, salsa de tomate, jamón, huevo, orégano.
-          </p>
+    <div class="relative w-full max-w-2xl mx-auto overflow-hidden rounded-3xl shadow-2xl glass-card p-4 mb-12">
+        <div id="pizza-carousel" class="flex overflow-x-auto snap-x snap-mandatory pb-4"
+            style="-webkit-overflow-scrolling: touch;">
+            <img src="/imagenes/pizzas/IMG-20250725-WA0008.jpg" alt="Pizza Napolitana"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/pizzas/IMG-20250725-WA0021.jpg" alt="Pizza Morrón"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/pizzas/IMG-20250725-WA0022.jpg" alt="Pizza La Abuela"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/pizzas/IMG-20250725-WA0025.jpg" alt="Pizza Rucula y La Abuela"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer snap-center"
+                onclick="showPizzaSweetAlert(this)">
         </div>
-      </div>
     </div>
 
-    <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-        <div class="flex items-center p-6">
-          <img
-            src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=120&h=120&fit=crop&crop=center"
-            alt="Pizza Napolitana"
-            class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0"
-          />
-          <div class="flex-grow">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="text-2xl font-bold text-gray-800">Pizza Napolitana</h3>
-              <div class="flex flex-col items-end ml-4 space-y-2">
-                <div class="flex items-center">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style="margin-right: 4px"
-                  >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                      fill="#f59e42"
-                    />
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                      stroke="#b45309"
-                      stroke-width="2"
-                    />
-                    <path
-                      d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20V4Z"
-                      fill="#fffde4"
-                    />
-                    <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                    <circle cx="7" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="10" cy="17" r="1" fill="#e53e3e" />
-                  </svg>
-                  <span class="price-tag text-xl">$4.800</span>
+    <div class="space-y-6 ">
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Muzzarella
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4000</span>
+                            <span class="price-tag text-xl">Entera $8000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, orégano.
+                    </p>
                 </div>
-                <div class="flex items-center">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="#f59e42"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style="margin-right: 4px"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="#b45309"
-                      stroke-width="2"
-                      fill="#f59e42"
-                    />
-                    <circle cx="12" cy="12" r="7" fill="#fffde4" />
-                    <circle cx="15" cy="10" r="1" fill="#e53e3e" />
-                    <circle cx="9" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="12" cy="16" r="1" fill="#e53e3e" />
-                    <circle cx="16" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                  </svg>
-                  <span class="price-tag text-xl">$8.500</span>
-                </div>
-              </div>
             </div>
-            <p class="text-gray-600 leading-relaxed">
-              Muzzarella, salsa de tomate, ajo, peregil, rodajas de tomate, orégano.
-            </p>
-          </div>
         </div>
-      </div>
 
-      <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-        <div class="flex items-center p-6">
-          <img
-            src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=120&h=120&fit=crop&crop=center"
-            alt="Pizza Fugazzeta"
-            class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0"
-          />
-          <div class="flex-grow">
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="text-2xl font-bold text-gray-800">Pizza Fugazzeta</h3>
-              <div class="flex flex-col items-end ml-4 space-y-2">
-                <div class="flex items-center">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style="margin-right: 4px"
-                  >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                      fill="#f59e42"
-                    />
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22V2Z"
-                      stroke="#b45309"
-                      stroke-width="2"
-                    />
-                    <path
-                      d="M12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20V4Z"
-                      fill="#fffde4"
-                    />
-                    <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                    <circle cx="7" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="10" cy="17" r="1" fill="#e53e3e" />
-                  </svg>
-                  <span class="price-tag text-xl">$4.500</span>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Especial
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4800</span>
+                            <span class="price-tag text-xl">Entera $8500</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, jamón, huevo, orégano.
+                    </p>
                 </div>
-                <div class="flex items-center">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="#f59e42"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style="margin-right: 4px"
-                  >
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="#b45309"
-                      stroke-width="2"
-                      fill="#f59e42"
-                    />
-                    <circle cx="12" cy="12" r="7" fill="#fffde4" />
-                    <circle cx="15" cy="10" r="1" fill="#e53e3e" />
-                    <circle cx="9" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="12" cy="16" r="1" fill="#e53e3e" />
-                    <circle cx="16" cy="14" r="1" fill="#e53e3e" />
-                    <circle cx="8" cy="10" r="1" fill="#e53e3e" />
-                  </svg>
-                  <span class="price-tag text-xl">$9.000</span>
-                </div>
-              </div>
             </div>
-            <p class="text-gray-600 leading-relaxed">
-              Muzzarella, salsa de tomate, cebolla, orégano.
-            </p>
-          </div>
         </div>
-      </div>
 
-  </div>
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Napolitana
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4800</span>
+                            <span class="price-tag text-xl">Entera $8500</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, ajo, perejil, rodajas de tomate, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Fugazzeta
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4500</span>
+                            <span class="price-tag text-xl">Entera $9000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, cebolla, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Calabresa
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $5500</span>
+                            <span class="price-tag text-xl">Entera $11000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, calabresa, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Gallega
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $5000</span>
+                            <span class="price-tag text-xl">Entera $10000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, carne, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Humita
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4800</span>
+                            <span class="price-tag text-xl">Entera $8500</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, choclo, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Morrón
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4500</span>
+                            <span class="price-tag text-xl">Entera $9000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, jamón, morrón, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza a Caballo
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $4500</span>
+                            <span class="price-tag text-xl">Entera $9000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, huevos fritos, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Roquefort
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $5500</span>
+                            <span class="price-tag text-xl">Entera $11000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, roquefort, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Sardina
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $5000</span>
+                            <span class="price-tag text-xl">Entera $10000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, sardinas, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza La Abuela ⭐
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $6500</span>
+                            <span class="price-tag text-xl">Entera $13000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, jamón, huevo, rodajas de tomate, morrón, aceitunas, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Palmitos
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $6000</span>
+                            <span class="price-tag text-xl">Entera $12000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, palmitos, salsa golf, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Rúcula
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $6500</span>
+                            <span class="price-tag text-xl">Entera $13000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, jamón crudo, rúcula, aceitunas negras, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between mb-2">
+                        <div class="items-start">
+                            <h3 class="text-2xl font-bold text-gray-800">
+                                Pizza Champiñones
+                            </h3>
+                        </div>
+                        <div class="items-end">
+                            <span class="price-tag text-xl">Media $6500</span>
+                            <span class="price-tag text-xl">Entera $13000</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Muzzarella, salsa de tomate, champiñones, aceitunas, orégano.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
-
-</body>
-</html>

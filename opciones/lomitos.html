@@ -1,7 +1,7 @@
 <section id="lomitos" class="menu-category">
     <div class="text-center mb-12">
         <div class="category-icon">
-            <i class="fas fa-bread-slice"></i>
+            <i class="fas fa-hotdog"></i>
         </div>
         <h2 class="text-5xl font-bold section-title mb-4">
             Lomitos
@@ -9,44 +9,53 @@
         <p class="text-gray-600 text-lg">
         </p>
     </div>
+
+   
+    <div class="relative w-full max-w-2xl mx-auto overflow-hidden rounded-3xl shadow-2xl glass-card p-4 mb-12">
+        <div id="pizza-carousel" class="flex overflow-x-auto snap-x snap-mandatory pb-4 justify-center"
+            style="-webkit-overflow-scrolling: touch;">
+            <img src="/imagenes/lomitos/lomito_especial.jpg"
+                alt='Lomito Especial'
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/lomitos/lomito_completo.jpg" alt="Lomito Completo"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+        </div>
+    </div>
+    
+
     <div class="space-y-6">
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1519864600265-abb23847ef2c?w=120&h=120&fit=crop&crop=center"
-                    alt="Lomito clásico"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Lomito clásico</h3>
-                        <span class="price-tag text-xl ml-4">$7.800</span>
+                        <h3 class="text-2xl font-bold text-gray-800">Lomito Común</h3>
+                        <span class="price-tag text-xl ml-4">$8.000</span>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Carne, jamón, queso, lechuga, tomate y huevo</p>
+                    <p class="text-gray-600 leading-relaxed">Pan Flauta, carne de lomo, mayonesa, lechuga, tomate, queso.</p>
                 </div>
             </div>
         </div>
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=120&h=120&fit=crop&crop=center"
-                    alt="Lomito Especial" class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-2xl font-bold text-gray-800">Lomito Especial</h3>
-                        <span class="price-tag text-xl ml-4">$9.500</span>
+                        <span class="price-tag text-xl ml-4">$9.000</span>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Carne, jamón, queso, panceta, huevo frito, morrón y salsa de la casa</p>
+                    <p class="text-gray-600 leading-relaxed">Pan Flauta, carne de lomo, mayonesa, lechuga, tomate, queso, jamón, huevo.</p>
                 </div>
             </div>
         </div>
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1546069901-dcd1301e5eee?w=120&h=120&fit=crop&crop=center"
-                    alt="Lomito de Pollo" class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Lomito de Pollo</h3>
-                        <span class="price-tag text-xl ml-4">$8.200</span>
+                        <h3 class="text-2xl font-bold text-gray-800">Lomito Completo</h3>
+                        <span class="price-tag text-xl ml-4">$10.000</span>
                     </div>
-                    <p class="text-gray-600 leading-relaxed">Pechuga de pollo grillada, queso, lechuga, tomate y mayonesa casera</p>
+                    <p class="text-gray-600 leading-relaxed">Pan Flauta, carne de lomo, mayonesa, lechuga, tomate, queso, jamón, huevo, cebolla rehogada, morrón.</p>
                 </div>
             </div>
         </div>

@@ -10,75 +10,126 @@
         </p>
     </div>
 
+
+    <div class="relative w-full max-w-2xl mx-auto overflow-hidden rounded-3xl shadow-2xl glass-card p-4 mb-12">
+        <div id="pizza-carousel" class="flex overflow-x-auto snap-x snap-mandatory pb-4"
+            style="-webkit-overflow-scrolling: touch;">
+            <img src="/imagenes/hamburgesas/1.jpg"
+                alt='Hamburguesa "La Bomba"'
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/hamburgesas/3.jpg" alt="Hamburguesa Especial"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/hamburgesas/2.jpg" alt='Hamburguesa "La Abuela"'
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer mr-4 snap-center"
+                onclick="showPizzaSweetAlert(this)">
+            <img src="/imagenes/hamburgesas/4.jpg" alt="Hamburguesa Gratinada"
+                class="flex-none w-40 h-40 object-cover rounded-full shadow-xl cursor-pointer snap-center"
+                onclick="showPizzaSweetAlert(this)">
+        </div>
+    </div>
+
     <div class="space-y-6">
         <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
             <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=120&h=120&fit=crop&crop=center"
-                    alt="Hamburguesa Clásica"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
                 <div class="flex-grow">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-2xl font-bold text-gray-800">
-                            Clásica de la Abuela
+                            Común
                         </h3>
+                        <span class="price-tag text-xl ml-4">$4.500</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Medallón de carne, mayonesa, lechuga, tomate, queso.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">
+                            Especial
+                        </h3>
+                        <span class="price-tag text-xl ml-4">$5.000</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Medallón de carne, mayonesa, lechuga, tomate, queso, jamón, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">Super</h3>
+                        <span class="price-tag text-xl ml-4">$5.800</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Medallón de carne, mayonesa, lechuga, tomate, queso, jamón, choclo, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">La Abuela ⭐</h3>
+                        <span class="price-tag text-xl ml-4">$5.800</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Medallón de carne, mayonesa, lechuga, tomate, queso, jamón, cebolla rehogada, morrón, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">Doble</h3>
+                        <span class="price-tag text-xl ml-4">$6.300</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Doble medallón de carne, mayonesa, lechuga, tomate, huevo doble, doble queso, doble jamón.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">Gratinada</h3>
+                        <span class="price-tag text-xl ml-4">$6.500</span>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed">
+                        Medallón de carne, mayonesa, lechuga, tomate, queso, jamón, huevo.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
+            <div class="flex items-center p-6">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-2xl font-bold text-gray-800">La bomba</h3>
                         <span class="price-tag text-xl ml-4">$7.500</span>
                     </div>
                     <p class="text-gray-600 leading-relaxed">
-                        Medallón de carne 200g, lechuga, tomate, cebolla y salsa
-                        especial. Con papas.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-            <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=120&h=120&fit=crop&crop=center"
-                    alt="Bacon Cheese"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
-                <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">
-                            Bacon Cheese
-                        </h3>
-                        <span class="price-tag text-xl ml-4">$9.200</span>
-                    </div>
-                    <p class="text-gray-600 leading-relaxed">
-                        Doble cheddar, bacon crocante, cebolla caramelizada. Con papas.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-            <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1586816001966-79b736744398?w=120&h=120&fit=crop&crop=center"
-                    alt="BBQ Crispy"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
-                <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">BBQ Crispy</h3>
-                        <span class="price-tag text-xl ml-4">$8.800</span>
-                    </div>
-                    <p class="text-gray-600 leading-relaxed">
-                        Salsa BBQ, aros de cebolla, queso y panceta ahumada. Con papas.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="menu-card glass-card rounded-2xl shadow-xl overflow-hidden relative">
-            <div class="flex items-center p-6">
-                <img src="https://images.unsplash.com/photo-1550547660-d945037d2642?w=120&h=120&fit=crop&crop=center"
-                    alt="Hamburguesa Veggie"
-                    class="w-24 h-24 object-cover rounded-full border-4 border-black mr-6 flex-shrink-0" />
-                <div class="flex-grow">
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-2xl font-bold text-gray-800">Veggie Burger</h3>
-                        <span class="price-tag text-xl ml-4">$7.000</span>
-                    </div>
-                    <p class="text-gray-600 leading-relaxed">
-                        Medallón de lentejas, lechuga, tomate, palta y mayonesa vegana. Con papas.
+                        Doble medallón de carne, salsa barbacoa, lechuga, tomate, huevo, doble queso, doble jamón, choclo, Gratinado.
                     </p>
                 </div>
             </div>
