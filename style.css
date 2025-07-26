@@ -100,6 +100,9 @@ body {
   animation: jumpAndSpin 2s infinite ease-in-out;
   transform-origin: 50% 100%; /* Punto de origen para el "salto" */
 }
+.instagram-icon-animated {
+  animation: Spin 2s infinite ease-in-out;
+}
 
 @keyframes jumpAndSpin {
   0% {
@@ -119,6 +122,23 @@ body {
   }
 }
 
+@keyframes Spin {
+  0% {
+      transform: rotateY(0deg);
+  }
+  25% {
+      transform:  rotateY(90deg); /* Salta y gira 90 grados */
+  }
+  50% {
+      transform: rotateY(180deg); /* Baja y gira 180 grados */
+  }
+  75% {
+      transform:  rotateY(270deg); /* Salta y gira 270 grados */
+  }
+  100% {
+      transform: rotateY(360deg); /* Baja y completa la vuelta */
+  }
+}
 
 /* Fixed Menu */
 .menu-fixed {
