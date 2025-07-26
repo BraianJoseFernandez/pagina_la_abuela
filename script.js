@@ -31,7 +31,7 @@ function showCategory(filename) {
         })
         .catch(error => {
             console.error('Error al cargar la categoría:', error);
-            document.getElementById('menu-sections-container').innerHTML = `<p class="text-red-500 text-center text-xl">Error al cargar el contenido de la categoría: ${error}. Por favor, verifica que el archivo ${filename} exista en la carpeta 'opciones/'.</p>`;
+            document.getElementById('menu-sections-container').innerHTML = `<p class="text-red-500 text-center text-xl">No contamos con ese menú actualmente.</p>`;
         });
 }
 
