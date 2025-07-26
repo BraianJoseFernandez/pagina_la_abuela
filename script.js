@@ -79,7 +79,7 @@ window.addEventListener('resize', () => {
 
 // Carga la primera categoría por defecto al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    showCategory('ensaladas.html'); // Asegúrate de cargar pizzas.html
+    showCategory('pizzas.html'); // Asegúrate de cargar pizzas.html
 });
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza
