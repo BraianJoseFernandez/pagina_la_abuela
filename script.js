@@ -79,7 +79,11 @@ window.addEventListener('resize', () => {
 
 // Carga la primera categoría por defecto al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
-    showCategory('pizzas.html'); // Asegúrate de cargar pizzas.html
+    // No se carga ninguna categoría por defecto para que el usuario elija.
+
+    // Scroll a la sección de categorías después de una breve demora para que se vean las animaciones del header
+    const categoriesSection = document.querySelector('.menu-categories-wrapper');
+    
 });
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza
@@ -101,4 +105,3 @@ function showPizzaSweetAlert(imageElement) {
       `
   });
 }
-
