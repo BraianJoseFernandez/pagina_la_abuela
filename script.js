@@ -122,40 +122,76 @@ window.addEventListener('load', () => {
     });
 });
 
+function resetBalloon(balloon) {
+    if (balloon.parentElement) {
+        balloon.remove();
+    }
+    // Resetea los estilos en línea y la clase para el próximo uso
+    balloon.style.cssText = '';
+    balloon.className = 'rising-balloon';
+    balloonPool.push(balloon);
+}
+
 function createRisingBalloon() {
-    // Reutiliza un globo del pool en lugar de crear uno nuevo
     const balloon = balloonPool.pop();
-    if (!balloon) return; // Si el pool está vacío, espera a que se devuelva uno
+    if (!balloon) return;
+
     const colors = ['#fde047', '#38bdf8', '#4ade80', '#a78bfa', '#ffffff', '#fb923c', '#22d3ee'];
-
-    // --- FIX DEFINITIVO PARA EL PARPADEO (TELETRANSPORTE) ---
-    // Se elimina la animación momentáneamente para que el navegador "olvide"
-    // la posición final del globo y no cause un salto visual al reutilizarlo.
-    // El doble requestAnimationFrame asegura que el reseteo ocurra después del siguiente ciclo de pintado.
-    balloon.style.animationName = 'none';
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => { balloon.style.animationName = '' });
-    });
-
     const size = Math.random() * 30 + 40; // Tamaño entre 40px y 70px
     const color = colors[Math.floor(Math.random() * colors.length)];
     const duration = Math.random() * 5 + 6; // Duración entre 6s y 11s
 
-    // Asignar valores a las variables CSS para un renderizado más eficiente
     balloon.style.setProperty('--balloon-size', `${size}px`);
     balloon.style.setProperty('--balloon-color', color);
     balloon.style.setProperty('--balloon-duration', `${duration}s`);
     balloon.style.setProperty('--balloon-left', `${Math.random() * 95}%`);
-    
+
     document.body.appendChild(balloon);
 
-    // Limpiar el globo del DOM después de que termine la animación
-    balloon.addEventListener('animationend', () => {
-        if (balloon.parentElement) {
-            balloon.remove();
-        }
-        balloonPool.push(balloon); // Devuelve el globo al pool para ser reutilizado
-    }, { once: true });
+    const popHandler = () => {
+        // Limpia el otro listener para evitar conflictos
+        balloon.removeEventListener('animationend', endHandler);
+
+        // --- Confeti al reventar el globo ---
+        const rect = balloon.getBoundingClientRect();
+        const origin = {
+            x: (rect.left + rect.width / 2) / window.innerWidth,
+            y: (rect.top + rect.height / 2) / window.innerHeight
+        };
+        confetti({
+            origin: origin,
+            particleCount: 50, // Una explosión más pequeña
+            spread: 40,
+            startVelocity: 25,
+            gravity: 0.8,
+            colors: ['#fde047', '#38bdf8', '#4ade80', '#a78bfa', '#ffffff']
+        });
+
+        // Captura el estado actual del globo
+        const currentTransform = getComputedStyle(balloon).transform;
+
+        // Detiene la animación CSS y congela el globo en su posición
+        balloon.style.animation = 'none';
+        balloon.style.transform = currentTransform;
+
+        // Aplica la animación de "reventar"
+        requestAnimationFrame(() => {
+            balloon.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+            balloon.style.transform = `${currentTransform} scale(1.5)`;
+            balloon.style.opacity = '0';
+        });
+
+        // Después de la animación, resetea y devuelve el globo al pool
+        setTimeout(() => resetBalloon(balloon), 250);
+    };
+
+    const endHandler = () => {
+        balloon.removeEventListener('click', popHandler);
+        resetBalloon(balloon);
+    };
+
+    balloon.addEventListener('click', popHandler, { once: true });
+    balloon.addEventListener('animationend', endHandler, { once: true });
 }
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza

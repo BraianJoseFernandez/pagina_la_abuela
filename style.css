@@ -179,7 +179,7 @@ body {
   opacity: 1; /* Colores completamente sólidos */
   animation: rise-up ease-in forwards; /* Animación que sube y desaparece */
   transform-origin: bottom center;
-  pointer-events: none;
+  cursor: pointer;
   z-index: 45; /* Por delante del contenido (z-20) pero debajo del menú fijo (z-50) */
   filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); /* Sombra para dar profundidad */
 
