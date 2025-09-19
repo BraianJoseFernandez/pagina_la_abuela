@@ -229,23 +229,6 @@ body {
   }
 }
 
-/* Fixed Menu */
-.menu-fixed {
-  position: sticky;
-  top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 50;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  /* Añade las siguientes propiedades para la transición de ocultar/mostrar */
-  transform: translateY(0); /* Estado inicial visible */
-  transition: transform 0.3s ease-out; /* Transición suave */
-}
-
-.menu-fixed.hidden-on-scroll {
-  transform: translateY(-100%); /* Desplaza el menú hacia arriba fuera de la vista */
-}
-
 .category-btn {
   transition: all 0.3s ease;
   background-color: #f3e8ff;

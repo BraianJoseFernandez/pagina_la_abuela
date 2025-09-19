@@ -84,42 +84,6 @@ window.addEventListener('load', () => {
     // ¡Globos flotando para el aniversario!
     setInterval(createRisingBalloon, 800);
 
-    window.addEventListener('scroll', () => {
-        let currentScrollY = window.scrollY;
-    
-        // Determina si estamos en una vista móvil (menos de 768px de ancho)
-        const isMobileView = window.innerWidth < 768; // Coincide con el breakpoint 'md' de Tailwind
-    
-        if (currentScrollY > heroHeight) {
-            // Cuando se ha pasado el header
-            menuWrapper.classList.add('menu-fixed'); // Hace el menú pegajoso
-    
-            if (isMobileView) {
-                // Lógica para ocultar/mostrar en móvil
-                if (currentScrollY > lastScrollY) {
-                    // Bajando: oculta el menú
-                    menuWrapper.classList.add('hidden-on-scroll');
-                } else {
-                    // Subiendo: muestra el menú
-                    menuWrapper.classList.remove('hidden-on-scroll');
-                }
-            } else {
-                // Si no es vista móvil, asegúrate de que el menú no esté oculto por el scroll
-                menuWrapper.classList.remove('hidden-on-scroll');
-            }
-        } else {
-            // Cuando estamos dentro del área del header hero, no se oculta y se quitan estilos de scroll
-            menuWrapper.classList.remove('menu-fixed', 'hidden-on-scroll');
-        }
-        lastScrollY = currentScrollY;
-    });
-    
-    // Asegurarse de que el menú se muestre si se cambia el tamaño de la ventana a escritorio
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) { // Si es vista de escritorio
-            menuWrapper.classList.remove('hidden-on-scroll');
-        }
-    });
 });
 
 function resetBalloon(balloon) {
