@@ -145,6 +145,7 @@ function createRisingBalloon() {
     balloon.style.setProperty('--balloon-color', color);
     balloon.style.setProperty('--balloon-duration', `${duration}s`);
     balloon.style.setProperty('--balloon-left', `${Math.random() * 95}%`);
+    
 
     document.body.appendChild(balloon);
 
