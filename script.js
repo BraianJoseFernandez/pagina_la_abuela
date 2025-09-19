@@ -42,11 +42,22 @@ let confettiOrigin = { x: 0, y: 0 };
 const confettiPool = [];
 const MAX_CONFETTI_PARTICLES = 200; // Un poco más de los 150 que se usan
 
+const balloonPool = [];
+const MAX_BALLOON_PARTICLES = 20; // Un número seguro para los globos en pantalla
+
 function initializeConfettiPool() {
     for (let i = 0; i < MAX_CONFETTI_PARTICLES; i++) {
         const particle = document.createElement('div');
         particle.classList.add('explosion-particle');
         confettiPool.push(particle);
+    }
+}
+
+function initializeBalloonPool() {
+    for (let i = 0; i < MAX_BALLOON_PARTICLES; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'rising-balloon';
+        balloonPool.push(balloon);
     }
 }
 
@@ -61,12 +72,13 @@ window.addEventListener('load', () => {
     const logo = document.getElementById('logo');
     if (logo) {
         const logoRect = logo.getBoundingClientRect();
-        confettiOrigin.x = logoRect.left + logoRect.width / 2 + window.scrollX;
-        confettiOrigin.y = logoRect.top + logoRect.height / 2 + window.scrollY;
+        confettiOrigin.x = logoRect.left + logoRect.width / 2;
+        confettiOrigin.y = logoRect.top + logoRect.height / 2 - 20; // Ajustado 20px hacia arriba para centrar visualmente
     }
 
     // Pre-crea los divs del confeti para reutilizarlos
     initializeConfettiPool();
+    initializeBalloonPool();
 
     // Iniciar las animaciones de aniversario DESPUÉS de calcular la posición del logo.
     // ¡Explosión de confeti para el aniversario!
@@ -119,75 +131,43 @@ function createConfettiExplosion() {
     const originY = confettiOrigin.y;
     const particleCount = 150;
     const colors = ['#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ec4899', '#f97316', '#8b5cf6'];
-    const batchSize = 30; // Lanza los confetis en lotes para no bloquear la página
-    let particlesLaunched = 0;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = confettiPool.pop();
+        if (!particle) continue;
 
-    function launchParticleBatch() {
-        const limit = Math.min(particlesLaunched + batchSize, particleCount);
+        const angle = Math.random() * Math.PI * 2;
+        const spread = Math.random() * 250 + 150; // Distancia que viaja
+        const endX = Math.cos(angle) * spread;
+        const endY = Math.sin(angle) * spread + 300; // Efecto de gravedad
+        const rotation = Math.random() * 720 + 360;
+        const duration = Math.random() * 2 + 2.5; // Duración de 2.5 a 4.5 segundos
 
-        for (let i = particlesLaunched; i < limit; i++) {
-            const particle = confettiPool.pop();
-            if (!particle) continue;
+        particle.style.setProperty('--start-x', `${originX}px`);
+        particle.style.setProperty('--start-y', `${originY}px`);
+        particle.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
+        particle.style.setProperty('--confetti-duration', `${duration}s`);
+        particle.style.setProperty('--confetti-transform-end', `translate(${endX}px, ${endY}px) rotateZ(${rotation}deg)`);
+        
+        document.body.appendChild(particle);
 
-            document.body.appendChild(particle);
-
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.backgroundColor = color;
-            particle.style.left = `${originX}px`;
-            particle.style.top = `${originY}px`;
-            particle.style.opacity = '1';
-            particle.style.display = 'block';
-
-            const angle = Math.random() * Math.PI * 2;
-            const velocity = Math.random() * 8 + 4;
-            let vx = Math.cos(angle) * velocity;
-            let vy = Math.sin(angle) * velocity;
-            const gravity = 0.1;
-            const friction = 0.98;
-            let rotation = Math.random() * 360;
-            const rotationSpeed = Math.random() * 20 - 10;
-
-            let currentX = originX;
-            let currentY = originY;
-            let life = 120;
-
-            function animateParticle() {
-                if (life <= 0) {
-                    if (particle.parentElement) particle.remove();
-                    confettiPool.push(particle);
-                    return;
-                }
-
-                currentX += vx;
-                currentY += vy;
-                vy += gravity;
-                vx *= friction;
-                vy *= friction;
-                rotation += rotationSpeed;
-                life--;
-
-                particle.style.transform = `translate(${currentX - originX}px, ${currentY - originY}px) rotate(${rotation}deg)`;
-                particle.style.opacity = life / 120;
-
-                requestAnimationFrame(animateParticle);
+        particle.addEventListener('animationend', () => {
+            if (particle.parentElement) {
+                particle.remove();
             }
-            requestAnimationFrame(animateParticle);
-        }
-
-        particlesLaunched = limit;
-
-        if (particlesLaunched < particleCount) {
-            requestAnimationFrame(launchParticleBatch);
-        }
+            // Limpiar estilos antes de devolver al pool
+            particle.style.cssText = '';
+            particle.classList.add('explosion-particle');
+            confettiPool.push(particle);
+        }, { once: true });
     }
-
-    launchParticleBatch();
 }
 
 function createRisingBalloon() {
+    // Reutiliza un globo del pool en lugar de crear uno nuevo
+    const balloon = balloonPool.pop();
+    if (!balloon) return; // Si el pool está vacío, espera a que se devuelva uno
     const colors = ['#fde047', '#38bdf8', '#4ade80', '#a78bfa', '#ffffff', '#fb923c', '#22d3ee'];
-    const balloon = document.createElement('div');
-    balloon.className = 'rising-balloon';
 
     const size = Math.random() * 30 + 40; // Tamaño entre 40px y 70px
     const color = colors[Math.floor(Math.random() * colors.length)];
@@ -203,8 +183,11 @@ function createRisingBalloon() {
 
     // Limpiar el globo del DOM después de que termine la animación
     balloon.addEventListener('animationend', () => {
-        balloon.remove();
-    });
+        if (balloon.parentElement) {
+            balloon.remove();
+        }
+        balloonPool.push(balloon); // Devuelve el globo al pool para ser reutilizado
+    }, { once: true });
 }
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza

@@ -180,6 +180,24 @@ body {
     border-radius: 4px;
     pointer-events: none;
     z-index: 100;
+    /* Nueva animación CSS */
+    animation: confetti-explosion-fall linear forwards;
+    /* Las variables serán asignadas por JavaScript */
+    left: var(--start-x);
+    top: var(--start-y);
+    background-color: var(--confetti-color);
+    animation-duration: var(--confetti-duration);
+}
+
+@keyframes confetti-explosion-fall {
+  0% {
+    transform: translate(0, 0) rotateZ(0);
+    opacity: 1;
+  }
+  100% {
+    transform: var(--confetti-transform-end);
+    opacity: 0;
+  }
 }
 
 /* Balloons */
