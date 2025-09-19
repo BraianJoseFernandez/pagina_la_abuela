@@ -119,11 +119,15 @@ function createConfettiExplosion() {
     const originY = confettiOrigin.y;
     const particleCount = 150;
     const colors = ['#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ec4899', '#f97316', '#8b5cf6'];
+    let particlesLaunched = 0;
 
-    for (let i = 0; i < particleCount; i++) {
-        // Reutiliza una partícula del pool en lugar de crear una nueva
+    function launchSingleParticle() {
+        if (particlesLaunched >= particleCount) return;
+
+        particlesLaunched++;
+
         const particle = confettiPool.pop();
-        if (!particle) continue; // Si el pool está vacío, no hace nada
+        if (!particle) return; 
 
         document.body.appendChild(particle);
 
@@ -135,7 +139,7 @@ function createConfettiExplosion() {
         particle.style.display = 'block';
 
         const angle = Math.random() * Math.PI * 2;
-        const velocity = Math.random() * 8 + 4; // Velocidad inicial
+        const velocity = Math.random() * 8 + 4;
         let vx = Math.cos(angle) * velocity;
         let vy = Math.sin(angle) * velocity;
         const gravity = 0.1;
@@ -145,9 +149,15 @@ function createConfettiExplosion() {
 
         let currentX = originX;
         let currentY = originY;
-        let life = 120; // Frames de vida
+        let life = 120;
 
         function animateParticle() {
+            if (life <= 0) {
+                if (particle.parentElement) particle.remove();
+                confettiPool.push(particle);
+                return;
+            }
+
             currentX += vx;
             currentY += vy;
             vy += gravity;
@@ -159,16 +169,13 @@ function createConfettiExplosion() {
             particle.style.transform = `translate(${currentX - originX}px, ${currentY - originY}px) rotate(${rotation}deg)`;
             particle.style.opacity = life / 120;
 
-            if (life > 0) {
-                requestAnimationFrame(animateParticle);
-            } else {
-                // En lugar de destruir el div, lo devolvemos al pool para reutilizarlo
-                if (particle.parentElement) particle.remove();
-                confettiPool.push(particle);
-            }
+            requestAnimationFrame(animateParticle);
         }
         requestAnimationFrame(animateParticle);
+        requestAnimationFrame(launchSingleParticle);
     }
+
+    launchSingleParticle();
 }
 
 function createRisingBalloon() {
