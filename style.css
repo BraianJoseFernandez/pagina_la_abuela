@@ -182,7 +182,7 @@ body {
     z-index: 100;
 }
 
-/* Balloons inside header */
+/* Balloons */
 .rising-balloon {
   position: fixed;
   bottom: -150px; /* Empezar desde abajo de la pantalla */
@@ -192,19 +192,40 @@ body {
   pointer-events: none;
   z-index: 45; /* Por delante del contenido (z-20) pero debajo del menú fijo (z-50) */
   filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); /* Sombra para dar profundidad */
+
+  /* Usando variables para un rendimiento más fluido */
+  left: var(--balloon-left);
+  animation-duration: var(--balloon-duration);
+  width: var(--balloon-size);
+  height: calc(var(--balloon-size) * 1.2);
+  background-color: var(--balloon-color);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
 }
 
-/* Highlight for realism */
-.balloon-body::before {
+/* Highlight (reflejo) y Knot (nudo) como pseudo-elementos para optimizar */
+.rising-balloon::before {
   content: '';
   position: absolute;
   top: 10%;
   left: 15%;
-  width: 40%;
-  height: 40%;
+  width: 50%;
+  height: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
   border-radius: 50%;
   transform: rotate(45deg);
+}
+
+.rising-balloon::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 calc(var(--balloon-size) / 6) calc(var(--balloon-size) / 5) calc(var(--balloon-size) / 6);
+  border-color: transparent transparent var(--balloon-color) transparent;
+  bottom: calc(-1 * var(--balloon-size) / 5 + 2px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 @keyframes rise-up {

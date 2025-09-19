@@ -38,6 +38,18 @@ function showCategory(filename) {
 // Lógica para el menú fijo y ocultar/mostrar en scroll
 let confettiOrigin = { x: 0, y: 0 };
 
+// --- Optimización de Confeti: Object Pooling ---
+const confettiPool = [];
+const MAX_CONFETTI_PARTICLES = 200; // Un poco más de los 150 que se usan
+
+function initializeConfettiPool() {
+    for (let i = 0; i < MAX_CONFETTI_PARTICLES; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('explosion-particle');
+        confettiPool.push(particle);
+    }
+}
+
 window.addEventListener('load', () => {
     let lastScrollY = window.scrollY;
     const menuWrapper = document.querySelector('.menu-categories-wrapper');
@@ -52,6 +64,9 @@ window.addEventListener('load', () => {
         confettiOrigin.x = logoRect.left + logoRect.width / 2 + window.scrollX;
         confettiOrigin.y = logoRect.top + logoRect.height / 2 + window.scrollY;
     }
+
+    // Pre-crea los divs del confeti para reutilizarlos
+    initializeConfettiPool();
 
     // Iniciar las animaciones de aniversario DESPUÉS de calcular la posición del logo.
     // ¡Explosión de confeti para el aniversario!
@@ -106,14 +121,18 @@ function createConfettiExplosion() {
     const colors = ['#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ec4899', '#f97316', '#8b5cf6'];
 
     for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('explosion-particle');
+        // Reutiliza una partícula del pool en lugar de crear una nueva
+        const particle = confettiPool.pop();
+        if (!particle) continue; // Si el pool está vacío, no hace nada
+
         document.body.appendChild(particle);
 
         const color = colors[Math.floor(Math.random() * colors.length)];
         particle.style.backgroundColor = color;
         particle.style.left = `${originX}px`;
         particle.style.top = `${originY}px`;
+        particle.style.opacity = '1';
+        particle.style.display = 'block';
 
         const angle = Math.random() * Math.PI * 2;
         const velocity = Math.random() * 8 + 4; // Velocidad inicial
@@ -143,7 +162,9 @@ function createConfettiExplosion() {
             if (life > 0) {
                 requestAnimationFrame(animateParticle);
             } else {
-                particle.remove();
+                // En lugar de destruir el div, lo devolvemos al pool para reutilizarlo
+                if (particle.parentElement) particle.remove();
+                confettiPool.push(particle);
             }
         }
         requestAnimationFrame(animateParticle);
