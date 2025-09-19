@@ -155,9 +155,8 @@ function createConfettiExplosion() {
             if (particle.parentElement) {
                 particle.remove();
             }
-            // Limpiar estilos antes de devolver al pool
-            particle.style.cssText = '';
-            particle.classList.add('explosion-particle');
+            // No es necesario limpiar los estilos, ya que se sobreescribirán en el siguiente uso.
+            // Esta optimización evita el parpadeo en otras animaciones.
             confettiPool.push(particle);
         }, { once: true });
     }
