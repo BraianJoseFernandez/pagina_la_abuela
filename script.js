@@ -38,20 +38,8 @@ function showCategory(filename) {
 // Lógica para el menú fijo y ocultar/mostrar en scroll
 let confettiOrigin = { x: 0, y: 0 };
 
-// --- Optimización de Confeti: Object Pooling ---
-const confettiPool = [];
-const MAX_CONFETTI_PARTICLES = 200; // Un poco más de los 150 que se usan
-
 const balloonPool = [];
 const MAX_BALLOON_PARTICLES = 20; // Un número seguro para los globos en pantalla
-
-function initializeConfettiPool() {
-    for (let i = 0; i < MAX_CONFETTI_PARTICLES; i++) {
-        const particle = document.createElement('div');
-        particle.classList.add('explosion-particle');
-        confettiPool.push(particle);
-    }
-}
 
 function initializeBalloonPool() {
     for (let i = 0; i < MAX_BALLOON_PARTICLES; i++) {
@@ -72,18 +60,26 @@ window.addEventListener('load', () => {
     const logo = document.getElementById('logo');
     if (logo) {
         const logoRect = logo.getBoundingClientRect();
-        confettiOrigin.x = logoRect.left + logoRect.width / 2;
-        confettiOrigin.y = logoRect.top + logoRect.height / 2 - 20; // Ajustado 20px hacia arriba para centrar visualmente
+        // Normaliza las coordenadas para canvas-confetti (0 a 1)
+        confettiOrigin.x = (logoRect.left + logoRect.width / 2) / window.innerWidth;
+        confettiOrigin.y = (logoRect.top + logoRect.height / 2) / window.innerHeight;
     }
 
-    // Pre-crea los divs del confeti para reutilizarlos
-    initializeConfettiPool();
     initializeBalloonPool();
 
     // Iniciar las animaciones de aniversario DESPUÉS de calcular la posición del logo.
     // ¡Explosión de confeti para el aniversario!
-    createConfettiExplosion();
-    setInterval(createConfettiExplosion, 4000);
+    function fireConfetti() {
+        confetti({
+            origin: confettiOrigin,
+            particleCount: 150,
+            spread: 70,
+            startVelocity: 30,
+            colors: ['#fde047', '#38bdf8', '#4ade80', '#a78bfa', '#ffffff', '#fb923c', '#22d3ee']
+        });
+    }
+    fireConfetti();
+    setInterval(fireConfetti, 4000);
 
     // ¡Globos flotando para el aniversario!
     setInterval(createRisingBalloon, 800);
@@ -125,42 +121,6 @@ window.addEventListener('load', () => {
         }
     });
 });
-
-function createConfettiExplosion() {
-    const originX = confettiOrigin.x;
-    const originY = confettiOrigin.y;
-    const particleCount = 150;
-    const colors = ['#facc15', '#ef4444', '#3b82f6', '#22c55e', '#ec4899', '#f97316', '#8b5cf6'];
-    
-    for (let i = 0; i < particleCount; i++) {
-        const particle = confettiPool.pop();
-        if (!particle) continue;
-
-        const angle = Math.random() * Math.PI * 2;
-        const spread = Math.random() * 250 + 150; // Distancia que viaja
-        const endX = Math.cos(angle) * spread;
-        const endY = Math.sin(angle) * spread + 300; // Efecto de gravedad
-        const rotation = Math.random() * 720 + 360;
-        const duration = Math.random() * 2 + 2.5; // Duración de 2.5 a 4.5 segundos
-
-        particle.style.setProperty('--start-x', `${originX}px`);
-        particle.style.setProperty('--start-y', `${originY}px`);
-        particle.style.setProperty('--confetti-color', colors[Math.floor(Math.random() * colors.length)]);
-        particle.style.setProperty('--confetti-duration', `${duration}s`);
-        particle.style.setProperty('--confetti-transform-end', `translate(${endX}px, ${endY}px) rotateZ(${rotation}deg)`);
-        
-        document.body.appendChild(particle);
-
-        particle.addEventListener('animationend', () => {
-            if (particle.parentElement) {
-                particle.remove();
-            }
-            // No es necesario limpiar los estilos, ya que se sobreescribirán en el siguiente uso.
-            // Esta optimización evita el parpadeo en otras animaciones.
-            confettiPool.push(particle);
-        }, { once: true });
-    }
-}
 
 function createRisingBalloon() {
     // Reutiliza un globo del pool en lugar de crear uno nuevo
