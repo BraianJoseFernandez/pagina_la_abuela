@@ -140,6 +140,84 @@ body {
   }
 }
 
+/* Confetti and Balloons for Anniversary */
+.confetti-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 20px;
+  top: -20px;
+  opacity: 0.9;
+  animation: confetti-fall 5s linear infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotateZ(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotateZ(720deg);
+    opacity: 0;
+  }
+}
+
+/* Confetti Explosion */
+.explosion-particle {
+    position: absolute;
+    width: 8px;
+    height: 15px;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Balloons inside header */
+.rising-balloon {
+  position: fixed;
+  bottom: -150px; /* Empezar desde abajo de la pantalla */
+  opacity: 1; /* Colores completamente sólidos */
+  animation: rise-up ease-in forwards; /* Animación que sube y desaparece */
+  transform-origin: bottom center;
+  pointer-events: none;
+  z-index: 45; /* Por delante del contenido (z-20) pero debajo del menú fijo (z-50) */
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); /* Sombra para dar profundidad */
+}
+
+/* Highlight for realism */
+.balloon-body::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 40%;
+  height: 40%;
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+
+@keyframes rise-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.1); /* Sube por toda la pantalla y se va */
+    opacity: 0;
+  }
+}
+
 /* Fixed Menu */
 .menu-fixed {
   position: sticky;
