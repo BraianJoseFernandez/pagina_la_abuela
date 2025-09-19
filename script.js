@@ -168,16 +168,14 @@ function createRisingBalloon() {
     if (!balloon) return; // Si el pool está vacío, espera a que se devuelva uno
     const colors = ['#fde047', '#38bdf8', '#4ade80', '#a78bfa', '#ffffff', '#fb923c', '#22d3ee'];
 
-    // --- FIX PARA EL PARPADEO (TELETRANSPORTE) ---
-    // 1. Quita la clase de animación para resetear el estado del globo.
-    balloon.classList.remove('rising-balloon');
-
-    // 2. Fuerza al navegador a procesar el cambio (reflow). Es un truco estándar y muy efectivo.
-    void balloon.offsetHeight;
-
-    // 3. Vuelve a añadir la clase para que la animación comience de cero, fluidamente.
-    balloon.classList.add('rising-balloon');
-    // --- FIN DEL FIX ---
+    // --- FIX DEFINITIVO PARA EL PARPADEO (TELETRANSPORTE) ---
+    // Se elimina la animación momentáneamente para que el navegador "olvide"
+    // la posición final del globo y no cause un salto visual al reutilizarlo.
+    // El doble requestAnimationFrame asegura que el reseteo ocurra después del siguiente ciclo de pintado.
+    balloon.style.animationName = 'none';
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => { balloon.style.animationName = '' });
+    });
 
     const size = Math.random() * 30 + 40; // Tamaño entre 40px y 70px
     const color = colors[Math.floor(Math.random() * colors.length)];
