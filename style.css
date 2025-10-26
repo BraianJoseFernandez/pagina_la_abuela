@@ -215,6 +215,13 @@ body {
   font-weight: 700;
 }
 
+/* Asegura espacio entre etiquetas de precio cuando están apiladas */
+.price-tag {
+  display: inline-block; /* permite aplicar margen vertical */
+  margin-bottom: 0.5rem; /* espacio entre precio "Media" y "Entera" */
+  margin-right: 0.5rem;
+}
+
 /* Badge for special items */
 .menu-item-badge {
   position: absolute;
