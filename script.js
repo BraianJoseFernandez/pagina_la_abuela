@@ -178,3 +178,165 @@ function showPizzaSweetAlert(imageElement) {
       `
   });
 }
+
+// Función para crear calabazas
+function createPumpkin() {
+    const pumpkin = document.createElement('img');
+    pumpkin.src = '/imagenes/halloween/calabaza.png'; // Usa tu SVG
+    pumpkin.alt = 'Calabaza';
+    pumpkin.className = 'pumpkin-svg pumpkin';
+    pumpkin.style.position = 'absolute';
+    pumpkin.style.left = Math.random() * 80 + 10 + '%';
+    pumpkin.style.top = Math.random() * 60 + 20 + '%';
+    pumpkin.style.width = '180px';
+    pumpkin.style.height = '120px';
+    pumpkin.style.zIndex = 100;
+
+    document.body.appendChild(pumpkin);
+
+    pumpkin.addEventListener('click', () => {
+        createCandies(pumpkin);
+        pumpkin.remove();
+    });
+
+    setTimeout(() => {
+        if (pumpkin.parentElement) {
+            pumpkin.classList.add('pumpkin-fadeout');
+            setTimeout(() => pumpkin.remove(), 800);
+        }
+    }, 5000);
+}
+
+function createCandies(pumpkin) {
+    const rect = pumpkin.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const candyColors = [
+        ['#ff0000', '#ff6666'],
+        ['#ff6600', '#ffcc00'],
+        ['#ff3399', '#ff99cc'],
+        ['#6600cc', '#9933ff'],
+        ['#00ff00', '#66ff66']
+    ];
+
+    for (let i = 0; i < 12; i++) {
+        const candy = document.createElement('div');
+        candy.className = 'candy';
+        const colorPair = candyColors[Math.floor(Math.random() * candyColors.length)];
+        candy.style.setProperty('--candy-color-1', colorPair[0]);
+        candy.style.setProperty('--candy-color-2', colorPair[1]);
+        
+        document.body.appendChild(candy);
+        
+        const angle = (Math.PI * 2 * i) / 12;
+        const velocity = 8;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        candy.style.left = centerX + 'px';
+        candy.style.top = centerY + 'px';
+        
+        animateCandy(candy, centerX, centerY, vx, vy);
+    }
+}
+
+function animateCandy(candy, startX, startY, vx, vy) {
+    let posX = startX;
+    let posY = startY;
+    let time = 0;
+    
+    function animate() {
+        time += 1/60;
+        posX += vx;
+        posY += vy + (9.81 * time * 15); // Gravedad aumentada
+        
+        candy.style.transform = `translate(${posX - startX}px, ${posY - startY}px)`;
+        
+        if (posY < window.innerHeight) {
+            requestAnimationFrame(animate);
+        } else {
+            candy.remove();
+        }
+    }
+    
+    requestAnimationFrame(animate);
+}
+
+// Crear calabazas periódicamente
+window.addEventListener('load', () => {
+    setInterval(createPumpkin, 3000); // Crear una nueva calabaza cada 3 segundos
+});
+
+// --- INICIO DE CAMBIOS EN LA ARAÑA ---
+
+window.addEventListener('DOMContentLoaded', () => {
+    const spider = document.getElementById('spider-svg');
+    const thread = document.getElementById('spider-thread');
+    let direction = 1;
+    let pos = 400; // Posición inicial
+    let falling = false;
+
+    function animateSpider() {
+        if (!falling) {
+            pos += direction * 0.5; 
+            
+            if (pos > 430) direction = -1; // Rango de 30px (400 a 430)
+            if (pos < 400) direction = 1;
+
+            spider.style.top = pos + 'px';
+            thread.style.height = (pos + 100) + 'px'; 
+            
+            requestAnimationFrame(animateSpider);
+        }
+    }
+    
+    if (spider && thread) {
+        // Asegurarse de que el hilo tenga la altura correcta al cargar
+        thread.style.height = (pos + 100) + 'px';
+        animateSpider();
+    }
+
+    // CAMBIO: Lógica de caída y reaparición
+    spider.addEventListener('click', () => {
+        // 1. Detener la animación de balanceo
+        falling = true;
+        
+        // 2. Ocultar el hilo inmediatamente
+        thread.style.display = 'none';
+        
+        let fallPos = parseInt(spider.style.top) || 400; 
+        
+        function fall() {
+            fallPos += 8; // Velocidad de caída
+            spider.style.top = fallPos + 'px';
+            
+            // 3. Comprobar si sigue en pantalla (window.innerHeight es la altura total de la ventana)
+            if (fallPos < window.innerHeight) { 
+                requestAnimationFrame(fall);
+            } else {
+                // 4. Si choca o sale de pantalla, ocultar la araña
+                spider.style.display = 'none';
+                
+                // 5. Esperar 5 segundos para reaparecer
+                setTimeout(() => {
+                    // Restablecer todo a la posición inicial
+                    pos = 400; // Posición 'top' inicial
+                    spider.style.top = pos + 'px';
+                    spider.style.display = 'block'; // Mostrar araña
+                    
+                    thread.style.height = (pos + 100) + 'px'; // Altura inicial del hilo
+                    thread.style.display = 'block'; // Mostrar hilo
+                    
+                    falling = false; // Permitir que la animación de balanceo se reanude
+                    
+                    // Reiniciar la animación de balanceo
+                    animateSpider(); 
+                }, 5000); // 5000 ms = 5 segundos
+            }
+        }
+        fall();
+    });
+});
+// --- FIN DE CAMBIOS EN LA ARAÑA ---
+

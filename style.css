@@ -353,3 +353,82 @@ footer {
 .slide-in-right { animation-name: slide-in-from-right; }
 .slide-in-bottom { animation-name: slide-in-from-bottom; }
 .fade-in { animation-name: fade-in; }
+
+/* Estilos de Halloween */
+.halloween-bg {
+    background: linear-gradient(135deg, #dc2626, #e11d48, #f43f5e);
+    position: relative;
+    overflow: hidden;
+}
+
+.halloween-title {
+    font-family: 'Creepster', cursive;
+    color: #15803d;
+}
+
+.glow-text {
+    text-shadow: 0 0 5px #15803d,
+                 0 0 10px #15803d;
+}
+
+
+
+
+@keyframes spiderMove {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(30px); }
+    100% { transform: translateY(0); }
+}
+
+.pumpkin-svg:active {
+    transform: scale(1.2);
+}
+@keyframes pumpkinAppear {
+    0% { opacity: 0; transform: scale(0); }
+    10% { opacity: 1; transform: scale(1); }
+    90% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0); }
+}
+
+/* Estilos para los dulces */
+.candy {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: linear-gradient(45deg, var(--candy-color-1), var(--candy-color-2));
+    border-radius: 50%;
+    z-index: 101;
+}
+
+.pumpkin-svg {
+    animation: pumpkinGhostAppear 0.8s ease-in, pumpkinGhostStay 4s linear 0.8s, pumpkinGhostFadeout 0.8s ease-out 4.8s;
+    opacity: 0;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+
+
+@keyframes pumpkinGhostAppear {
+    0% { opacity: 0; transform: scale(0.7); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pumpkinGhostStay {
+    0% { opacity: 1; }
+    100% { opacity: 1; }
+}
+@keyframes pumpkinGhostFadeout {
+    0% { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.2); }
+}
+
+.pumpkin-fadeout {
+    animation: pumpkinGhostFadeout 0.8s forwards;
+}
+.pumpkin-static {
+    opacity: 0;
+    animation: pumpkinGhostAppear 0.8s ease-in forwards;
+}
+.pumpkin-static.hide {
+    animation: pumpkinGhostFadeout 0.8s forwards;
+}

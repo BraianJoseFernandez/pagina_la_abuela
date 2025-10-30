@@ -9,63 +9,72 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Kalam:wght@400;700&family=Caveat:wght@400;700&family=Poppins:wght@300;400;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Poppins:wght@300;400;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" class="rounded-full" href="imagenes/logo.jpg" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="script.js" defer></script>
 </head>
 
-<body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 font-sans">
-    <header class="hero-bg text-white py-10 relative">
-        <div class="confetti-container">
-            <div class="confetti" style="left: 5%; animation-delay: 0s; background-color: #facc15;"></div>
-            <div class="confetti" style="left: 15%; animation-delay: -1.2s; background-color: #ef4444;"></div>
-            <div class="confetti" style="left: 25%; animation-delay: -2.5s; background-color: #3b82f6;"></div>
-            <div class="confetti" style="left: 35%; animation-delay: -0.8s; background-color: #22c55e;"></div>
-            <div class="confetti" style="left: 45%; animation-delay: -4s; background-color: #ec4899;"></div>
-            <div class="confetti" style="left: 55%; animation-delay: -2.1s; background-color: #facc15;"></div>
-            <div class="confetti" style="left: 65%; animation-delay: -3.3s; background-color: #ef4444;"></div>
-            <div class="confetti" style="left: 75%; animation-delay: -1.7s; background-color: #3b82f6;"></div>
-            <div class="confetti" style="left: 85%; animation-delay: -4.5s; background-color: #22c55e;"></div>
-            <div class="confetti" style="left: 95%; animation-delay: -0.5s; background-color: #ec4899;"></div>
-            <div class="confetti" style="left: 10%; animation-delay: -5s; background-color: #f59e0b;"></div>
-            <div class="confetti" style="left: 20%; animation-delay: -3.2s; background-color: #10b981;"></div>
-            <div class="confetti" style="left: 30%; animation-delay: -1.5s; background-color: #6366f1;"></div>
-            <div class="confetti" style="left: 40%; animation-delay: -4.8s; background-color: #d946ef;"></div>
-            <div class="confetti" style="left: 50%; animation-delay: -2.3s; background-color: #facc15;"></div>
-            <div class="confetti" style="left: 60%; animation-delay: -3.1s; background-color: #ef4444;"></div>
-            <div class="confetti" style="left: 70%; animation-delay: -0.7s; background-color: #3b82f6;"></div>
-            <div class="confetti" style="left: 80%; animation-delay: -2.8s; background-color: #22c55e;"></div>
-            <div class="confetti" style="left: 90%; animation-delay: -4.2s; background-color: #ec4899;"></div>
-            <div class="confetti" style="left: 100%; animation-delay: -1.9s; background-color: #f59e0b;"></div>
+<body class="bg-gradient-to-br from-orange-900/10 via-black/5 to-purple-900/10 font-sans">
+    <header class="halloween-bg text-white py-10 relative">
+        <!-- Telaraña invertida arriba a la derecha -->
+        <div class="spider-web-container" style="position:absolute;top:0;right:0;width:220px;height:220px;z-index:20;transform: scaleX(-1);">
+            <img src="/imagenes/halloween/tela-de-arañas2.svg" alt="Telaraña" style="position:absolute;top:0;left:0;width:220px;height:220px;z-index:21;pointer-events:none;" />
         </div>
+
+        <!-- Telaraña y araña principal -->
+<div class="spider-web-container" style="position:absolute;top:0;left:0;width:220px;height:1000px;z-index:20;">
+    <img src="/imagenes/halloween/tela-de-arañas2.svg" alt="Telaraña"
+         style="position:absolute;top:0;left:0;width:220px;height:220px;z-index:21;pointer-events:none;" />
+    <div id="spider-thread" style="position:absolute;top:;left:146px;width:3px;height:800px;background:#000;z-index:22;"></div>
+    <img id="spider-svg" src="/imagenes/halloween/araña.png" alt="Araña"
+         style="position:absolute;top:700px;left:48px;width:200px;height:200px;z-index:23;cursor:pointer;" />
+</div>
+
+        <div class="pumpkin-container">
+            <!-- Las calabazas se generarán dinámicamente con JavaScript -->
+        </div>
+
         <div class="floating-icons">
-            <i class="floating-icon fas fa-pizza-slice" style="top: 20%; left: 10%; animation-delay: 0s"></i>
-            <i class="floating-icon fas fa-hamburger" style="top: 40%; right: 15%; animation-delay: 1s"></i>
-            <i class="floating-icon fas fa-utensils" style="top: 60%; left: 20%; animation-delay: 2s"></i>
-            <i class="floating-icon fas fa-cookie-bite" style="top: 30%; right: 30%; animation-delay: 3s"></i>
+            <i class="floating-icon fas fa-ghost" style="top: 20%; left: 10%; animation-delay: 0s"></i>
+            <i class="floating-icon fas fa-skull" style="top: 40%; right: 15%; animation-delay: 1s"></i>
+            <i class="floating-icon fas fa-hat-wizard" style="top: 60%; left: 20%; animation-delay: 2s"></i>
+            <i class="floating-icon fas fa-spider" style="top: 30%; right: 30%; animation-delay: 3s"></i>
         </div>
 
         <div class="logo-container container mx-auto px-4 text-center relative z-10 mb-8">
             <div id="logo" class="mb-6 animate-on-load slide-in-top" style="animation-duration: 0.8s; animation-delay: 0.2s;">
                 <img src="/imagenes/logo.jpg" alt="Logo" class="rounded-full mx-auto" />
             </div>
-            <div class="text-6xl mb-6 retro-title animate-on-load slide-in-left" style="animation-duration: 0.8s; animation-delay: 0.4s;">Rotiseria</div>
-            <h1 class="text-7xl font-black mb-6 tracking-tight script-title animate-on-load slide-in-right" style="animation-duration: 0.8s; animation-delay: 0.6s;">La Abuela</h1>
+            <div class="text-6xl mb-6 halloween-title animate-on-load slide-in-left glow-text" style="animation-duration: 0.8s; animation-delay: 0.4s;">Rotiseria</div>
+            <h1 class="text-7xl font-black mb-6 tracking-tight halloween-title animate-on-load slide-in-right glow-text" style="animation-duration: 0.8s; animation-delay: 0.6s;">La Abuela</h1>
+            <!-- Invitación especial de Halloween -->
+            <div class="flex justify-center mb-8 animate-on-load fade-in" style="animation-duration: 0.8s; animation-delay: 0.9s;">
+                <img 
+                    src="/imagenes/halloween/invitacion.jpeg"
+                    class="rounded-lg shadow-lg cursor-pointer max-w-xs md:max-w-md transition-transform hover:scale-105"
+                    onclick="showPizzaSweetAlert(this)"
+                />
+            </div>
             <p class="text-2xl opacity-90 font-light mb-8 animate-on-load slide-in-bottom" style="animation-duration: 0.8s; animation-delay: 0.8s;">
-                Cocinar con amor te alimenta el alma
+                Sabores que hechizan tu paladar 🎃
             </p>
             <p class="text-2xl opacity-90 font-light mb-8 animate-on-load slide-in-bottom" style="animation-duration: 0.8s; animation-delay: 0.8s;">
-                ¡Feliz 7mo Aniversario! 🥳🎂🎉
+                ¡Feliz halloween! 🎃 🦇 🧟‍♂️ 🧙‍♀️
             </p>
+            
+            
+            <!-- Datos de contacto -->
             <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit animate-on-load fade-in" style="animation-duration: 0.8s; animation-delay: 1.0s;">
                 <div class="flex items-center space-x-2">
+                    
                     <i class="fas fa-phone text-yellow-300 relative top-[2px] phone-icon-animated"></i>
                     <button class="text-2xl md:text-4xl font-medium leading-none" onclick="window.location.href='https://api.whatsapp.com/send?phone=5493794565528&text=Hola!%20quiero%20hacer%20mi%20pedido%20%F0%9F%8D%94%F0%9F%8D%9F%F0%9F%8D%95'">3794-565528</button>
+                    
                 </div>
               </div>
               <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit mt-2 animate-on-load fade-in" style="animation-duration: 0.8s; animation-delay: 1.2s;">
