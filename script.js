@@ -185,11 +185,10 @@ function createPumpkin() {
     pumpkin.src = '/imagenes/halloween/calabaza.png';
     pumpkin.alt = 'Calabaza';
     pumpkin.className = 'pumpkin-svg pumpkin';
-    pumpkin.style.position = 'fixed'; // Cambia a 'fixed' para que no afecte el flujo del documento
+    pumpkin.style.position = 'fixed';
     pumpkin.style.left = Math.random() * 80 + 10 + '%';
 
-    // Limita el top para que no se salga de la pantalla en móviles
-    const maxTop = window.innerHeight - 120; // 120px es el alto de la calabaza
+    const maxTop = window.innerHeight - 120;
     const topPx = Math.random() * (maxTop * 0.6) + (maxTop * 0.2);
     pumpkin.style.top = `${topPx}px`;
 
@@ -199,8 +198,35 @@ function createPumpkin() {
 
     document.body.appendChild(pumpkin);
 
-    pumpkin.addEventListener('click', () => {
-        createCandies(pumpkin);
+    // Evento de clic para lanzar caramelos
+    pumpkin.addEventListener('click', (event) => {
+        const rect = pumpkin.getBoundingClientRect();
+        const origin = {
+            x: (rect.left + rect.width / 2) / window.innerWidth,
+            y: (rect.top + rect.height / 2) / window.innerHeight
+        };
+        
+        // Crear formas de caramelos y dulces con emojis
+        const scalar = 6;
+        const candy1 = confetti.shapeFromText({ text: '🍬', scalar });
+        const candy2 = confetti.shapeFromText({ text: '🍭', scalar });
+        const candy3 = confetti.shapeFromText({ text: '🍫', scalar });
+        const candy4 = confetti.shapeFromText({ text: '🍩', scalar });
+        const candy5 = confetti.shapeFromText({ text: '🍪', scalar });
+        const candy6 = confetti.shapeFromText({ text: '🎂', scalar });
+        
+        // Lanzar caramelos usando la librería confetti
+        confetti({
+            particleCount: 80,
+            spread: 100,
+            origin: origin,
+            startVelocity: 35,
+            gravity: 1.2,
+            scalar: scalar,
+            shapes: [candy1, candy2, candy3, candy4, candy5, candy6],
+            ticks: 200
+        });
+        
         pumpkin.remove();
     });
 
@@ -212,61 +238,7 @@ function createPumpkin() {
     }, 5000);
 }
 
-function createCandies(pumpkin) {
-    const rect = pumpkin.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    const candyColors = [
-        ['#ff0000', '#ff6666'],
-        ['#ff6600', '#ffcc00'],
-        ['#ff3399', '#ff99cc'],
-        ['#6600cc', '#9933ff'],
-        ['#00ff00', '#66ff66']
-    ];
 
-    for (let i = 0; i < 12; i++) {
-        const candy = document.createElement('div');
-        candy.className = 'candy';
-        const colorPair = candyColors[Math.floor(Math.random() * candyColors.length)];
-        candy.style.setProperty('--candy-color-1', colorPair[0]);
-        candy.style.setProperty('--candy-color-2', colorPair[1]);
-        
-        document.body.appendChild(candy);
-        
-        const angle = (Math.PI * 2 * i) / 12;
-        const velocity = 8;
-        const vx = Math.cos(angle) * velocity;
-        const vy = Math.sin(angle) * velocity;
-        
-        candy.style.left = centerX + 'px';
-        candy.style.top = centerY + 'px';
-        
-        animateCandy(candy, centerX, centerY, vx, vy);
-    }
-}
-
-function animateCandy(candy, startX, startY, vx, vy) {
-    let posX = startX;
-    let posY = startY;
-    let time = 0;
-    
-    function animate() {
-        time += 1/60;
-        posX += vx;
-        posY += vy + (9.81 * time * 15); // Gravedad aumentada
-        
-        candy.style.transform = `translate(${posX - startX}px, ${posY - startY}px)`;
-        
-        if (posY < window.innerHeight) {
-            requestAnimationFrame(animate);
-        } else {
-            candy.remove();
-        }
-    }
-    
-    requestAnimationFrame(animate);
-}
 
 // Crear calabazas periódicamente
 window.addEventListener('load', () => {
