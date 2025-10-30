@@ -182,12 +182,17 @@ function showPizzaSweetAlert(imageElement) {
 // Función para crear calabazas
 function createPumpkin() {
     const pumpkin = document.createElement('img');
-    pumpkin.src = '/imagenes/halloween/calabaza.png'; // Usa tu SVG
+    pumpkin.src = '/imagenes/halloween/calabaza.png';
     pumpkin.alt = 'Calabaza';
     pumpkin.className = 'pumpkin-svg pumpkin';
-    pumpkin.style.position = 'absolute';
+    pumpkin.style.position = 'fixed'; // Cambia a 'fixed' para que no afecte el flujo del documento
     pumpkin.style.left = Math.random() * 80 + 10 + '%';
-    pumpkin.style.top = Math.random() * 60 + 20 + '%';
+
+    // Limita el top para que no se salga de la pantalla en móviles
+    const maxTop = window.innerHeight - 120; // 120px es el alto de la calabaza
+    const topPx = Math.random() * (maxTop * 0.6) + (maxTop * 0.2);
+    pumpkin.style.top = `${topPx}px`;
+
     pumpkin.style.width = '180px';
     pumpkin.style.height = '120px';
     pumpkin.style.zIndex = 100;
