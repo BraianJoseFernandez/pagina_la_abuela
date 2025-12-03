@@ -140,21 +140,93 @@ body {
   }
 }
 
-/* Fixed Menu */
-.menu-fixed {
-  position: sticky;
+/* Confetti and Balloons for Anniversary */
+.confetti-container {
+  position: absolute;
   top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 50;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  /* Añade las siguientes propiedades para la transición de ocultar/mostrar */
-  transform: translateY(0); /* Estado inicial visible */
-  transition: transform 0.3s ease-out; /* Transición suave */
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.menu-fixed.hidden-on-scroll {
-  transform: translateY(-100%); /* Desplaza el menú hacia arriba fuera de la vista */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 20px;
+  top: -20px;
+  opacity: 0.9;
+  animation: confetti-fall 5s linear infinite;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotateZ(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotateZ(720deg);
+    opacity: 0;
+  }
+}
+
+/* Balloons */
+.rising-balloon {
+  position: fixed;
+  bottom: -150px; /* Empezar desde abajo de la pantalla */
+  opacity: 1; /* Colores completamente sólidos */
+  animation: rise-up ease-in forwards; /* Animación que sube y desaparece */
+  transform-origin: bottom center;
+  cursor: pointer;
+  z-index: 45; /* Por delante del contenido (z-20) pero debajo del menú fijo (z-50) */
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); /* Sombra para dar profundidad */
+
+  /* Usando variables para un rendimiento más fluido */
+  left: var(--balloon-left);
+  animation-duration: var(--balloon-duration);
+  width: var(--balloon-size);
+  height: calc(var(--balloon-size) * 1.2);
+  background-color: var(--balloon-color);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+}
+
+/* Highlight (reflejo) y Knot (nudo) como pseudo-elementos para optimizar */
+.rising-balloon::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+
+.rising-balloon::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 calc(var(--balloon-size) / 6) calc(var(--balloon-size) / 5) calc(var(--balloon-size) / 6);
+  border-color: transparent transparent var(--balloon-color) transparent;
+  bottom: calc(-1 * var(--balloon-size) / 5 + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes rise-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.1); /* Sube por toda la pantalla y se va */
+    opacity: 0;
+  }
 }
 
 .category-btn {
