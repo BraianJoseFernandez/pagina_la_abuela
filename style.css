@@ -281,3 +281,8 @@ footer {
 .slide-in-right { animation-name: slide-in-from-right; }
 .slide-in-bottom { animation-name: slide-in-from-bottom; }
 .fade-in { animation-name: fade-in; }
+
+/* Filter to colorize emoji to #6d28d9 */
+.icon-purple-color {
+  filter: brightness(0) saturate(100%) invert(20%) sepia(63%) saturate(3089%) hue-rotate(256deg) brightness(98%) contrast(94%);
+}

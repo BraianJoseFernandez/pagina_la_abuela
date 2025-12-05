@@ -83,25 +83,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Scroll a la sección de categorías después de una breve demora para que se vean las animaciones del header
     const categoriesSection = document.querySelector('.menu-categories-wrapper');
-    
+
 });
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza
 function showPizzaSweetAlert(imageElement) {
-  Swal.fire({
-      imageUrl: imageElement.src,
-      imageAlt: imageElement.alt,
-      imageWidth: '80%', // Ajusta el ancho de la imagen en el modal
-      imageHeight: 'auto',
-      title: imageElement.alt,
-      showConfirmButton: false,
-      showCloseButton: true,
-      background: 'rgba(255, 255, 255, 0.9)',
-      backdrop: `
+    Swal.fire({
+        imageUrl: imageElement.src,
+        imageAlt: imageElement.alt,
+        imageWidth: '80%', // Ajusta el ancho de la imagen en el modal
+        imageHeight: 'auto',
+        title: imageElement.alt,
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: 'rgba(255, 255, 255, 0.9)',
+        backdrop: `
           rgba(0,0,0,0.4)
           url("/path/to/your/custom-loader.gif") // Si tienes un loader personalizado
           left top
           no-repeat
       `
-  });
+    });
+}
+
+// Función para mostrar el evento 'Noche de Blanco' en SweetAlert
+function showEventAlert() {
+    Swal.fire({
+        imageUrl: '/imagenes/eventos/noche_de_blanco/Imagen de WhatsApp 2025-12-04 a las 11.19.47_8fc62c34.jpg',
+        imageAlt: 'Noche de Blanco',
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: 'transparent',
+        customClass: {
+            popup: 'bg-transparent',
+            image: 'rounded-2xl shadow-2xl'
+        },
+        backdrop: `
+            rgba(0,0,0,0.6)
+            left top
+            no-repeat
+        `
+    });
 }
