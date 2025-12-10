@@ -151,7 +151,7 @@ function showEventAlert() {
 
     // Shapes for confetti effects
     var snowflakeObj = confetti.shapeFromText({ text: '*', scalar: 2, color: 'white' });
-    
+
 
     // Continuous falling snow animation
     (function frame() {
@@ -179,7 +179,7 @@ function showEventAlert() {
         requestAnimationFrame(frame);
     }());
 
-    // Click explosion effect
+    // Click explosion effect - Firework style
     window.explodeDecoration = function (event) {
         event.stopPropagation();
 
@@ -187,25 +187,75 @@ function showEventAlert() {
         var x = (rect.left + rect.width / 2) / window.innerWidth;
         var y = (rect.top + rect.height / 2) / window.innerHeight;
 
+        // Colores vibrantes para el fuego artificial
+        var fireworkColors = [
+            ['#FFD700', '#FFA500', '#FF6347'], // Dorado, naranja, rojo
+            ['#FF1493', '#FF69B4', '#FFB6C1'], // Rosa fuerte, rosa, rosa claro
+            ['#00FFFF', '#1E90FF', '#4169E1'], // Cian, azul dodger, azul real
+            ['#9370DB', '#BA55D3', '#DA70D6'], // Púrpura medio, orquídea, orquídea medio
+            ['#32CD32', '#00FF00', '#ADFF2F'], // Verde lima, verde, verde amarillo
+            ['#FFD700', '#FFFF00', '#FAFAD2']  // Dorado, amarillo, amarillo claro
+        ];
+
+        var selectedColors = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+
+        // Primera ráfaga - explosión inicial
         myConfetti({
-            particleCount: 40,
-            spread: 80,
+            particleCount: 60,
+            spread: 100,
+            startVelocity: 45,
             origin: { x: x, y: y },
-            shapes: [snowflakeObj],
-            colors: ['#ffffff', '#f0f0f0', '#e8e8e8'],
-            scalar: 1.2,
-            gravity: 0.6,
-            ticks: 100,
+            colors: selectedColors,
+            scalar: 0.7, // Reducido de 1.5 a 0.7
+            gravity: 1,
+            ticks: 150,
             disableForReducedMotion: true
         });
 
-        if (event.target.classList.contains('page-wide-icon')) {
+        // Segunda ráfaga - efecto de chispas
+        setTimeout(function () {
+            myConfetti({
+                particleCount: 40,
+                spread: 120,
+                startVelocity: 35,
+                origin: { x: x, y: y },
+                colors: selectedColors,
+                scalar: 0.6, // Reducido de 1.2 a 0.6
+                gravity: 0.8,
+                ticks: 120,
+                disableForReducedMotion: true
+            });
+        }, 100);
+
+        // Tercera ráfaga - estrellas brillantes
+        setTimeout(function () {
+            myConfetti({
+                particleCount: 30,
+                spread: 80,
+                startVelocity: 25,
+                origin: { x: x, y: y },
+                shapes: ['star'],
+                colors: ['#FFD700', '#FFFFFF', '#FFA500'],
+                scalar: 0.9, // Reducido de 1.8 a 0.9
+                gravity: 0.5,
+                ticks: 180,
+                disableForReducedMotion: true
+            });
+        }, 200);
+
+        // Eliminar el icono después de la explosión
+        if (event.target.classList.contains('floating-icon')) {
             event.target.remove();
         }
     };
 
     // Create page-wide floating icons
-    var iconsList = ['⭐', '🥂', '🎄', '❄️'];
+    var iconsList = [
+        { class: 'fas fa-star', color: 'text-yellow-400', shadow: '0 0 10px rgba(250, 204, 21, 0.5)' },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)' },
+        { class: 'fas fa-tree', color: 'text-green-600', shadow: '0 0 8px rgba(34, 197, 94, 0.5)' },
+        { class: 'fas fa-champagne-glasses', color: 'text-yellow-300', shadow: '0 0 8px rgba(253, 224, 71, 0.5)' }
+    ];
     var iconsContainer = document.createElement('div');
     iconsContainer.style.position = 'fixed';
     iconsContainer.style.top = '0';
@@ -218,13 +268,15 @@ function showEventAlert() {
     document.body.appendChild(iconsContainer);
 
     function createRandomIcon() {
-        var icon = document.createElement('span');
-        icon.className = 'floating-icon page-wide-icon';
-        icon.textContent = iconsList[Math.floor(Math.random() * iconsList.length)];
+        var icon = document.createElement('i');
+        var selectedIcon = iconsList[Math.floor(Math.random() * iconsList.length)];
+
+        icon.className = 'floating-icon page-wide-icon ' + selectedIcon.class + ' ' + selectedIcon.color + ' cursor-pointer';
         icon.style.left = Math.random() * 100 + '%';
         icon.style.top = Math.random() * 100 + '%';
-        icon.style.animationDelay = Math.random() * 5 + 's';
-        icon.style.fontSize = (Math.random() * 2 + 2) + 'em';
+        icon.style.animationDelay = Math.random() * 3 + 's';
+        icon.style.fontSize = (Math.random() * 1.5 + 1.5) + 'rem';
+        icon.style.textShadow = selectedIcon.shadow;
         icon.onclick = explodeDecoration;
         iconsContainer.appendChild(icon);
 
@@ -236,16 +288,16 @@ function showEventAlert() {
         }, 10000 + (Math.random() * 5000));
     }
 
-    // Create initial icons
-    for (var i = 0; i < 10; i++) {
-        setTimeout(createRandomIcon, i * 500);
+    // Create initial icons - reducido para menos frecuencia
+    for (var i = 0; i < 3; i++) {
+        setTimeout(createRandomIcon, i * 1500);
     }
 
-    // Continue spawning icons periodically
+    // Continue spawning icons periodically - menos frecuente
     setInterval(function () {
-        if (iconsContainer.children.length < 15) {
+        if (iconsContainer.children.length < 8) {
             createRandomIcon();
         }
-    }, 2000);
+    }, 4000); // Cambiado de 2000ms a 6000ms (cada 6 segundos)
 
 })();
