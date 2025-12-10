@@ -125,3 +125,127 @@ function showEventAlert() {
         `
     });
 }
+
+// --- Snow Effect using Canvas Confetti ---
+(function () {
+    // Create a dedicated canvas for the confetti to ensure full coverage and z-index control
+    var snowCanvas = document.createElement('canvas');
+    snowCanvas.style.position = 'fixed';
+    snowCanvas.style.top = '0';
+    snowCanvas.style.left = '0';
+    snowCanvas.style.width = '100vw';
+    snowCanvas.style.height = '100vh';
+    snowCanvas.style.pointerEvents = 'none';
+    snowCanvas.style.zIndex = '800'; // User requested 800
+    document.body.appendChild(snowCanvas);
+
+    // Initialize confetti on this canvas
+    var myConfetti = confetti.create(snowCanvas, {
+        resize: true,
+        useWorker: true
+    });
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    // Shapes for confetti effects
+    var snowflakeObj = confetti.shapeFromText({ text: '*', scalar: 2, color: 'white' });
+    
+
+    // Continuous falling snow animation
+    (function frame() {
+        var shapes = [snowflakeObj];
+        var colors = ['#ffffff'];
+
+        // 15% chance to spawn a gold star
+        if (Math.random() < 0.15) {
+            colors = ['#FFD700', '#FDB931'];
+        }
+
+        myConfetti({
+            particleCount: 1,
+            startVelocity: 0,
+            ticks: 800,
+            origin: { x: Math.random(), y: -0.05 },
+            colors: colors,
+            shapes: shapes,
+            gravity: randomInRange(0.4, 0.6),
+            scalar: randomInRange(0.8, 1.2),
+            drift: randomInRange(-0.4, 0.4),
+            disableForReducedMotion: true
+        });
+
+        requestAnimationFrame(frame);
+    }());
+
+    // Click explosion effect
+    window.explodeDecoration = function (event) {
+        event.stopPropagation();
+
+        var rect = event.target.getBoundingClientRect();
+        var x = (rect.left + rect.width / 2) / window.innerWidth;
+        var y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        myConfetti({
+            particleCount: 40,
+            spread: 80,
+            origin: { x: x, y: y },
+            shapes: [snowflakeObj],
+            colors: ['#ffffff', '#f0f0f0', '#e8e8e8'],
+            scalar: 1.2,
+            gravity: 0.6,
+            ticks: 100,
+            disableForReducedMotion: true
+        });
+
+        if (event.target.classList.contains('page-wide-icon')) {
+            event.target.remove();
+        }
+    };
+
+    // Create page-wide floating icons
+    var iconsList = ['⭐', '🥂', '🎄', '❄️'];
+    var iconsContainer = document.createElement('div');
+    iconsContainer.style.position = 'fixed';
+    iconsContainer.style.top = '0';
+    iconsContainer.style.left = '0';
+    iconsContainer.style.width = '100vw';
+    iconsContainer.style.height = '100vh';
+    iconsContainer.style.pointerEvents = 'none';
+    iconsContainer.style.zIndex = '1000';
+    iconsContainer.style.overflow = 'hidden';
+    document.body.appendChild(iconsContainer);
+
+    function createRandomIcon() {
+        var icon = document.createElement('span');
+        icon.className = 'floating-icon page-wide-icon';
+        icon.textContent = iconsList[Math.floor(Math.random() * iconsList.length)];
+        icon.style.left = Math.random() * 100 + '%';
+        icon.style.top = Math.random() * 100 + '%';
+        icon.style.animationDelay = Math.random() * 5 + 's';
+        icon.style.fontSize = (Math.random() * 2 + 2) + 'em';
+        icon.onclick = explodeDecoration;
+        iconsContainer.appendChild(icon);
+
+        // Remove icon after animation cycle completes
+        setTimeout(function () {
+            if (icon.parentNode) {
+                icon.remove();
+            }
+        }, 10000 + (Math.random() * 5000));
+    }
+
+    // Create initial icons
+    for (var i = 0; i < 10; i++) {
+        setTimeout(createRandomIcon, i * 500);
+    }
+
+    // Continue spawning icons periodically
+    setInterval(function () {
+        if (iconsContainer.children.length < 15) {
+            createRandomIcon();
+        }
+    }, 2000);
+
+})();

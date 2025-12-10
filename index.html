@@ -15,16 +15,27 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" class="rounded-full" href="imagenes/logo.jpg" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="script.js" defer></script>
 </head>
 
 <body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 font-sans">
     <header class="hero-bg text-white py-10 relative">
         <div class="floating-icons">
-            <i class="floating-icon fas fa-pizza-slice" style="top: 20%; left: 10%; animation-delay: 0s"></i>
-            <i class="floating-icon fas fa-hamburger" style="top: 40%; right: 15%; animation-delay: 1s"></i>
-            <i class="floating-icon fas fa-utensils" style="top: 60%; left: 20%; animation-delay: 2s"></i>
-            <i class="floating-icon fas fa-cookie-bite" style="top: 30%; right: 30%; animation-delay: 3s"></i>
+
+            <!-- Gold Stars & Snowflakes -->
+            <i class="floating-icon fas fa-star text-yellow-400 cursor-pointer" onclick="explodeDecoration(event)"
+                style="top: 15%; right: 25%; animation-delay: 4s; font-size: 2.5rem; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);"></i>
+            <i class="floating-icon fas fa-star text-yellow-300 cursor-pointer" onclick="explodeDecoration(event)"
+                style="top: 50%; left: 5%; animation-delay: 1.5s; font-size: 1.5rem; opacity: 0.8;"></i>
+            <i class="floating-icon fas fa-snowflake text-gray-200 cursor-pointer" onclick="explodeDecoration(event)"
+                style="top: 70%; right: 10%; animation-delay: 2.5s; font-size: 2rem;"></i>
+
+            <!-- New Festive Emojis: Tree, Snowman, Toast -->
+            <span class="floating-icon cursor-pointer" onclick="explodeDecoration(event)"
+                style="top: 10%; left: 40%; animation-delay: 0.5s; font-size: 2.5rem;">🎄</span>
+            <span class="floating-icon cursor-pointer" onclick="explodeDecoration(event)"
+                style="top: 25%; right: 5%; animation-delay: 2s; font-size: 2.5rem;">🥂</span>
         </div>
 
         <div class="logo-container container mx-auto px-4 text-center relative z-10 mb-8">
