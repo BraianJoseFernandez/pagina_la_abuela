@@ -18,8 +18,210 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="script.js" defer></script>
 </head>
+<style>
+    /* --- LUCES DE NAVIDAD --- */
+    /* Restaurado en HTML para garantizar visibilidad */
+
+    .christmas-lights {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 600px;
+        /* ANCHO FIJO para evitar deformaciones */
+        height: 300px;
+        z-index: 99999 !important;
+        pointer-events: none;
+        display: block;
+    }
+
+    /* El cable principal */
+    .christmas-lights::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        left: -10%;
+        width: 50%;
+        height: 250px;
+        border-radius: 50%;
+        border-bottom: 3px solid #1a1a1a;
+        z-index: -1;
+        transform: rotate(-15deg);
+    }
+
+    /* El casquillo */
+    .christmas-lights li:after {
+        content: "";
+        position: absolute;
+        top: -15px;
+        left: 4px;
+        width: 12px;
+        height: 18px;
+        background: #1a1a1a;
+        border-radius: 2px;
+        z-index: -1;
+    }
+
+    /* Las bombillas */
+    .christmas-lights li {
+        position: absolute;
+        width: 20px;
+        height: 45px;
+        border-radius: 50%;
+        background-color: #fff;
+        animation-duration: 2s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        box-shadow: 0 5px 20px 5px rgba(255, 255, 255, 0.6);
+        z-index: 100000;
+        transform-origin: 50% -15px;
+    }
+
+    /* Posiciones calibradas */
+    .christmas-lights li:nth-child(1) {
+        left: 6%;
+        top: 105px;
+        transform: rotate(35deg);
+        background: #ff0000;
+        animation-name: flash-red;
+    }
+
+    .christmas-lights li:nth-child(2) {
+        left: 12%;
+        top: 105px;
+        transform: rotate(15deg);
+        background: #00ff00;
+        animation-name: flash-green;
+        animation-delay: 0.4s;
+    }
+
+    .christmas-lights li:nth-child(3) {
+        left: 20%;
+        top: 102px;
+        transform: rotate(-14deg);
+        background: #ffff00;
+        animation-name: flash-yellow;
+        animation-delay: 0.8s;
+    }
+
+    .christmas-lights li:nth-child(4) {
+        left: 28%;
+        top: 75px;
+        transform: rotate(-25deg);
+        background: #0000ff;
+        animation-name: flash-blue;
+        animation-delay: 1.2s;
+    }
+
+    .christmas-lights li:nth-child(5) {
+        left: 34%;
+        top: 38px;
+        transform: rotate(-43deg);
+        background: #ff00ff;
+        animation-name: flash-magenta;
+        animation-delay: 1.6s;
+    }
+
+    .christmas-lights li:nth-child(6) {
+        left: 37%;
+        top: 10px;
+        transform: rotate(-45deg);
+        background: #00ffff;
+        animation-name: flash-cyan;
+        animation-delay: 2.0s;
+    }
+
+    /* Animaciones */
+    @keyframes flash-red {
+        from {
+            background: #ff0000;
+            box-shadow: 0 5px 20px 5px #ff0000;
+        }
+
+        to {
+            background: #440000;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes flash-green {
+        from {
+            background: #00ff00;
+            box-shadow: 0 5px 20px 5px #00ff00;
+        }
+
+        to {
+            background: #004400;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes flash-yellow {
+        from {
+            background: #ffff00;
+            box-shadow: 0 5px 20px 5px #ffff00;
+        }
+
+        to {
+            background: #444400;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes flash-blue {
+        from {
+            background: #0000ff;
+            box-shadow: 0 5px 20px 5px #0000ff;
+        }
+
+        to {
+            background: #000044;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes flash-magenta {
+        from {
+            background: #ff00ff;
+            box-shadow: 0 5px 20px 5px #ff00ff;
+        }
+
+        to {
+            background: #440044;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes flash-cyan {
+        from {
+            background: #00ffff;
+            box-shadow: 0 5px 20px 5px #00ffff;
+        }
+
+        to {
+            background: #004444;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+    }
+</style>
 
 <body class="bg-gradient-to-br from-purple-50 via-white to-pink-50 font-sans">
+
+    <!-- Luces de Navidad Esquina Superior Izquierda -->
+    <ul class="christmas-lights">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+
     <header class="hero-bg text-white py-10 relative">
         <div class="floating-icons">
 
