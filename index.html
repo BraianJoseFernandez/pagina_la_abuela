@@ -23,7 +23,8 @@
     /* Restaurado en HTML para garantizar visibilidad */
 
     .christmas-lights {
-        position: fixed;
+        position: absolute;
+        /* Cambiado a absolute para que se quede arriba al hacer scroll */
         top: 0;
         left: 0;
         width: 600px;
@@ -245,7 +246,8 @@
         </div>
 
         <div class="logo-container container mx-auto px-8 text-center relative z-10 mb-12">
-            <div class="mb-10 mt-16 animate-on-load slide-in-top" style="animation-duration: 0.8s; animation-delay: 0.2s;">
+            <div class="mb-10 mt-16 animate-on-load slide-in-top"
+                style="animation-duration: 0.8s; animation-delay: 0.2s;">
                 <img src="/imagenes/logo.jpg" alt="Logo" class="rounded-full mx-auto" />
             </div>
             <div class="text-6xl mb-6 retro-title animate-on-load slide-in-left"
