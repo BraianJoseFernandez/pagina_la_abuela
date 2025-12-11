@@ -201,28 +201,28 @@ function showEventAlert() {
 
         // Primera ráfaga - explosión inicial
         myConfetti({
-            particleCount: 60,
+            particleCount: 40, // Reducido de 60 a 40
             spread: 100,
             startVelocity: 45,
             origin: { x: x, y: y },
             colors: selectedColors,
             scalar: 0.7,
-            gravity: 1.8, // Aumentado para caída más rápida
-            ticks: 100, // Reducido para que desaparezcan más rápido
+            gravity: 1.8,
+            ticks: 100,
             disableForReducedMotion: true
         });
 
         // Segunda ráfaga - efecto de chispas
         setTimeout(function () {
             myConfetti({
-                particleCount: 40,
+                particleCount: 25, // Reducido de 40 a 25
                 spread: 120,
                 startVelocity: 35,
                 origin: { x: x, y: y },
                 colors: selectedColors,
                 scalar: 0.6,
-                gravity: 1.5, // Aumentado para caída más rápida
-                ticks: 90, // Reducido para que desaparezcan más rápido
+                gravity: 1.5,
+                ticks: 90,
                 disableForReducedMotion: true
             });
         }, 100);
@@ -230,15 +230,15 @@ function showEventAlert() {
         // Tercera ráfaga - estrellas brillantes
         setTimeout(function () {
             myConfetti({
-                particleCount: 30,
+                particleCount: 20, // Reducido de 30 a 20
                 spread: 80,
                 startVelocity: 25,
                 origin: { x: x, y: y },
                 shapes: ['star'],
                 colors: ['#FFD700', '#FFFFFF', '#FFA500'],
                 scalar: 0.9,
-                gravity: 1.2, // Aumentado para caída más rápida
-                ticks: 120, // Reducido para que desaparezcan más rápido
+                gravity: 1.2,
+                ticks: 120,
                 disableForReducedMotion: true
             });
         }, 200);
@@ -304,16 +304,16 @@ function showEventAlert() {
         }, 10000 + (Math.random() * 5000));
     }
 
-    // Create initial icons - muchos copos de nieve iniciales
-    for (var i = 0; i < 12; i++) {
-        setTimeout(createRandomIcon, i * 800);
+    // Create initial icons - optimizado para mejor rendimiento
+    for (var i = 0; i < 6; i++) {
+        setTimeout(createRandomIcon, i * 1000);
     }
 
-    // Continue spawning icons periodically - cada 3.5 segundos
+    // Continue spawning icons periodically - optimizado
     setInterval(function () {
-        if (iconsContainer.children.length < 20) {
+        if (iconsContainer.children.length < 12) {
             createRandomIcon();
         }
-    }, 1500); // Cada 3.5 segundos
+    }, 1500);
 
 })();
