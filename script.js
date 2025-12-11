@@ -251,10 +251,14 @@ function showEventAlert() {
 
     // Create page-wide floating icons
     var iconsList = [
-        { class: 'fas fa-star', color: 'text-yellow-400', shadow: '0 0 10px rgba(250, 204, 21, 0.5)' },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)' },
-        { class: 'fas fa-tree', color: 'text-green-600', shadow: '0 0 8px rgba(34, 197, 94, 0.5)' },
-        { class: 'fas fa-champagne-glasses', color: 'text-yellow-300', shadow: '0 0 8px rgba(253, 224, 71, 0.5)' }
+        { class: 'fas fa-star', color: 'text-yellow-400', shadow: '0 0 10px rgba(250, 204, 21, 0.5)', sizeMultiplier: 1 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-tree', color: 'text-green-600', shadow: '0 0 8px rgba(34, 197, 94, 0.5)', sizeMultiplier: 1 },
+        { class: 'fas fa-champagne-glasses', color: 'text-yellow-300', shadow: '0 0 8px rgba(253, 224, 71, 0.5)', sizeMultiplier: 1 }
     ];
     var iconsContainer = document.createElement('div');
     iconsContainer.style.position = 'fixed';
@@ -275,8 +279,20 @@ function showEventAlert() {
         icon.style.left = Math.random() * 100 + '%';
         icon.style.top = Math.random() * 100 + '%';
         icon.style.animationDelay = Math.random() * 3 + 's';
-        icon.style.fontSize = (Math.random() * 1.5 + 1.5) + 'rem';
+
+        // Variación de tamaño más grande para copos de nieve
+        var baseSize = Math.random() * 2.5 + 1; // Entre 1 y 3.5
+        if (selectedIcon.class === 'fas fa-snowflake') {
+            // Copos de nieve con mayor variación: desde muy pequeños hasta muy grandes
+            baseSize = Math.random() * 3 + 1; // Entre 1rem y 4rem
+        }
+        icon.style.fontSize = (baseSize * selectedIcon.sizeMultiplier) + 'rem';
         icon.style.textShadow = selectedIcon.shadow;
+
+        // Asegurar que comience invisible
+        icon.style.opacity = '0';
+        icon.style.transform = 'scale(0)';
+
         icon.onclick = explodeDecoration;
         iconsContainer.appendChild(icon);
 
@@ -288,16 +304,16 @@ function showEventAlert() {
         }, 10000 + (Math.random() * 5000));
     }
 
-    // Create initial icons - reducido para menos frecuencia
-    for (var i = 0; i < 3; i++) {
-        setTimeout(createRandomIcon, i * 1500);
+    // Create initial icons - muchos copos de nieve iniciales
+    for (var i = 0; i < 12; i++) {
+        setTimeout(createRandomIcon, i * 800);
     }
 
-    // Continue spawning icons periodically - menos frecuente
+    // Continue spawning icons periodically - cada 3.5 segundos
     setInterval(function () {
-        if (iconsContainer.children.length < 8) {
+        if (iconsContainer.children.length < 20) {
             createRandomIcon();
         }
-    }, 4000); // Cambiado de 2000ms a 6000ms (cada 6 segundos)
+    }, 1500); // Cada 3.5 segundos
 
 })();
