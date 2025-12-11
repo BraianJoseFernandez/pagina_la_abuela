@@ -182,10 +182,10 @@ function showEventAlert() {
         if (!this.lastSnow || now - this.lastSnow > 100) { // Ejecutar cada 100ms (10 veces/seg)
             this.lastSnow = now;
 
-            // Generar 5 copos de golpe cada 100ms = 50 copos/seg (alta densidad)
+            // Generar 8 copos de golpe cada 100ms = 80 copos/seg (muy alta densidad)
             // Pero solo 10 llamadas a función por segundo (muy eficiente)
             myConfetti({
-                particleCount: 5,
+                particleCount: 8, // Aumentado de 5 a 8 para más nieve
                 startVelocity: 0,
                 ticks: randomInRange(300, 400),
                 origin: { x: Math.random(), y: -0.05 },
@@ -234,6 +234,7 @@ function showEventAlert() {
             disableForReducedMotion: true
         });
 
+
         // Segunda ráfaga - efecto de chispas
         setTimeout(function () {
             myConfetti({
@@ -270,5 +271,79 @@ function showEventAlert() {
             event.target.remove();
         }
     };
+
+    // Restaurando Iconos Flotantes Dinámicos
+    var iconsList = [
+        { class: 'fas fa-star', color: 'text-yellow-400', shadow: '0 0 10px rgba(250, 204, 21, 0.5)', sizeMultiplier: 1 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
+        { class: 'fas fa-tree', color: 'text-green-600', shadow: '0 0 8px rgba(34, 197, 94, 0.5)', sizeMultiplier: 1 },
+        { class: 'fas fa-champagne-glasses', color: 'text-yellow-300', shadow: '0 0 8px rgba(253, 224, 71, 0.5)', sizeMultiplier: 1 }
+    ];
+
+    var iconsContainer = document.querySelector('.floating-icons');
+    if (!iconsContainer) {
+        iconsContainer = document.createElement('div');
+        iconsContainer.className = 'floating-icons';
+        iconsContainer.style.position = 'fixed';
+        iconsContainer.style.top = '0';
+        iconsContainer.style.left = '0';
+        iconsContainer.style.width = '100vw';
+        iconsContainer.style.height = '100vh';
+        iconsContainer.style.pointerEvents = 'none';
+        iconsContainer.style.zIndex = '15';
+        iconsContainer.style.overflow = 'hidden';
+        document.body.appendChild(iconsContainer);
+    }
+
+    function createRandomIcon() {
+        var icon = document.createElement('i');
+        var selectedIcon = iconsList[Math.floor(Math.random() * iconsList.length)];
+
+        icon.className = 'floating-icon ' + selectedIcon.class + ' ' + selectedIcon.color + ' cursor-pointer';
+        // Aseguramos que tengan pointer-events: auto para ser clickeables
+        icon.style.pointerEvents = 'auto';
+
+        icon.style.left = Math.random() * 95 + '%'; // Evitar borde derecho
+        icon.style.top = Math.random() * 90 + '%';  // Evitar borde inferior
+        icon.style.animationDelay = Math.random() * 2 + 's';
+
+        var baseSize = Math.random() * 2 + 1.5;
+        if (selectedIcon.class.includes('fa-snowflake')) {
+            baseSize = Math.random() * 2.5 + 1.5;
+        }
+        icon.style.fontSize = (baseSize * selectedIcon.sizeMultiplier) + 'rem';
+        icon.style.textShadow = selectedIcon.shadow;
+
+        // Comienzan invisibles para el efecto smooth
+        icon.style.opacity = '0';
+        icon.style.transform = 'scale(0)';
+
+        icon.onclick = explodeDecoration;
+        iconsContainer.appendChild(icon);
+
+        // Remover si dura mucho tiempo (limpieza)
+        setTimeout(function () {
+            if (icon.parentNode) {
+                icon.remove();
+            }
+        }, 15000);
+    }
+
+    // Inicializar algunos iconos
+    for (let i = 0; i < 5; i++) {
+        setTimeout(createRandomIcon, i * 500);
+    }
+
+    // Reponer iconos periódicamente
+    setInterval(function () {
+        // Mantenemos entre 12 y 18 iconos en pantalla
+        if (iconsContainer.children.length < 18) {
+            createRandomIcon();
+        }
+    }, 1000);
 
 })();
