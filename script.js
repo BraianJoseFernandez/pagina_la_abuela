@@ -153,33 +153,50 @@ function showEventAlert() {
     var snowflakeObj = confetti.shapeFromText({ text: '*', scalar: 2, color: 'white' });
 
 
-    // Continuous falling snow animation
+    // Continuous falling snow animation - mejorado para más copos
     (function frame() {
         var shapes = [snowflakeObj];
-        var colors = ['#ffffff'];
+        var colors = ['#ffffff', '#f0f0f0', '#e8e8e8'];
 
-        // 15% chance to spawn a gold star
-        if (Math.random() < 0.15) {
+        // Probabilidad de diferentes tipos de partículas
+        var random = Math.random();
+
+        if (random < 0.7) {
+            // 70% copos de nieve blancos
+            colors = ['#ffffff', '#f0f0f0'];
+        } else if (random < 0.85) {
+            // 15% estrellas doradas
             colors = ['#FFD700', '#FDB931'];
+        } else if (random < 0.95) {
+            // 10% árboles verdes (usando círculos verdes)
+            colors = ['#22c55e', '#16a34a'];
+        } else {
+            // 5% copas doradas
+            colors = ['#fde047', '#facc15'];
         }
 
-        myConfetti({
-            particleCount: 1,
-            startVelocity: 0,
-            ticks: 800,
-            origin: { x: Math.random(), y: -0.05 },
-            colors: colors,
-            shapes: shapes,
-            gravity: randomInRange(0.4, 0.6),
-            scalar: randomInRange(0.8, 1.2),
-            drift: randomInRange(-0.4, 0.4),
-            disableForReducedMotion: true
-        });
+        // Generar múltiples copos por frame para efecto más denso
+        var numFlakes = Math.random() < 0.3 ? 2 : 1; // 30% chance de 2 copos
+
+        for (var i = 0; i < numFlakes; i++) {
+            myConfetti({
+                particleCount: 1,
+                startVelocity: 0,
+                ticks: randomInRange(600, 1000),
+                origin: { x: Math.random(), y: -0.05 },
+                colors: colors,
+                shapes: shapes,
+                gravity: randomInRange(0.3, 0.7),
+                scalar: randomInRange(0.4, 1.5), // Reducido para copos más pequeños
+                drift: randomInRange(-0.5, 0.5),
+                disableForReducedMotion: true
+            });
+        }
 
         requestAnimationFrame(frame);
     }());
 
-    // Click explosion effect - Firework style
+    // Click explosion effect - Firework style (solo para iconos del header)
     window.explodeDecoration = function (event) {
         event.stopPropagation();
 
@@ -201,7 +218,7 @@ function showEventAlert() {
 
         // Primera ráfaga - explosión inicial
         myConfetti({
-            particleCount: 40, // Reducido de 60 a 40
+            particleCount: 40,
             spread: 100,
             startVelocity: 45,
             origin: { x: x, y: y },
@@ -215,7 +232,7 @@ function showEventAlert() {
         // Segunda ráfaga - efecto de chispas
         setTimeout(function () {
             myConfetti({
-                particleCount: 25, // Reducido de 40 a 25
+                particleCount: 25,
                 spread: 120,
                 startVelocity: 35,
                 origin: { x: x, y: y },
@@ -230,7 +247,7 @@ function showEventAlert() {
         // Tercera ráfaga - estrellas brillantes
         setTimeout(function () {
             myConfetti({
-                particleCount: 20, // Reducido de 30 a 20
+                particleCount: 20,
                 spread: 80,
                 startVelocity: 25,
                 origin: { x: x, y: y },
@@ -248,72 +265,5 @@ function showEventAlert() {
             event.target.remove();
         }
     };
-
-    // Create page-wide floating icons
-    var iconsList = [
-        { class: 'fas fa-star', color: 'text-yellow-400', shadow: '0 0 10px rgba(250, 204, 21, 0.5)', sizeMultiplier: 1 },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
-        { class: 'fas fa-snowflake', color: 'text-gray-200', shadow: '0 0 8px rgba(255, 255, 255, 0.8)', sizeMultiplier: 1.3 },
-        { class: 'fas fa-tree', color: 'text-green-600', shadow: '0 0 8px rgba(34, 197, 94, 0.5)', sizeMultiplier: 1 },
-        { class: 'fas fa-champagne-glasses', color: 'text-yellow-300', shadow: '0 0 8px rgba(253, 224, 71, 0.5)', sizeMultiplier: 1 }
-    ];
-    var iconsContainer = document.createElement('div');
-    iconsContainer.style.position = 'fixed';
-    iconsContainer.style.top = '0';
-    iconsContainer.style.left = '0';
-    iconsContainer.style.width = '100vw';
-    iconsContainer.style.height = '100vh';
-    iconsContainer.style.pointerEvents = 'none';
-    iconsContainer.style.zIndex = '1000';
-    iconsContainer.style.overflow = 'hidden';
-    document.body.appendChild(iconsContainer);
-
-    function createRandomIcon() {
-        var icon = document.createElement('i');
-        var selectedIcon = iconsList[Math.floor(Math.random() * iconsList.length)];
-
-        icon.className = 'floating-icon page-wide-icon ' + selectedIcon.class + ' ' + selectedIcon.color + ' cursor-pointer';
-        icon.style.left = Math.random() * 100 + '%';
-        icon.style.top = Math.random() * 100 + '%';
-        icon.style.animationDelay = Math.random() * 3 + 's';
-
-        // Variación de tamaño más grande para copos de nieve
-        var baseSize = Math.random() * 2.5 + 1; // Entre 1 y 3.5
-        if (selectedIcon.class === 'fas fa-snowflake') {
-            // Copos de nieve con mayor variación: desde muy pequeños hasta muy grandes
-            baseSize = Math.random() * 3 + 1; // Entre 1rem y 4rem
-        }
-        icon.style.fontSize = (baseSize * selectedIcon.sizeMultiplier) + 'rem';
-        icon.style.textShadow = selectedIcon.shadow;
-
-        // Asegurar que comience invisible
-        icon.style.opacity = '0';
-        icon.style.transform = 'scale(0)';
-
-        icon.onclick = explodeDecoration;
-        iconsContainer.appendChild(icon);
-
-        // Remove icon after animation cycle completes
-        setTimeout(function () {
-            if (icon.parentNode) {
-                icon.remove();
-            }
-        }, 10000 + (Math.random() * 5000));
-    }
-
-    // Create initial icons - optimizado para mejor rendimiento
-    for (var i = 0; i < 6; i++) {
-        setTimeout(createRandomIcon, i * 1000);
-    }
-
-    // Continue spawning icons periodically - optimizado
-    setInterval(function () {
-        if (iconsContainer.children.length < 12) {
-            createRandomIcon();
-        }
-    }, 1500);
 
 })();
