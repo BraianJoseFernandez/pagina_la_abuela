@@ -176,12 +176,9 @@ function showEventAlert() {
         }
 
         // Generar múltiples copos por frame para efecto más denso
-        // Generar nieve con control de frames para rendimiento
-        // Solo generar nieve cada 3 frames (20 fps efectivo para generación)
-        // Esto reduce significativamente la carga de CPU
-        if (Date.now() % 3 !== 0) return requestAnimationFrame(frame);
-
-        var numFlakes = 1; // 1 copo cada 3 frames es suficiente para una nevada suave constante
+        // Generar 1 copo por frame para una nevada densa y fluida
+        // Gracias a la reducción de ticks (tiempo de vida), esto no causará lag
+        var numFlakes = 1;
 
         for (var i = 0; i < numFlakes; i++) {
             myConfetti({
