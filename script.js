@@ -206,9 +206,9 @@ function showEventAlert() {
             startVelocity: 45,
             origin: { x: x, y: y },
             colors: selectedColors,
-            scalar: 0.7, // Reducido de 1.5 a 0.7
-            gravity: 1,
-            ticks: 150,
+            scalar: 0.7,
+            gravity: 1.8, // Aumentado para caída más rápida
+            ticks: 100, // Reducido para que desaparezcan más rápido
             disableForReducedMotion: true
         });
 
@@ -220,9 +220,9 @@ function showEventAlert() {
                 startVelocity: 35,
                 origin: { x: x, y: y },
                 colors: selectedColors,
-                scalar: 0.6, // Reducido de 1.2 a 0.6
-                gravity: 0.8,
-                ticks: 120,
+                scalar: 0.6,
+                gravity: 1.5, // Aumentado para caída más rápida
+                ticks: 90, // Reducido para que desaparezcan más rápido
                 disableForReducedMotion: true
             });
         }, 100);
@@ -236,9 +236,9 @@ function showEventAlert() {
                 origin: { x: x, y: y },
                 shapes: ['star'],
                 colors: ['#FFD700', '#FFFFFF', '#FFA500'],
-                scalar: 0.9, // Reducido de 1.8 a 0.9
-                gravity: 0.5,
-                ticks: 180,
+                scalar: 0.9,
+                gravity: 1.2, // Aumentado para caída más rápida
+                ticks: 120, // Reducido para que desaparezcan más rápido
                 disableForReducedMotion: true
             });
         }, 200);
