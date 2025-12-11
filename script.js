@@ -176,19 +176,26 @@ function showEventAlert() {
         }
 
         // Generar múltiples copos por frame para efecto más denso
-        var numFlakes = Math.random() < 0.3 ? 2 : 1; // 30% chance de 2 copos
+        // Generar nieve con control de frames para rendimiento
+        // Solo generar nieve cada 3 frames (20 fps efectivo para generación)
+        // Esto reduce significativamente la carga de CPU
+        if (Date.now() % 3 !== 0) return requestAnimationFrame(frame);
+
+        var numFlakes = 1; // 1 copo cada 3 frames es suficiente para una nevada suave constante
 
         for (var i = 0; i < numFlakes; i++) {
             myConfetti({
                 particleCount: 1,
                 startVelocity: 0,
-                ticks: randomInRange(600, 1000),
+                // Reducir ticks significativamente. 
+                // 400 ticks @ 60fps = ~6.6 segundos, suficiente para caer toda la pantalla
+                ticks: randomInRange(300, 400),
                 origin: { x: Math.random(), y: -0.05 },
                 colors: colors,
                 shapes: shapes,
-                gravity: randomInRange(0.3, 0.7),
-                scalar: randomInRange(0.4, 1.5), // Reducido para copos más pequeños
-                drift: randomInRange(-0.5, 0.5),
+                gravity: randomInRange(0.4, 0.8), // Gravedad un poco mayor para que caigan y no se acumulen
+                scalar: randomInRange(0.4, 1.2),
+                drift: randomInRange(-0.4, 0.4),
                 disableForReducedMotion: true
             });
         }
