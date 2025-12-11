@@ -176,16 +176,17 @@ function showEventAlert() {
         }
 
         // Generar múltiples copos por frame para efecto más denso
-        // Generar 1 copo por frame para una nevada densa y fluida
-        // Gracias a la reducción de ticks (tiempo de vida), esto no causará lag
-        var numFlakes = 1;
+        // Generación optimizada: Agrupar llamadas
+        // Usamos un intervalo de tiempo real en lugar de frames
+        var now = Date.now();
+        if (!this.lastSnow || now - this.lastSnow > 100) { // Ejecutar cada 100ms (10 veces/seg)
+            this.lastSnow = now;
 
-        for (var i = 0; i < numFlakes; i++) {
+            // Generar 5 copos de golpe cada 100ms = 50 copos/seg (alta densidad)
+            // Pero solo 10 llamadas a función por segundo (muy eficiente)
             myConfetti({
-                particleCount: 1,
+                particleCount: 5,
                 startVelocity: 0,
-                // Reducir ticks significativamente. 
-                // 400 ticks @ 60fps = ~6.6 segundos, suficiente para caer toda la pantalla
                 ticks: randomInRange(300, 400),
                 origin: { x: Math.random(), y: -0.05 },
                 colors: colors,
