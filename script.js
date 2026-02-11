@@ -47,7 +47,7 @@ function showCategory(filename) {
                 // Let's animate from "Full Screen" to "Content Revealed" (everything moving down)
                 
                 gsap.to(path, {
-                    duration: 0.8,
+                    duration: 0.4,
                     attr: { d: "M 0 100 L 100 100 L 100 100 Q 50 100 0 100 Z" }, // Effectively moving the top edge down to the bottom
                     ease: "power2.inOut",
                     onComplete: () => {
