@@ -1,4 +1,5 @@
 // Función para mostrar categorías dinámicamente
+// Función para mostrar categorías dinámicamente con transición GSAP
 function showCategory(filename) {
     // Quita la clase activa de todos los botones
     document.querySelectorAll('.category-btn').forEach(btn => {
@@ -6,14 +7,62 @@ function showCategory(filename) {
     });
 
     // Agrega la clase activa al botón correspondiente
-    // Asegúrate de que el 'filename' coincida con lo que se pasa en onclick
     const btn = Array.from(document.querySelectorAll('.category-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(filename));
     if (btn) {
         btn.classList.add('active');
     }
 
-    // Carga el contenido de la categoría desde su archivo HTML
-    // Actualizado para buscar en la carpeta 'opciones'
+    const overlay = document.getElementById('transition-overlay');
+    const path = document.getElementById('curve-path');
+    
+    // Asegurar que el overlay sea visible
+    overlay.classList.remove('hidden');
+    
+    // Implementación de Curve Swipe estilo demo GSAP
+    
+    // Reset path: Start flat at top (Height 0)
+    gsap.set(path, { attr: { d: "M 0 0 L 100 0 L 100 0 Q 50 0 0 0 Z" } });
+
+    const tl = gsap.timeline();
+
+    // 1. Fill Screen (Curve leads down)
+    // The curve (Q 50 120) goes lower than the sides (100) to create the convex shape
+    tl.to(path, { 
+        duration: 0.8,
+        attr: { d: "M 0 0 L 100 0 L 100 100 Q 50 120 0 100 Z" }, 
+        ease: "power2.in"
+    })
+    // 2. Flatten (Snap to full screen)
+    .to(path, {
+        duration: 0.2,
+        attr: { d: "M 0 0 L 100 0 L 100 100 Q 50 100 0 100 Z" },
+        ease: "power1.out",
+        onComplete: () => {
+            loadContent(filename, () => {
+                // 3. Prepare for Exit (Curve at top hidden)
+                // We want to reveal from top to bottom.
+                // We set the path to be full, but we will animate the TOP edge and the CURVE down.
+                // M 0 0 ... -> M 0 100 ...
+                
+                // Let's animate from "Full Screen" to "Content Revealed" (everything moving down)
+                
+                gsap.to(path, {
+                    duration: 0.8,
+                    attr: { d: "M 0 100 L 100 100 L 100 100 Q 50 100 0 100 Z" }, // Effectively moving the top edge down to the bottom
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        overlay.classList.add('hidden');
+                        gsap.set(path, { attr: { d: "M 0 0 L 100 0 L 100 0 Q 50 0 0 0 Z" } });
+                    }
+                });
+            });
+        }
+    });
+
+}
+
+function loadContent(filename, callback) {
+    // ... (existing loadContent code)
     fetch(`opciones/${filename}`)
         .then(response => {
             if (!response.ok) {
@@ -26,14 +75,22 @@ function showCategory(filename) {
         })
         .then(html => {
             document.getElementById('menu-sections-container').innerHTML = html;
-            // Scroll al principio del contenido cargado
-            document.getElementById('menu-content').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('menu-content').scrollIntoView({ behavior: 'auto' });
+            if (callback) callback();
         })
         .catch(error => {
             console.error('Error al cargar la categoría:', error);
             document.getElementById('menu-sections-container').innerHTML = `<p class="text-red-500 text-center text-xl">No contamos con ese menú actualmente.</p>`;
+            if (callback) callback();
         });
 }
+
+// ... (Rest of code) ...
+
+// Corazones
+// ...
+
+
 
 // Lógica para el menú fijo y ocultar/mostrar en scroll
 let lastScrollY = window.scrollY;
@@ -176,6 +233,9 @@ class FloatingHeart {
     }
 
     breakHeart() {
+        // CORRECCIÓN PRIORITARIA: Obtener posición EXACTA visual ANTES de cualquier cambio de clase o estado
+        const rect = this.element.getBoundingClientRect();
+        
         this.isBroken = true;
         clearTimeout(this.animationTimeout);
         
@@ -183,42 +243,57 @@ class FloatingHeart {
         this.element.classList.add('heart-broken');
         
         const wordsContainer = document.getElementById('words-container');
+        
+        // Centro del corazón (coordenadas viewport)
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-        // Crear una sola palabra que sale hacia arriba
+        // 1. Confetti (Coordenadas normalizadas 0-1)
+        const xNormalized = centerX / window.innerWidth;
+        const yNormalized = centerY / window.innerHeight;
+        
+        confetti({
+            particleCount: 20,
+            spread: 70,
+            origin: { x: xNormalized, y: yNormalized }, // Origen exacto
+            colors: ['#ec4899', '#ef4444', '#f472b6'],
+            disableForReducedMotion: true,
+            zIndex: 100,
+            scalar: 0.8
+        });
+
+        // 2. Palabra Romántica (Coordenadas Pixeles)
         const word = romanticWords[Math.floor(Math.random() * romanticWords.length)];
         const wordElement = document.createElement('div');
-        // Usamos una animación simple hacia arriba (burst-1 modificada o una nueva clase si fuera necesario, 
-        // pero burst-0 va hacia arriba-derecha, burst-3 hacia abajo... 
-        // Vamos a usar una animación genérica de flotar hacia arriba para que sea más claro)
-        
-        // Pero para mantener el estilo, usaré word-border-0 pero ajustando estilo si hace falta, 
-        // O mejor, defino un estilo inline o reutilizo la clase existing pero solo UNA.
-        // El usuario quiere que "aparezca". 
-        // Voy a usar animation 'word-float-up' que ya existe en CSS o similar?
-        // En style.css vi: @keyframes word-float-up
-        
         wordElement.className = 'romantic-word'; 
-        // Sobreescribimos la animación para que sea consistente
-        wordElement.style.animation = 'word-float-up 1.5s ease-out forwards';
         
         wordElement.textContent = word;
         
-        // Centrar la palabra en el corazón
-        wordElement.style.left = this.x + 'px';
-        wordElement.style.top = this.y + 'px';
-        wordElement.style.fontSize = '2rem'; // Un poco más grande
+        // Posicionamiento EXACTO: Usamos fixed position porque el container es fixed y cubre todo
+        // Ajustamos para centrar el texto (suponiendo ancho aprox)
+        wordElement.style.position = 'absolute'; // Es absolute relativo al words-container (fixed)
+        wordElement.style.left = centerX + 'px'; 
+        wordElement.style.top = centerY + 'px';
+        
+        // Transform para centrar exactamente el punto de origen del texto
+        wordElement.style.transform = 'translate(-50%, -50%)'; 
+        
+        // Animación CSS definida
+        wordElement.style.animation = 'word-float-up 1.5s ease-out forwards';
+        
+        wordElement.style.fontSize = '2rem';
         wordElement.style.fontWeight = 'bold';
         
         wordsContainer.appendChild(wordElement);
         
-        // Eliminar la palabra después de 1.5 segundos
+        // Eliminar después de animación
         setTimeout(() => {
             if (wordElement.parentElement) {
                 wordElement.remove();
             }
         }, 1500);
         
-        // Eliminar el corazón después del efecto de ruptura
+        // Eliminar corazón
         setTimeout(() => {
             if (this.element.parentElement) {
                 this.element.remove();
@@ -228,7 +303,9 @@ class FloatingHeart {
     }
 
     createNewHeart() {
-        const randomX = Math.random() * window.innerWidth;
+        // Margen de seguridad para evitar que el corazón se corte en los bordes
+        const padding = 60; // píxeles de seguridad desde los bordes
+        const randomX = Math.random() * (window.innerWidth - padding * 2) + padding;
         const randomY = window.innerHeight + 100;
         new FloatingHeart(randomX, randomY);
     }
