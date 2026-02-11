@@ -109,8 +109,8 @@ function showPizzaSweetAlert(imageElement) {
 // Función para mostrar el evento 'Noche de Blanco' en SweetAlert
 function showEventAlert() {
     Swal.fire({
-        imageUrl: '/imagenes/eventos/noche_de_blanco/Imagen de WhatsApp 2025-12-04 a las 11.19.47_8fc62c34.jpg',
-        imageAlt: 'Noche de Blanco',
+        imageUrl: '/imagenes/eventos/SanValentin/sanvalentin.jpg',
+        imageAlt: 'San Valentin',
         showConfirmButton: false,
         showCloseButton: true,
         background: 'transparent',
@@ -124,4 +124,131 @@ function showEventAlert() {
             no-repeat
         `
     });
+}
+
+// Lista de palabras románticas para los corazones
+const romanticWords = [
+    'Amor', 'Pasión', 'Cariño', 'Ternura', 'Beso', 'Abrazo', 'Deseo', 'Dulzura',
+    'Corazón', 'Alma', 'Vida', 'Cielo', 'Encanto', 'Felicidad', 'Devoción',
+    'Admiración', 'Lealtad', 'Complicidad', 'Romance', 'Ilusión', 'Latido',
+    'Suspiro', 'Mirada', 'Sonrisa', 'Calidez', 'Confianza', 'Magia', 'Fuego',
+    'Eternidad', 'Destino', 'Unión', 'Plenitud', 'Entrega', 'Protección',
+    'Inspiración', 'Belleza', 'Encanto', 'Armonía', 'Anhelo', 'Calma',
+    'Fascinación', 'Serenidad', 'Amistad', 'Respeto', 'Cuidado', 'Esperanza',
+    'Dulce', 'Amado/a', 'Querer', 'Enamoramiento'
+];
+
+// Colores para los corazones (rosa y rojo)
+const heartColors = ['#ec4899', '#ef4444', '#f472b6', '#fb7185'];
+
+class FloatingHeart {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.isBroken = false;
+        this.element = document.createElement('div');
+        this.element.className = 'floating-heart';
+        this.element.innerHTML = '<i class="fas fa-heart"></i>';
+        this.element.style.left = x + 'px';
+        this.element.style.top = y + 'px';
+        this.element.style.color = heartColors[Math.floor(Math.random() * heartColors.length)];
+        
+        const duration = 7 + Math.random() * 3; // 7-10 segundos para ser más lento
+        this.element.style.animationDuration = duration + 's';
+        this.element.style.animationDelay = Math.random() * 0.5 + 's';
+        
+        this.element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!this.isBroken) {
+                this.breakHeart();
+            }
+        });
+        
+        document.getElementById('hearts-container').appendChild(this.element);
+        
+        // Eliminar el elemento después de que termine la animación
+        this.animationTimeout = setTimeout(() => {
+            if (!this.isBroken && this.element.parentElement) {
+                this.element.remove();
+                this.createNewHeart();
+            }
+        }, (duration + 1) * 1000);
+    }
+
+    breakHeart() {
+        this.isBroken = true;
+        clearTimeout(this.animationTimeout);
+        
+        // Agregar efecto de ruptura al corazón
+        this.element.classList.add('heart-broken');
+        
+        const wordsContainer = document.getElementById('words-container');
+
+        // Crear una sola palabra que sale hacia arriba
+        const word = romanticWords[Math.floor(Math.random() * romanticWords.length)];
+        const wordElement = document.createElement('div');
+        // Usamos una animación simple hacia arriba (burst-1 modificada o una nueva clase si fuera necesario, 
+        // pero burst-0 va hacia arriba-derecha, burst-3 hacia abajo... 
+        // Vamos a usar una animación genérica de flotar hacia arriba para que sea más claro)
+        
+        // Pero para mantener el estilo, usaré word-border-0 pero ajustando estilo si hace falta, 
+        // O mejor, defino un estilo inline o reutilizo la clase existing pero solo UNA.
+        // El usuario quiere que "aparezca". 
+        // Voy a usar animation 'word-float-up' que ya existe en CSS o similar?
+        // En style.css vi: @keyframes word-float-up
+        
+        wordElement.className = 'romantic-word'; 
+        // Sobreescribimos la animación para que sea consistente
+        wordElement.style.animation = 'word-float-up 1.5s ease-out forwards';
+        
+        wordElement.textContent = word;
+        
+        // Centrar la palabra en el corazón
+        wordElement.style.left = this.x + 'px';
+        wordElement.style.top = this.y + 'px';
+        wordElement.style.fontSize = '2rem'; // Un poco más grande
+        wordElement.style.fontWeight = 'bold';
+        
+        wordsContainer.appendChild(wordElement);
+        
+        // Eliminar la palabra después de 1.5 segundos
+        setTimeout(() => {
+            if (wordElement.parentElement) {
+                wordElement.remove();
+            }
+        }, 1500);
+        
+        // Eliminar el corazón después del efecto de ruptura
+        setTimeout(() => {
+            if (this.element.parentElement) {
+                this.element.remove();
+            }
+            this.createNewHeart();
+        }, 600);
+    }
+
+    createNewHeart() {
+        const randomX = Math.random() * window.innerWidth;
+        const randomY = window.innerHeight + 100;
+        new FloatingHeart(randomX, randomY);
+    }
+}
+
+// Inicializar corazones flotantes
+function initFloatingHearts() {
+    const heartsContainer = document.getElementById('hearts-container');
+    
+    // Crear corazones iniciales
+    for (let i = 0; i < 5; i++) {
+        const randomX = Math.random() * window.innerWidth;
+        const randomY = window.innerHeight + Math.random() * 100;
+        new FloatingHeart(randomX, randomY);
+    }
+}
+
+// Iniciar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFloatingHearts);
+} else {
+    initFloatingHearts();
 }
