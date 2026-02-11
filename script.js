@@ -28,13 +28,13 @@ function showCategory(filename) {
     // 1. Fill Screen (Curve leads down)
     // The curve (Q 50 120) goes lower than the sides (100) to create the convex shape
     tl.to(path, { 
-        duration: 0.8,
+        duration: 0.4,
         attr: { d: "M 0 0 L 100 0 L 100 100 Q 50 120 0 100 Z" }, 
         ease: "power2.in"
     })
     // 2. Flatten (Snap to full screen)
     .to(path, {
-        duration: 0.2,
+        duration: 0.1,
         attr: { d: "M 0 0 L 100 0 L 100 100 Q 50 100 0 100 Z" },
         ease: "power1.out",
         onComplete: () => {
