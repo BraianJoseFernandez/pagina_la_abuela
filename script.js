@@ -166,8 +166,8 @@ function showPizzaSweetAlert(imageElement) {
 // Función para mostrar el evento en SweetAlert
 function showEventAlert() {
     Swal.fire({
-        imageUrl: '/imagenes/eventos/SanValentin/sanvalentin.jpg',
-        imageAlt: 'San Valentin',
+        imageUrl: '/imagenes/eventos/Diadelamujer/Dia_De_La_mujer.jpg',
+        imageAlt: 'Dia de la mujer',
         showConfirmButton: false,
         showCloseButton: true,
         background: 'transparent',
