@@ -12,8 +12,6 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  /* Asegúrate de guardar la imagen como mariposas.jpg dentro de la carpeta imagenes */
-  background-image: url('imagenes/mariposas.jpg');
   background-size: cover;
   background-position: center;
   mix-blend-mode: multiply;
@@ -58,7 +56,6 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('imagenes/mariposas.jpg');
   background-size: 300px;
   /* Al ser patrón, repetimos la imagen */
   background-repeat: repeat;
