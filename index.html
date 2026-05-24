@@ -32,22 +32,265 @@
     </div>
     
     <header class="hero-bg text-white py-10 relative">
+        <!-- Banderines Extremo Izquierdo (Invertido) -->
+        <div class="banderines-left">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%" style="transform: scaleX(-1);">
+                <rect width="100%" height="100%" fill="transparent" />
+                <defs>
+                    <pattern id="polka-dots-left" width="15" height="15" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+                        <rect width="15" height="15" fill="#FDBB2E" />
+                        <circle cx="0" cy="0" r="2.2" fill="#FFFFFF" />
+                        <circle cx="15" cy="0" r="2.2" fill="#FFFFFF" />
+                        <circle cx="0" cy="15" r="2.2" fill="#FFFFFF" />
+                        <circle cx="15" cy="15" r="2.2" fill="#FFFFFF" />
+                        <circle cx="7.5" cy="7.5" r="2.2" fill="#FFFFFF" />
+                    </pattern>
+                    <clipPath id="tri-clip-left">
+                        <polygon points="-20,0 20,0 0,55" />
+                    </clipPath>
+                    <clipPath id="swal-clip-left">
+                        <polygon points="-20,0 20,0 20,55 0,40 -20,55" />
+                    </clipPath>
+                    <g id="tri-arg-left">
+                        <g clip-path="url(#tri-clip-left)">
+                            <rect x="-20" y="0" width="13.33" height="60" fill="#47B8E9" />
+                            <rect x="-6.67" y="0" width="13.34" height="60" fill="#FFFFFF" />
+                            <rect x="6.67" y="0" width="13.33" height="60" fill="#47B8E9" />
+                        </g>
+                    </g>
+                    <g id="tri-yel-left">
+                        <polygon points="-20,0 20,0 0,55" fill="#FDBB2E" />
+                    </g>
+                    <g id="swal-arg-left">
+                        <g clip-path="url(#swal-clip-left)">
+                            <rect x="-20" y="0" width="13.33" height="60" fill="#47B8E9" />
+                            <rect x="-6.67" y="0" width="13.34" height="60" fill="#FFFFFF" />
+                            <rect x="6.67" y="0" width="13.33" height="60" fill="#47B8E9" />
+                        </g>
+                    </g>
+                    <g id="swal-dots-left">
+                        <polygon points="-20,0 20,0 20,55 0,40 -20,55" fill="url(#polka-dots-left)" />
+                    </g>
+                </defs>
+                <g class="banderine-animated">
+                    <path d="M 110,-10 Q 150,150 390,150" fill="none" stroke="#111827" stroke-width="2" />
+                    <use href="#tri-arg-left" transform="translate(121, 35) rotate(48)" />
+                    <use href="#tri-yel-left" transform="translate(162, 85) rotate(35)" />
+                    <use href="#tri-arg-left" transform="translate(216, 122) rotate(20)" />
+                    <use href="#tri-yel-left" transform="translate(278, 142) rotate(6)" />
+                    <use href="#tri-arg-left" transform="translate(345, 148) rotate(-3)" />
+                    <path d="M 70,50 Q 150,240 370,220" fill="none" stroke="#111827" stroke-width="2" />
+                    <use href="#swal-dots-left" transform="translate(85, 80) rotate(58)" />
+                    <use href="#swal-arg-left" transform="translate(122, 137) rotate(42)" />
+                    <use href="#swal-dots-left" transform="translate(172, 185) rotate(26)" />
+                    <use href="#swal-arg-left" transform="translate(234, 218) rotate(11)" />
+                    <use href="#swal-dots-left" transform="translate(300, 230) rotate(-1)" />
+                    <use href="#swal-arg-left" transform="translate(365, 222) rotate(-11)" />
+                </g>
+            </svg>
+        </div>
+        
+        <!-- Banderines Extremo Derecho -->
+        <div class="banderines-right">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+                <rect width="100%" height="100%" fill="transparent" />
+                <defs>
+                    <pattern id="polka-dots-right" width="15" height="15" patternUnits="userSpaceOnUse" patternTransform="rotate(20)">
+                        <rect width="15" height="15" fill="#FDBB2E" />
+                        <circle cx="0" cy="0" r="2.2" fill="#FFFFFF" />
+                        <circle cx="15" cy="0" r="2.2" fill="#FFFFFF" />
+                        <circle cx="0" cy="15" r="2.2" fill="#FFFFFF" />
+                        <circle cx="15" cy="15" r="2.2" fill="#FFFFFF" />
+                        <circle cx="7.5" cy="7.5" r="2.2" fill="#FFFFFF" />
+                    </pattern>
+                    <clipPath id="tri-clip-right">
+                        <polygon points="-20,0 20,0 0,55" />
+                    </clipPath>
+                    <clipPath id="swal-clip-right">
+                        <polygon points="-20,0 20,0 20,55 0,40 -20,55" />
+                    </clipPath>
+                    <g id="tri-arg-right">
+                        <g clip-path="url(#tri-clip-right)">
+                            <rect x="-20" y="0" width="13.33" height="60" fill="#47B8E9" />
+                            <rect x="-6.67" y="0" width="13.34" height="60" fill="#FFFFFF" />
+                            <rect x="6.67" y="0" width="13.33" height="60" fill="#47B8E9" />
+                        </g>
+                    </g>
+                    <g id="tri-yel-right">
+                        <polygon points="-20,0 20,0 0,55" fill="#FDBB2E" />
+                    </g>
+                    <g id="swal-arg-right">
+                        <g clip-path="url(#swal-clip-right)">
+                            <rect x="-20" y="0" width="13.33" height="60" fill="#47B8E9" />
+                            <rect x="-6.67" y="0" width="13.34" height="60" fill="#FFFFFF" />
+                            <rect x="6.67" y="0" width="13.33" height="60" fill="#47B8E9" />
+                        </g>
+                    </g>
+                    <g id="swal-dots-right">
+                        <polygon points="-20,0 20,0 20,55 0,40 -20,55" fill="url(#polka-dots-right)" />
+                    </g>
+                </defs>
+                <g class="banderine-animated">
+                    <path d="M 110,-10 Q 150,150 390,150" fill="none" stroke="#111827" stroke-width="2" />
+                    <use href="#tri-arg-right" transform="translate(121, 35) rotate(48)" />
+                    <use href="#tri-yel-right" transform="translate(162, 85) rotate(35)" />
+                    <use href="#tri-arg-right" transform="translate(216, 122) rotate(20)" />
+                    <use href="#tri-yel-right" transform="translate(278, 142) rotate(6)" />
+                    <use href="#tri-arg-right" transform="translate(345, 148) rotate(-3)" />
+                    <path d="M 70,50 Q 150,240 370,220" fill="none" stroke="#111827" stroke-width="2" />
+                    <use href="#swal-dots-right" transform="translate(85, 80) rotate(58)" />
+                    <use href="#swal-arg-right" transform="translate(122, 137) rotate(42)" />
+                    <use href="#swal-dots-right" transform="translate(172, 185) rotate(26)" />
+                    <use href="#swal-arg-right" transform="translate(234, 218) rotate(11)" />
+                    <use href="#swal-dots-right" transform="translate(300, 230) rotate(-1)" />
+                    <use href="#swal-arg-right" transform="translate(365, 222) rotate(-11)" />
+                </g>
+            </svg>
+        </div>
+        
         <div class="floating-icons">
             <i class="floating-icon fas fa-pizza-slice" style="top: 20%; left: 10%; animation-delay: 0s"></i>
             <i class="floating-icon fas fa-hamburger" style="top: 40%; right: 15%; animation-delay: 1s"></i>
             <i class="floating-icon fas fa-bowl-food" style="top: 60%; left: 20%; animation-delay: 2s"></i>
             <i class="floating-icon fas fa-cookie-bite" style="top: 30%; right: 30%; animation-delay: 3s"></i>
         </div>
+        
+        <!-- Escarapela Izquierda -->
+        <div class="escarapela-left left-12 mt-20">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 310" width="100%" height="100%">
+                <defs>
+                    <polygon id="ray-straight" points="98.5,76 101.5,76 100,45" fill="#f2a900"/>
+                    <path id="ray-wavy" d="M 98,76 Q 93,62 100,55 Q 105,48 100,45 Q 103,48 98,55 Q 91,62 102,76 Z" fill="#f2a900"/>
+                    <circle id="scallop" cx="100" cy="25" r="13" />
+                    <clipPath id="circle-clip">
+                        <circle cx="100" cy="100" r="55"/>
+                    </clipPath>
+                </defs>
+                <g id="ribbons">
+                    <polygon points="60,100 60,280 72.5,265 85,280 85,100" fill="#5bc0f0"/>
+                    <polygon points="85,100 85,295 100,275 115,295 115,100" fill="#f4f4f4"/>
+                    <polygon points="115,100 115,280 127.5,265 140,280 140,100" fill="#5bc0f0"/>
+                    <polygon points="60,100 60,115 85,115 85,100" fill="#3da4d6"/>
+                    <polygon points="85,100 85,115 115,115 115,100" fill="#e0e0e0"/>
+                    <polygon points="115,100 115,115 140,115 140,100" fill="#3da4d6"/>
+                </g>
+                <g fill="#3da4d6" transform="translate(0, 4)">
+                    <circle cx="100" cy="100" r="75"/>
+                    <use href="#scallop" transform="rotate(0 100 100)"/><use href="#scallop" transform="rotate(15 100 100)"/>
+                    <use href="#scallop" transform="rotate(30 100 100)"/><use href="#scallop" transform="rotate(45 100 100)"/>
+                    <use href="#scallop" transform="rotate(60 100 100)"/><use href="#scallop" transform="rotate(75 100 100)"/>
+                    <use href="#scallop" transform="rotate(90 100 100)"/><use href="#scallop" transform="rotate(105 100 100)"/>
+                    <use href="#scallop" transform="rotate(120 100 100)"/><use href="#scallop" transform="rotate(135 100 100)"/>
+                    <use href="#scallop" transform="rotate(150 100 100)"/><use href="#scallop" transform="rotate(165 100 100)"/>
+                    <use href="#scallop" transform="rotate(180 100 100)"/><use href="#scallop" transform="rotate(195 100 100)"/>
+                    <use href="#scallop" transform="rotate(210 100 100)"/><use href="#scallop" transform="rotate(225 100 100)"/>
+                    <use href="#scallop" transform="rotate(240 100 100)"/><use href="#scallop" transform="rotate(255 100 100)"/>
+                    <use href="#scallop" transform="rotate(270 100 100)"/><use href="#scallop" transform="rotate(285 100 100)"/>
+                    <use href="#scallop" transform="rotate(300 100 100)"/><use href="#scallop" transform="rotate(315 100 100)"/>
+                    <use href="#scallop" transform="rotate(330 100 100)"/><use href="#scallop" transform="rotate(345 100 100)"/>
+                </g>
+                <g fill="#5bc0f0">
+                    <circle cx="100" cy="100" r="75"/>
+                    <use href="#scallop" transform="rotate(0 100 100)"/><use href="#scallop" transform="rotate(15 100 100)"/>
+                    <use href="#scallop" transform="rotate(30 100 100)"/><use href="#scallop" transform="rotate(45 100 100)"/>
+                    <use href="#scallop" transform="rotate(60 100 100)"/><use href="#scallop" transform="rotate(75 100 100)"/>
+                    <use href="#scallop" transform="rotate(90 100 100)"/><use href="#scallop" transform="rotate(105 100 100)"/>
+                    <use href="#scallop" transform="rotate(120 100 100)"/><use href="#scallop" transform="rotate(135 100 100)"/>
+                    <use href="#scallop" transform="rotate(150 100 100)"/><use href="#scallop" transform="rotate(165 100 100)"/>
+                    <use href="#scallop" transform="rotate(180 100 100)"/><use href="#scallop" transform="rotate(195 100 100)"/>
+                    <use href="#scallop" transform="rotate(210 100 100)"/><use href="#scallop" transform="rotate(225 100 100)"/>
+                    <use href="#scallop" transform="rotate(240 100 100)"/><use href="#scallop" transform="rotate(255 100 100)"/>
+                    <use href="#scallop" transform="rotate(270 100 100)"/><use href="#scallop" transform="rotate(285 100 100)"/>
+                    <use href="#scallop" transform="rotate(300 100 100)"/><use href="#scallop" transform="rotate(315 100 100)"/>
+                    <use href="#scallop" transform="rotate(330 100 100)"/><use href="#scallop" transform="rotate(345 100 100)"/>
+                </g>
+                <circle cx="100" cy="100" r="55" fill="#ffffff"/>
+                <polygon points="30,170 170,30 180,180 20,180" fill="#e6e6e6" clip-path="url(#circle-clip)"/>
+                <g id="sun">
+                    <use href="#ray-straight" transform="rotate(0 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(11.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(22.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(33.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(45 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(56.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(67.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(78.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(90 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(101.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(112.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(123.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(135 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(146.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(157.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(168.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(180 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(191.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(202.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(213.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(225 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(236.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(247.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(258.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(270 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(281.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(292.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(303.75 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(315 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(326.25 100 100)"/>
+                    <use href="#ray-straight" transform="rotate(337.5 100 100)"/>
+                    <use href="#ray-wavy" transform="rotate(348.75 100 100)"/>
+                    <circle cx="100" cy="100" r="26" fill="#ffca28"/>
+                </g>
+            </svg>
+        </div>
 
+        <!-- Globos Derecha -->
+        <div class="globos-right right-12 mt-20">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 500" width="100%" height="100%">
+                <rect width="100%" height="100%" fill="transparent" />
+                <g stroke="#1a202c" stroke-width="2.5" fill="none" stroke-linecap="round">
+                    <path d="M 150 195 Q 170 330 130 480" />
+                    <path d="M 90 318 Q 110 400 160 485" />
+                    <path d="M 210 302 Q 190 380 140 495" />
+                </g>
+                <g id="globo-argentina" class="globo-animated">
+                    <polygon points="144,190 156,190 154,198 146,198" fill="#3ab5e5" />
+                    <ellipse cx="150" cy="115" rx="68" ry="78" fill="#3ab5e5" />
+                    <clipPath id="clip-arg">
+                        <ellipse cx="150" cy="115" rx="68" ry="78" />
+                    </clipPath>
+                    <rect x="70" y="90" width="160" height="50" fill="#f5f6f7" clip-path="url(#clip-arg)" />
+                    <path d="M 107 55 A 68 78 0 0 0 107 175 A 55 70 0 0 1 107 55 Z" fill="#ffffff" opacity="0.4" />
+                    <ellipse cx="185" cy="65" rx="9" ry="14" fill="#ffffff" transform="rotate(35 185 65)" opacity="0.8" />
+                    <circle cx="202" cy="85" r="5" fill="#ffffff" opacity="0.8" />
+                </g>
+                <g id="globo-amarillo" class="globo-animated" style="animation-delay: 0.3s;">
+                    <polygon points="85,310 95,310 93,318 87,318" fill="#ffb339" />
+                    <ellipse cx="90" cy="250" rx="55" ry="65" fill="#ffb339" />
+                    <path d="M 55 200 A 55 65 0 0 0 55 300 A 45 60 0 0 1 55 200 Z" fill="#ffffff" opacity="0.4" />
+                    <ellipse cx="65" cy="205" rx="7" ry="11" fill="#ffffff" transform="rotate(-35 65 205)" opacity="0.8" />
+                    <circle cx="53" cy="225" r="4.5" fill="#ffffff" opacity="0.8" />
+                </g>
+                <g id="globo-azul" class="globo-animated" style="animation-delay: 0.6s;">
+                    <polygon points="205,296 215,296 213,304 207,304" fill="#1d9ce0" />
+                    <ellipse cx="210" cy="240" rx="50" ry="60" fill="#1d9ce0" />
+                    <path d="M 177 195 A 50 60 0 0 0 177 285 A 40 55 0 0 1 177 195 Z" fill="#ffffff" opacity="0.4" />
+                    <ellipse cx="238" cy="198" rx="6" ry="10" fill="#ffffff" transform="rotate(35 238 198)" opacity="0.8" />
+                    <circle cx="250" cy="215" r="4" fill="#ffffff" opacity="0.8" />
+                </g>
+            </svg>
+        </div>
+        
         <div class="logo-container container mx-auto px-4 text-center relative z-10 mb-8">
             <div class="mb-6 animate-on-load slide-in-top flex justify-center items-center relative" style="animation-duration: 0.8s; animation-delay: 0.2s;">
-                <img src="/imagenes/logo.jpg" alt="Logo" class="rounded-full mx-auto relative z-10  border-4 border-white shadow-lg" />
+                <div class="logo-white-spot"></div>
+                <img src="/imagenes/logo.jpg" alt="Logo" class="rounded-full mx-auto relative z-10  border-4 border-white shadow-lg logo-animated" />
             </div>
             <div class="text-6xl mb-6 retro-title animate-on-load slide-in-left"
                 style="animation-duration: 0.8s; animation-delay: 0.4s;">Rotiseria</div>
             <h1 class="text-7xl font-black mb-6 tracking-tight script-title animate-on-load slide-in-right"
                 style="animation-duration: 0.8s; animation-delay: 0.6s;">La Abuela</h1>
-            <p class="text-2xl opacity-90 font-light mb-8 animate-on-load slide-in-bottom"
+            <p class="text-2xl opacity-90 font-light mb-8 animate-on-load slide-in-bottom text-shadow-strong"
                 style="animation-duration: 0.8s; animation-delay: 0.8s;">
                 Cocinar con amor te alimenta el alma
             </p>
@@ -65,9 +308,9 @@
             <!-- section contactos -->
             <div class="flex flex-col items-center bg-white bg-opacity-20 px-6 py-3 rounded-full backdrop-blur-sm space-y-2 mx-auto w-fit animate-on-load fade-in relative z-[200]"
                 style="animation-duration: 0.8s; animation-delay: 1.0s;">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-phone text-yellow-300 relative top-[2px] phone-icon-animated"></i>
-                    <button class="text-2xl md:text-4xl font-medium leading-none"
+                <div class="flex items-center space-x-2 ">
+                    <i class="fas fa-phone text-yellow-300 relative top-[2px] phone-icon-animated"></i> 
+                    <button class="contact-btn text-2xl md:text-4xl font-medium leading-none "
                         onclick="window.location.href='https://api.whatsapp.com/send?phone=5493794565528&text=Hola!%20quiero%20hacer%20mi%20pedido%20%F0%9F%8D%94%F0%9F%8D%9F%F0%9F%8D%95'">3794-565528</button>
                 </div>
             </div>
@@ -75,7 +318,7 @@
                 style="animation-duration: 0.8s; animation-delay: 1.2s;">
                 <div class="flex items-center space-x-2">
                     <i class="fas fa-map-marker-alt text-yellow-300 relative top-[2px] location-icon-animated"></i>
-                    <button class="text-2xl md:text-4xl font-medium leading-none"
+                    <button class="contact-btn text-2xl md:text-4xl font-medium leading-none"
                         onclick="window.open('https://maps.app.goo.gl/JAgMpxXPBgX4BGqbA?g_st=aw', '_blank')">Av.
                         libertad 5445</button>
                 </div>
@@ -84,7 +327,7 @@
                 style="animation-duration: 0.8s; animation-delay: 1.4s;">
                 <div class="flex items-center space-x-2">
                     <i class="fab fa-instagram text-yellow-300 relative top-[3px] instagram-icon-animated"></i>
-                    <button class="text-2xl md:text-4xl font-medium leading-none pointer-events-auto"
+                    <button class="contact-btn text-2xl md:text-4xl font-medium leading-none pointer-events-auto"
                         onclick="window.open('https://www.instagram.com/rotilaabuela?utm_source=qr&igsh=MW82Y2J1ODVhNzd3dA==', '_blank')">@RotiLaAbuela</button>
                 </div>
             </div>

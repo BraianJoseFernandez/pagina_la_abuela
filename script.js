@@ -134,6 +134,47 @@ window.addEventListener('resize', () => {
     }
 });
 
+// Confetti con colores de la bandera argentina
+function launchArgentineConfetti() {
+    if (typeof confetti !== 'function') {
+        return;
+    }
+
+    const colors = ['#74ACDF', '#FFFFFF', '#FCD116'];
+    const originX = Math.random() * 0.6 + 0.2; // entre 0.2 y 0.8 para variar el punto de salida
+    const particleCount = 45 + Math.floor(Math.random() * 30);
+    const spread = 40 + Math.random() * 30;
+    const startVelocity = 25 + Math.random() * 20;
+
+    confetti({
+        particleCount,
+        startVelocity,
+        spread,
+        origin: { x: originX, y: 0.05 },
+        gravity: 0.65,
+        colors,
+        scalar: 0.9,
+        ticks: 200
+    });
+
+    confetti({
+        particleCount: Math.floor(particleCount / 2),
+        startVelocity: startVelocity + 10,
+        spread: spread + 20,
+        origin: { x: originX, y: 0.1 },
+        gravity: 0.55,
+        colors,
+        scalar: 0.8,
+        ticks: 220
+    });
+}
+
+function scheduleArgentineConfetti() {
+    launchArgentineConfetti();
+    const nextDelay = 1000 + Math.random() * 1000; // cada 14-24 segundos
+    setTimeout(scheduleArgentineConfetti, nextDelay);
+}
+
 // Carga la primera categoría por defecto al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
     // No se carga ninguna categoría por defecto para que el usuario elija.
@@ -141,6 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Scroll a la sección de categorías después de una breve demora para que se vean las animaciones del header
     const categoriesSection = document.querySelector('.menu-categories-wrapper');
 
+    // Inicia los confetis al estilo argentino de manera periódica
+    scheduleArgentineConfetti();
 });
 
 // Función para mostrar SweetAlert2 al hacer clic en una imagen de pizza
