@@ -184,6 +184,72 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .hero-bg {
+    min-height: 320px;
+  }
+
+  .logo-white-spot {
+    width: 170px;
+    height: 170px;
+  }
+
+  .logo-container img {
+    width: 170px;
+    max-width: 80%;
+  }
+
+  .retro-title {
+    font-size: 2.5rem;
+  }
+
+  .script-title {
+    font-size: 3rem;
+  }
+
+  .hero-bg p {
+    font-size: 1rem;
+  }
+
+  .banderines-left,
+  .banderines-right {
+    width: 260px;
+    height: 220px;
+    top: -20px;
+  }
+
+  .banderines-left {
+    left: -100px;
+  }
+
+  .banderines-right {
+    right: -100px;
+  }
+
+  .escarapela-left {
+    width: 170px;
+    height: 240px;
+    left: -50px;
+    top: 80px;
+  }
+
+  .globos-right {
+    width: 190px;
+    height: 260px;
+    right: -25px;
+    top: 90px;
+  }
+
+  .floating-icon {
+    font-size: 2.2em;
+  }
+
+  .logo-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* ANIMACIÓN PARA ICONO DE TELÉFONO (como si estuviera sonando) */
 .phone-icon-animated {
   animation: ring 1s infinite cubic-bezier(.25,.1,.25,1);
