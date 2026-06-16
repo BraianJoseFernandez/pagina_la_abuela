@@ -286,6 +286,11 @@ footer {
   filter: brightness(0) saturate(100%) invert(20%) sepia(63%) saturate(3089%) hue-rotate(256deg) brightness(98%) contrast(94%);
 }
 
-
-
+/* Camisetas pequeñas */
+.shirt-small {
+  
+  width: 70px !important;
+  height: 60px !important;
+  margin-top: 100px;
+}
 

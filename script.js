@@ -163,6 +163,20 @@ function showPizzaSweetAlert(imageElement) {
     });
 }
 
+// Función para mostrar la imagen de oferta mundial en grande
+function showOfertaMundialImage(imageElement) {
+    Swal.fire({
+        imageUrl: imageElement.src,
+        imageAlt: imageElement.alt,
+        imageWidth: '90%',
+        imageHeight: 'auto',
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdrop: 'rgba(0,0,0,0.7)'
+    });
+}
+
 // Función para mostrar el evento en SweetAlert
 function showEventAlert() {
     Swal.fire({
@@ -180,15 +194,9 @@ function showEventAlert() {
         `,
         html: `
             <div class="flex justify-center items-center gap-3 md:gap-8 px-2">
-                <div class="animate-bounce flex flex-col items-center" style="animation-duration: 2s;">
-                    <img src="/imagenes/eventos/mundial/camisetas_argentinas.png" alt="Camiseta Argentina" class="w-16 md:w-24 drop-shadow-md remove-gray-bg">
-                    <div class="text-2xl md:text-4xl mt-2">🇦🇷⚽</div>
-                </div>
-                <img src="/imagenes/eventos/mundial/oferta_mundial.jpeg" alt="Oferta Mundial" class="rounded-3xl shadow-[0_0_20px_rgba(117,170,219,0.6)] w-1/2 md:w-auto md:max-w-md h-auto border-4 border-white">
-                <div class="animate-bounce flex flex-col items-center" style="animation-duration: 2s; animation-delay: 1s;">
-                    <img src="/imagenes/eventos/mundial/camisetas_argentinas.png" alt="Camiseta Argentina" class="w-16 md:w-24 drop-shadow-md remove-gray-bg">
-                    <div class="text-2xl md:text-4xl mt-2">⚽🇦🇷</div>
-                </div>
+                
+                <img src="/imagenes/eventos/mundial/oferta_mundial.jpeg" alt="Oferta Mundial">
+                
             </div>
         `,
         didOpen: () => {
