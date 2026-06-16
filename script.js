@@ -166,22 +166,41 @@ function showPizzaSweetAlert(imageElement) {
 // Función para mostrar el evento en SweetAlert
 function showEventAlert() {
     Swal.fire({
-        imageUrl: '/imagenes/eventos/SanValentin/sanvalentin.jpg',
-        imageAlt: 'San Valentin',
         showConfirmButton: false,
         showCloseButton: true,
         background: 'transparent',
+        width: 'auto',
         customClass: {
-            popup: 'bg-transparent',
-            image: 'rounded-2xl shadow-2xl'
+            popup: 'bg-transparent overflow-visible shadow-none border-none outline-none'
         },
         backdrop: `
             rgba(0,0,0,0.6)
             left top
             no-repeat
-        `
+        `,
+        html: `
+            <div class="flex justify-center items-center gap-3 md:gap-8 px-2">
+                <div class="animate-bounce flex flex-col items-center" style="animation-duration: 2s;">
+                    <img src="/imagenes/eventos/mundial/camisetas_argentinas.png" alt="Camiseta Argentina" class="w-16 md:w-24 drop-shadow-md remove-gray-bg">
+                    <div class="text-2xl md:text-4xl mt-2">🇦🇷⚽</div>
+                </div>
+                <img src="/imagenes/eventos/mundial/oferta_mundial.jpeg" alt="Oferta Mundial" class="rounded-3xl shadow-[0_0_20px_rgba(117,170,219,0.6)] w-1/2 md:w-auto md:max-w-md h-auto border-4 border-white">
+                <div class="animate-bounce flex flex-col items-center" style="animation-duration: 2s; animation-delay: 1s;">
+                    <img src="/imagenes/eventos/mundial/camisetas_argentinas.png" alt="Camiseta Argentina" class="w-16 md:w-24 drop-shadow-md remove-gray-bg">
+                    <div class="text-2xl md:text-4xl mt-2">⚽🇦🇷</div>
+                </div>
+            </div>
+        `,
+        didOpen: () => {
+            // Efecto de confeti continuo con colores de la bandera de Argentina
+            const end = Date.now() + 3000;
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#75AADB', '#FFFFFF', '#F6B40E'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#75AADB', '#FFFFFF', '#F6B40E'] });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
     });
 }
-
-
-
