@@ -1,0 +1,148 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Category;
+use App\Models\EventSetting;
+use App\Models\Product;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class RestaurantAppTest extends TestCase
+{
+    public function test_public_menu_home_page_is_accessible(): void
+    {
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('Rotiseria');
+        $response->assertSee('La Abuela');
+    }
+
+    public function test_public_category_route_returns_category_view(): void
+    {
+        $response = $this->get('/categoria/pizzas');
+        $response->assertStatus(200);
+        $response->assertSee('Pizza Muzzarella');
+    }
+
+    public function test_login_page_is_accessible(): void
+    {
+        $response = $this->get('/login');
+        $response->assertStatus(200);
+        $response->assertSee('Iniciar Sesión');
+    }
+
+    public function test_admin_can_login_and_access_dashboard(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $this->assertNotNull($admin);
+
+        $response = $this->actingAs($admin)->get('/admin');
+        $response->assertStatus(200);
+        $response->assertSee('Resumen General');
+    }
+
+    public function test_personal_user_can_login_and_access_products_and_orders(): void
+    {
+        $personal = User::where('email', 'personal@laabuela.com')->first();
+        $this->assertNotNull($personal);
+
+        $response = $this->actingAs($personal)->get('/admin/products');
+        $response->assertStatus(200);
+
+        // Personal should NOT access users management
+        $usersResponse = $this->actingAs($personal)->get('/admin/users');
+        $usersResponse->assertRedirect('/admin');
+    }
+
+    public function test_admin_can_create_new_category_and_product(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+
+        $catResponse = $this->actingAs($admin)->post('/admin/categories', [
+            'name' => 'Promociones Especiales Test',
+            'slug' => 'promociones-especiales-test',
+            'icon' => 'fas fa-star',
+            'is_active' => '1',
+            'order' => 99,
+        ]);
+        $catResponse->assertRedirect('/admin/categories');
+
+        $category = Category::where('slug', 'promociones-especiales-test')->first();
+        $this->assertNotNull($category);
+
+        $prodResponse = $this->actingAs($admin)->post('/admin/products', [
+            'category_id' => $category->id,
+            'name' => 'Combo Super Familiar Test',
+            'description' => '1 Pizza grande + 6 empanadas + 1 Coca Cola',
+            'price' => 25000,
+            'badge' => '⭐ Promo',
+            'is_available' => '1',
+        ]);
+        $prodResponse->assertRedirect();
+
+        $product = Product::where('name', 'Combo Super Familiar Test')->first();
+        $this->assertNotNull($product);
+        $this->assertEquals(25000, $product->price);
+
+        // Clean up test records
+        $category->delete();
+    }
+
+    public function test_order_can_be_saved_via_api(): void
+    {
+        $payload = [
+            'customer_name' => 'Test Cliente',
+            'customer_phone' => '3794123456',
+            'delivery_type' => 'delivery',
+            'delivery_address' => 'Av. San Martín 123',
+            'payment_method' => 'Efectivo',
+            'notes' => 'Tocar timbre',
+            'total_amount' => 14000,
+            'items' => [
+                [
+                    'product_id' => null,
+                    'product_name' => 'Pizza Muzzarella',
+                    'variant_name' => 'Entera',
+                    'unit_price' => 14000,
+                    'quantity' => 1,
+                    'subtotal' => 14000,
+                    'notes' => null,
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/pedido/guardar', $payload);
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
+
+    public function test_admin_can_reorder_categories(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $cats = Category::take(3)->pluck('id')->toArray();
+        $reversed = array_reverse($cats);
+
+        $response = $this->actingAs($admin)->postJson('/admin/categories/reorder', [
+            'order' => $reversed,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
+
+    public function test_admin_can_reorder_products(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $products = Product::take(3)->pluck('id')->toArray();
+        $reversed = array_reverse($products);
+
+        $response = $this->actingAs($admin)->postJson('/admin/products/reorder', [
+            'order' => $reversed,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
+}
