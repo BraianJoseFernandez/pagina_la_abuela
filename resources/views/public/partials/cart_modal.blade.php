@@ -95,12 +95,12 @@
             <div class="space-y-3.5 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Tu Nombre y Apellido *</label>
-                    <input type="text" id="order-customer-name" placeholder="Ej: Braian Fernández" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium" required>
+                    <input type="text" id="order-customer-name" placeholder="Ej: Juan Perez" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium" required>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Teléfono / WhatsApp *</label>
-                    <input type="tel" id="order-customer-phone" placeholder="Ej: 3794-727379" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium" required>
+                    <input type="tel" id="order-customer-phone" placeholder="Ej: 3794-123456" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium" required>
                 </div>
 
                 <!-- Tipo de entrega -->
@@ -123,7 +123,7 @@
                 <!-- Dirección de entrega -->
                 <div id="delivery-address-container">
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1">Dirección de Envío *</label>
-                    <input type="text" id="order-customer-address" placeholder="Ej: Juan Manuel de Rosas 1043" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium">
+                    <input type="text" id="order-customer-address" placeholder="Ej: Av Libertad 1234" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium">
                 </div>
 
                 <!-- Método de Pago -->

@@ -158,7 +158,7 @@ class RestaurantAppTest extends TestCase
             'description' => 'Carne cortada a cuchillo con pasas',
             'price' => 1500,
             'has_cooking_options' => '1',
-            'cooking_options' => ['Al Horno', 'Frita'],
+            'cooking_options' => ['Horno', 'Frita'],
             'is_available' => '1',
         ]);
         $response->assertRedirect();
@@ -166,7 +166,7 @@ class RestaurantAppTest extends TestCase
         $product = Product::where('name', 'Empanada Criolla Dulce Test')->first();
         $this->assertNotNull($product);
         $this->assertTrue($product->has_cooking_options);
-        $this->assertEquals(['Al Horno', 'Frita'], $product->cooking_options);
+        $this->assertEquals(['Horno', 'Frita'], $product->cooking_options);
         $this->assertTrue($product->hasCookingOptions());
 
         // Test updating cooking options
@@ -176,13 +176,13 @@ class RestaurantAppTest extends TestCase
             'description' => 'Carne cortada a cuchillo con pasas',
             'price' => 1600,
             'has_cooking_options' => '1',
-            'cooking_options' => ['Al Horno'],
+            'cooking_options' => ['Horno'],
             'is_available' => '1',
         ]);
         $updateResponse->assertRedirect();
 
         $product->refresh();
-        $this->assertEquals(['Al Horno'], $product->cooking_options);
+        $this->assertEquals(['Horno'], $product->cooking_options);
 
         $product->delete();
     }
@@ -200,7 +200,7 @@ class RestaurantAppTest extends TestCase
                     'product_id' => 17,
                     'product_name' => 'Empanadas de Carne',
                     'variant_name' => 'Docena (12 un.)',
-                    'cooking_method' => 'Al Horno',
+                    'cooking_method' => 'Horno',
                     'unit_price' => 15000,
                     'quantity' => 1,
                     'subtotal' => 15000,
@@ -215,7 +215,7 @@ class RestaurantAppTest extends TestCase
 
         $this->assertDatabaseHas('order_items', [
             'product_name' => 'Empanadas de Carne',
-            'cooking_method' => 'Al Horno',
+            'cooking_method' => 'Horno',
         ]);
     }
 

@@ -40,7 +40,7 @@ class CartManager {
         const hasCooking = !!product.has_cooking_options;
         let finalCookingMethod = cookingMethod;
         if (hasCooking && !finalCookingMethod) {
-            finalCookingMethod = 'Al Horno';
+            finalCookingMethod = 'Horno';
         }
 
         // Clave única para agrupar ítems idénticos considerando método de cocción
@@ -52,7 +52,7 @@ class CartManager {
             this.items[existingIndex].quantity += quantity;
             this.items[existingIndex].subtotal = this.items[existingIndex].quantity * unitPrice;
         } else {
-            let availableCookingOptions = ['Al Horno', 'Frita'];
+            let availableCookingOptions = ['Horno', 'Frita'];
             if (product.cooking_options) {
                 if (Array.isArray(product.cooking_options)) {
                     availableCookingOptions = product.cooking_options;
@@ -60,7 +60,7 @@ class CartManager {
                     try {
                         availableCookingOptions = JSON.parse(product.cooking_options);
                     } catch (e) {
-                        availableCookingOptions = ['Al Horno', 'Frita'];
+                        availableCookingOptions = ['Horno', 'Frita'];
                     }
                 }
             }
@@ -205,10 +205,10 @@ class CartManager {
                                     <span class="text-[11px] font-bold text-amber-900 flex items-center pr-1">
                                         <i class="fas fa-fire-burner text-amber-600 mr-1 text-xs"></i> Cocción:
                                     </span>
-                                    ${(item.cookingOptions || ['Al Horno', 'Frita']).map(opt => `
+                                    ${(item.cookingOptions || ['Horno', 'Frita']).map(opt => `
                                         <button type="button" onclick="cartManager.setCookingMethod('${item.key}', '${opt}')"
                                                 class="px-2.5 py-1 text-xs rounded-lg font-black transition-all ${item.cookingMethod === opt ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-600 hover:bg-amber-100/50 hover:text-amber-800 border border-amber-200'}">
-                                            ${opt === 'Al Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}
+                                            ${opt === 'Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}
                                         </button>
                                     `).join('')}
                                 </div>
@@ -414,7 +414,7 @@ function handleAddToCartClick(product) {
         const cookingOptionsEl = document.getElementById('variant-cooking-options');
         if (hasCooking && cookingContainer && cookingOptionsEl) {
             cookingContainer.classList.remove('hidden');
-            let availableCooking = ['Al Horno', 'Frita'];
+            let availableCooking = ['Horno', 'Frita'];
             if (product.cooking_options) {
                 if (Array.isArray(product.cooking_options)) {
                     availableCooking = product.cooking_options;
@@ -422,7 +422,7 @@ function handleAddToCartClick(product) {
                     try {
                         availableCooking = JSON.parse(product.cooking_options);
                     } catch (e) {
-                        availableCooking = ['Al Horno', 'Frita'];
+                        availableCooking = ['Horno', 'Frita'];
                     }
                 }
             }
@@ -433,7 +433,7 @@ function handleAddToCartClick(product) {
                     <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 cursor-pointer transition hover:bg-amber-50 has-[:checked]:border-amber-600 has-[:checked]:bg-amber-50">
                         <div class="flex items-center space-x-2.5">
                             <input type="radio" name="selected_cooking_option" value="${opt}" ${idx === 0 ? 'checked' : ''} class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-                            <span class="font-bold text-gray-800 text-xs sm:text-sm">${opt === 'Al Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}</span>
+                            <span class="font-bold text-gray-800 text-xs sm:text-sm">${opt === 'Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}</span>
                         </div>
                     </label>
                 `;
@@ -468,7 +468,7 @@ function handleAddToCartClick(product) {
                 if (selectedCookingRadio) {
                     cookingMethod = selectedCookingRadio.value;
                 } else {
-                    cookingMethod = 'Al Horno';
+                    cookingMethod = 'Horno';
                 }
             }
 

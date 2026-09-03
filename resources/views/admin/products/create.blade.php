@@ -170,8 +170,8 @@
                     <div id="cooking-options-details" class="{{ old('has_cooking_options') ? '' : 'hidden' }} pt-2 border-t border-amber-200/60 flex flex-wrap gap-4 items-center">
                         <span class="text-xs font-bold text-slate-700">Variantes disponibles para el cliente:</span>
                         <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-amber-200 shadow-2xs">
-                            <input type="checkbox" name="cooking_options[]" value="Al Horno" checked class="text-amber-600 rounded focus:ring-amber-500">
-                            <span>🔥 Al Horno</span>
+                            <input type="checkbox" name="cooking_options[]" value="Horno" checked class="text-amber-600 rounded focus:ring-amber-500">
+                            <span>🔥 Horno</span>
                         </label>
                         <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-amber-200 shadow-2xs">
                             <input type="checkbox" name="cooking_options[]" value="Frita" checked class="text-amber-600 rounded focus:ring-amber-500">

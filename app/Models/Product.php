@@ -65,7 +65,7 @@ class Product extends Model
             return $this->cooking_options;
         }
 
-        return ['Al Horno', 'Frita'];
+        return ['Horno', 'Frita'];
     }
 
     public function getFormattedPriceAttribute(): string
