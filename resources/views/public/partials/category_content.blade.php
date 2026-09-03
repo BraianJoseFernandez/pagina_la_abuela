@@ -76,6 +76,13 @@
 
                     <!-- Precios / Variantes -->
                     <div class="flex flex-wrap gap-2 items-center">
+                        @if($product->has_cooking_options)
+                            <span class="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300/90 px-2.5 py-1 rounded-full shadow-2xs inline-flex items-center space-x-1">
+                                <i class="fas fa-fire-burner text-amber-600 text-[11px]"></i>
+                                <span>Al Horno o Frita</span>
+                            </span>
+                        @endif
+
                         @if($product->variants->isNotEmpty())
                             @foreach($product->variants as $variant)
                                 <span class="price-tag text-xs sm:text-sm font-bold bg-purple-700 text-white px-3 py-1 rounded-full shadow-xs">

@@ -32,13 +32,19 @@ class CartManager {
         }
     }
 
-    addItem(product, variant = null, notes = '', quantity = 1) {
+    addItem(product, variant = null, notes = '', quantity = 1, cookingMethod = null) {
         const variantId = variant ? variant.id : null;
         const variantName = variant ? variant.name : null;
         const unitPrice = variant ? parseFloat(variant.price) : parseFloat(product.price || 0);
 
-        // Clave única para agrupar ítems idénticos
-        const itemKey = `${product.id}_${variantId || 'base'}_${notes.trim().toLowerCase()}`;
+        const hasCooking = !!product.has_cooking_options;
+        let finalCookingMethod = cookingMethod;
+        if (hasCooking && !finalCookingMethod) {
+            finalCookingMethod = 'Al Horno';
+        }
+
+        // Clave única para agrupar ítems idénticos considerando método de cocción
+        const itemKey = `${product.id}_${variantId || 'base'}_${finalCookingMethod || 'none'}_${notes.trim().toLowerCase()}`;
 
         const existingIndex = this.items.findIndex(item => item.key === itemKey);
 
@@ -46,12 +52,28 @@ class CartManager {
             this.items[existingIndex].quantity += quantity;
             this.items[existingIndex].subtotal = this.items[existingIndex].quantity * unitPrice;
         } else {
+            let availableCookingOptions = ['Al Horno', 'Frita'];
+            if (product.cooking_options) {
+                if (Array.isArray(product.cooking_options)) {
+                    availableCookingOptions = product.cooking_options;
+                } else if (typeof product.cooking_options === 'string') {
+                    try {
+                        availableCookingOptions = JSON.parse(product.cooking_options);
+                    } catch (e) {
+                        availableCookingOptions = ['Al Horno', 'Frita'];
+                    }
+                }
+            }
+
             this.items.push({
                 key: itemKey,
                 productId: product.id,
                 productName: product.name,
                 variantId: variantId,
                 variantName: variantName,
+                hasCookingOptions: hasCooking,
+                cookingOptions: availableCookingOptions,
+                cookingMethod: finalCookingMethod,
                 unitPrice: unitPrice,
                 quantity: quantity,
                 subtotal: unitPrice * quantity,
@@ -61,7 +83,36 @@ class CartManager {
         }
 
         this.saveCart();
-        this.showToast(`¡Añadido! ${product.name} ${variantName ? '(' + variantName + ')' : ''}`);
+        let toastDetails = [];
+        if (variantName) toastDetails.push(variantName);
+        if (finalCookingMethod) toastDetails.push(finalCookingMethod);
+        const toastSubtitle = toastDetails.length > 0 ? ` (${toastDetails.join(' - ')})` : '';
+        this.showToast(`¡Añadido! ${product.name}${toastSubtitle}`);
+    }
+
+    setCookingMethod(itemKey, newMethod) {
+        const index = this.items.findIndex(item => item.key === itemKey);
+        if (index === -1) return;
+
+        const item = this.items[index];
+        if (item.cookingMethod === newMethod) return;
+
+        // Clave del nuevo ítem resultante
+        const newKey = `${item.productId}_${item.variantId || 'base'}_${newMethod || 'none'}_${(item.notes || '').trim().toLowerCase()}`;
+        const duplicateIndex = this.items.findIndex(other => other.key === newKey);
+
+        if (duplicateIndex > -1 && duplicateIndex !== index) {
+            // Fusionar con el ítem existente del mismo tipo y cocción
+            this.items[duplicateIndex].quantity += item.quantity;
+            this.items[duplicateIndex].subtotal = this.items[duplicateIndex].quantity * this.items[duplicateIndex].unitPrice;
+            this.items.splice(index, 1);
+        } else {
+            item.cookingMethod = newMethod;
+            item.key = newKey;
+        }
+
+        this.saveCart();
+        this.showToast(`Cambiado a ${newMethod}`);
     }
 
     updateQuantity(itemKey, delta) {
@@ -146,8 +197,23 @@ class CartManager {
                     <div class="flex justify-between items-start">
                         <div class="pr-6">
                             <h4 class="font-bold text-gray-800 text-base leading-tight">${item.productName}</h4>
-                            ${item.variantName ? `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded-md mt-1">${item.variantName}</span>` : ''}
-                            ${item.notes ? `<p class="text-xs text-gray-500 italic mt-1"><i class="fas fa-pencil-alt text-[10px] mr-1 text-gray-400"></i>${item.notes}</p>` : ''}
+                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                ${item.variantName ? `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded-md">${item.variantName}</span>` : ''}
+                            </div>
+                            ${(item.hasCookingOptions || item.cookingMethod) ? `
+                                <div class="mt-2 flex flex-wrap items-center gap-1.5 bg-amber-50/90 border border-amber-200/80 p-1.5 rounded-xl">
+                                    <span class="text-[11px] font-bold text-amber-900 flex items-center pr-1">
+                                        <i class="fas fa-fire-burner text-amber-600 mr-1 text-xs"></i> Cocción:
+                                    </span>
+                                    ${(item.cookingOptions || ['Al Horno', 'Frita']).map(opt => `
+                                        <button type="button" onclick="cartManager.setCookingMethod('${item.key}', '${opt}')"
+                                                class="px-2.5 py-1 text-xs rounded-lg font-black transition-all ${item.cookingMethod === opt ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-600 hover:bg-amber-100/50 hover:text-amber-800 border border-amber-200'}">
+                                            ${opt === 'Al Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            ${item.notes ? `<p class="text-xs text-gray-500 italic mt-1.5"><i class="fas fa-pencil-alt text-[10px] mr-1 text-gray-400"></i>${item.notes}</p>` : ''}
                         </div>
                         <button onclick="cartManager.removeItem('${item.key}')" class="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition" title="Quitar">
                             <i class="fas fa-trash-alt text-sm"></i>
@@ -310,28 +376,74 @@ function toggleAddressField(isDelivery) {
     }
 }
 
-// Modal de variantes
+// Modal de opciones / variantes y cocción
 function handleAddToCartClick(product) {
-    if (product.variants && product.variants.length > 0) {
+    const hasVariants = product.variants && product.variants.length > 0;
+    const hasCooking = !!product.has_cooking_options;
+
+    if (hasVariants || hasCooking) {
         currentSelectedProductForModal = product;
         document.getElementById('variant-modal-title').innerText = product.name;
-        document.getElementById('variant-modal-desc').innerText = product.description || 'Elige la opción que prefieras:';
+        document.getElementById('variant-modal-desc').innerText = product.description || (hasVariants ? 'Elige la opción que prefieras:' : 'Elige el tipo de cocción:');
 
+        // Contenedor de variantes de tamaño
         const container = document.getElementById('variant-options-container');
-        let html = '';
-        product.variants.forEach((v, index) => {
-            const formattedPrice = '$' + parseFloat(v.price).toLocaleString('es-AR');
-            html += `
-                <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-gray-200 cursor-pointer transition hover:bg-purple-50 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/70">
-                    <div class="flex items-center space-x-3">
-                        <input type="radio" name="selected_variant_option" value="${index}" ${index === 0 ? 'checked' : ''} class="w-4 h-4 text-purple-600 focus:ring-purple-500">
-                        <span class="font-bold text-gray-800 text-sm sm:text-base">${v.name}</span>
-                    </div>
-                    <span class="font-black text-purple-700 text-base sm:text-lg">${formattedPrice}</span>
-                </label>
-            `;
-        });
-        container.innerHTML = html;
+        if (hasVariants) {
+            container.classList.remove('hidden');
+            let html = '';
+            product.variants.forEach((v, index) => {
+                const formattedPrice = '$' + parseFloat(v.price).toLocaleString('es-AR');
+                html += `
+                    <label class="flex items-center justify-between p-3.5 rounded-2xl border-2 border-gray-200 cursor-pointer transition hover:bg-purple-50 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50/70">
+                        <div class="flex items-center space-x-3">
+                            <input type="radio" name="selected_variant_option" value="${index}" ${index === 0 ? 'checked' : ''} class="w-4 h-4 text-purple-600 focus:ring-purple-500">
+                            <span class="font-bold text-gray-800 text-sm sm:text-base">${v.name}</span>
+                        </div>
+                        <span class="font-black text-purple-700 text-base sm:text-lg">${formattedPrice}</span>
+                    </label>
+                `;
+            });
+            container.innerHTML = html;
+        } else {
+            container.classList.add('hidden');
+            container.innerHTML = '';
+        }
+
+        // Contenedor de opciones de cocción (Horno / Freír)
+        const cookingContainer = document.getElementById('variant-cooking-container');
+        const cookingOptionsEl = document.getElementById('variant-cooking-options');
+        if (hasCooking && cookingContainer && cookingOptionsEl) {
+            cookingContainer.classList.remove('hidden');
+            let availableCooking = ['Al Horno', 'Frita'];
+            if (product.cooking_options) {
+                if (Array.isArray(product.cooking_options)) {
+                    availableCooking = product.cooking_options;
+                } else if (typeof product.cooking_options === 'string') {
+                    try {
+                        availableCooking = JSON.parse(product.cooking_options);
+                    } catch (e) {
+                        availableCooking = ['Al Horno', 'Frita'];
+                    }
+                }
+            }
+
+            let cookingHtml = '';
+            availableCooking.forEach((opt, idx) => {
+                cookingHtml += `
+                    <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 cursor-pointer transition hover:bg-amber-50 has-[:checked]:border-amber-600 has-[:checked]:bg-amber-50">
+                        <div class="flex items-center space-x-2.5">
+                            <input type="radio" name="selected_cooking_option" value="${opt}" ${idx === 0 ? 'checked' : ''} class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                            <span class="font-bold text-gray-800 text-xs sm:text-sm">${opt === 'Al Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}</span>
+                        </div>
+                    </label>
+                `;
+            });
+            cookingOptionsEl.innerHTML = cookingHtml;
+        } else if (cookingContainer) {
+            cookingContainer.classList.add('hidden');
+            if (cookingOptionsEl) cookingOptionsEl.innerHTML = '';
+        }
+
         document.getElementById('variant-item-notes').value = '';
 
         const modal = document.getElementById('variant-modal');
@@ -342,16 +454,30 @@ function handleAddToCartClick(product) {
         }, 10);
 
         document.getElementById('variant-add-confirm-btn').onclick = () => {
-            const selectedRadio = document.querySelector('input[name="selected_variant_option"]:checked');
-            if (selectedRadio) {
-                const variant = product.variants[parseInt(selectedRadio.value)];
-                const notes = document.getElementById('variant-item-notes').value;
-                cartManager.addItem(product, variant, notes, 1);
-                closeVariantModal();
+            let variant = null;
+            if (hasVariants) {
+                const selectedRadio = document.querySelector('input[name="selected_variant_option"]:checked');
+                if (selectedRadio) {
+                    variant = product.variants[parseInt(selectedRadio.value)];
+                }
             }
+
+            let cookingMethod = null;
+            if (hasCooking) {
+                const selectedCookingRadio = document.querySelector('input[name="selected_cooking_option"]:checked');
+                if (selectedCookingRadio) {
+                    cookingMethod = selectedCookingRadio.value;
+                } else {
+                    cookingMethod = 'Al Horno';
+                }
+            }
+
+            const notes = document.getElementById('variant-item-notes').value;
+            cartManager.addItem(product, variant, notes, 1, cookingMethod);
+            closeVariantModal();
         };
     } else {
-        cartManager.addItem(product, null, '', 1);
+        cartManager.addItem(product, null, '', 1, null);
     }
 }
 
@@ -437,6 +563,7 @@ async function submitOrderToWhatsApp() {
                 product_id: item.productId,
                 product_name: item.productName,
                 variant_name: item.variantName,
+                cooking_method: item.cookingMethod || null,
                 unit_price: item.unitPrice,
                 quantity: item.quantity,
                 subtotal: item.subtotal,
@@ -464,9 +591,12 @@ async function submitOrderToWhatsApp() {
     msg += `📋 *DETALLE DEL PEDIDO:*\n`;
 
     cartManager.items.forEach(item => {
-        const variantText = item.variantName ? ` (${item.variantName})` : '';
+        let details = [];
+        if (item.variantName) details.push(item.variantName);
+        if (item.cookingMethod) details.push(item.cookingMethod);
+        const detailsText = details.length > 0 ? ` (${details.join(' - ')})` : '';
         const itemSubtotal = '$' + item.subtotal.toLocaleString('es-AR');
-        msg += `• *${item.quantity}x* ${item.productName}${variantText} — ${itemSubtotal}\n`;
+        msg += `• *${item.quantity}x* ${item.productName}${detailsText} — ${itemSubtotal}\n`;
         if (item.notes) {
             msg += `   └ _Nota: ${item.notes}_\n`;
         }

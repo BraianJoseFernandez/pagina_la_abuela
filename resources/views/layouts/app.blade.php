@@ -127,9 +127,20 @@
                 <!-- Opciones dinámicas -->
             </div>
 
+            <!-- Selector de Cocción (Horno / Freír) en Modal -->
+            <div id="variant-cooking-container" class="mt-3 pt-3 border-t border-gray-100 hidden">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+                    <i class="fas fa-fire-burner text-amber-500"></i>
+                    <span>¿Cómo prefieres la cocción? *</span>
+                </label>
+                <div id="variant-cooking-options" class="grid grid-cols-2 gap-2.5">
+                    <!-- Opciones dinámicas de cocción -->
+                </div>
+            </div>
+
             <div class="mt-4">
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Notas especiales (opcional):</label>
-                <input type="text" id="variant-item-notes" placeholder="Ej: sin cebolla, bien cocido..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition">
+                <input type="text" id="variant-item-notes" placeholder="Ej: bien cocido, sin servilletas..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition">
             </div>
 
             <div class="mt-6 flex space-x-3">

@@ -91,11 +91,17 @@
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="flex items-center space-x-2">
+                                        <div class="flex items-center space-x-2 flex-wrap gap-y-1">
                                             <h4 class="font-bold text-slate-800 text-base leading-tight">{{ $product->name }}</h4>
                                             @if($product->badge)
                                                 <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                                                     {{ $product->badge }}
+                                                </span>
+                                            @endif
+                                            @if($product->has_cooking_options)
+                                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center space-x-1 border border-amber-200" title="Permite elegir Horno o Freír">
+                                                    <i class="fas fa-fire-burner text-[9px]"></i>
+                                                    <span>Horno / Frita</span>
                                                 </span>
                                             @endif
                                         </div>

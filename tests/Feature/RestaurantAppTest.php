@@ -145,4 +145,95 @@ class RestaurantAppTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
     }
+
+    public function test_admin_can_create_product_with_cooking_options(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $category = Category::where('slug', 'empanadas')->first();
+        $this->assertNotNull($category);
+
+        $response = $this->actingAs($admin)->post('/admin/products', [
+            'category_id' => $category->id,
+            'name' => 'Empanada Criolla Dulce Test',
+            'description' => 'Carne cortada a cuchillo con pasas',
+            'price' => 1500,
+            'has_cooking_options' => '1',
+            'cooking_options' => ['Al Horno', 'Frita'],
+            'is_available' => '1',
+        ]);
+        $response->assertRedirect();
+
+        $product = Product::where('name', 'Empanada Criolla Dulce Test')->first();
+        $this->assertNotNull($product);
+        $this->assertTrue($product->has_cooking_options);
+        $this->assertEquals(['Al Horno', 'Frita'], $product->cooking_options);
+        $this->assertTrue($product->hasCookingOptions());
+
+        // Test updating cooking options
+        $updateResponse = $this->actingAs($admin)->put('/admin/products/' . $product->id, [
+            'category_id' => $category->id,
+            'name' => 'Empanada Criolla Dulce Test',
+            'description' => 'Carne cortada a cuchillo con pasas',
+            'price' => 1600,
+            'has_cooking_options' => '1',
+            'cooking_options' => ['Al Horno'],
+            'is_available' => '1',
+        ]);
+        $updateResponse->assertRedirect();
+
+        $product->refresh();
+        $this->assertEquals(['Al Horno'], $product->cooking_options);
+
+        $product->delete();
+    }
+
+    public function test_order_with_cooking_method_can_be_saved(): void
+    {
+        $payload = [
+            'customer_name' => 'Juan Pérez Empanadas',
+            'customer_phone' => '3794998877',
+            'delivery_type' => 'takeaway',
+            'payment_method' => 'Efectivo',
+            'total_amount' => 15000,
+            'items' => [
+                [
+                    'product_id' => 17,
+                    'product_name' => 'Empanadas de Carne',
+                    'variant_name' => 'Docena (12 un.)',
+                    'cooking_method' => 'Al Horno',
+                    'unit_price' => 15000,
+                    'quantity' => 1,
+                    'subtotal' => 15000,
+                    'notes' => 'Bien doraditas',
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/pedido/guardar', $payload);
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('order_items', [
+            'product_name' => 'Empanadas de Carne',
+            'cooking_method' => 'Al Horno',
+        ]);
+    }
+
+    public function test_admin_create_and_edit_views_render_cooking_options(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+
+        // Create view
+        $createRes = $this->actingAs($admin)->get('/admin/products/create');
+        $createRes->assertStatus(200);
+        $createRes->assertSee('Opción de Cocción (Horno / Freír)');
+        $createRes->assertSee('has_cooking_options');
+
+        // Edit view for product 17 (Empanadas de Carne)
+        $editRes = $this->actingAs($admin)->get('/admin/products/17/edit');
+        $editRes->assertStatus(200);
+        $editRes->assertSee('Opción de Cocción (Horno / Freír)');
+        $editRes->assertSee('has_cooking_options');
+        $editRes->assertSee('checked', false); // Verify it has checked status for empanadas
+    }
 }

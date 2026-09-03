@@ -54,6 +54,9 @@ class ProductController extends Controller
             'price' => 'nullable|numeric|min:0',
             'badge' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
+            'has_cooking_options' => 'nullable|boolean',
+            'cooking_options' => 'nullable|array',
+            'cooking_options.*' => 'nullable|string|max:100',
             'is_available' => 'nullable|boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'cropped_image_base64' => 'nullable|string',
@@ -95,6 +98,13 @@ class ProductController extends Controller
             $imagePath = 'imagenes/uploads/' . $filename;
         }
 
+        $hasCookingOptions = $request->has('has_cooking_options');
+        $cookingOptions = null;
+        if ($hasCookingOptions) {
+            $rawOptions = $request->input('cooking_options', ['Al Horno', 'Frita']);
+            $cookingOptions = !empty($rawOptions) ? array_values(array_filter($rawOptions)) : ['Al Horno', 'Frita'];
+        }
+
         $product = Product::create([
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
@@ -102,6 +112,8 @@ class ProductController extends Controller
             'image_path' => $imagePath,
             'price' => $validated['price'] ?? null,
             'badge' => $validated['badge'] ?? null,
+            'has_cooking_options' => $hasCookingOptions,
+            'cooking_options' => $cookingOptions,
             'order' => $validated['order'] ?? (Product::where('category_id', $validated['category_id'])->max('order') + 1),
             'is_available' => $request->has('is_available'),
         ]);
@@ -144,6 +156,9 @@ class ProductController extends Controller
             'price' => 'nullable|numeric|min:0',
             'badge' => 'nullable|string|max:100',
             'order' => 'nullable|integer',
+            'has_cooking_options' => 'nullable|boolean',
+            'cooking_options' => 'nullable|array',
+            'cooking_options.*' => 'nullable|string|max:100',
             'is_available' => 'nullable|boolean',
             'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'cropped_image_base64' => 'nullable|string',
@@ -185,6 +200,13 @@ class ProductController extends Controller
             $imagePath = 'imagenes/uploads/' . $filename;
         }
 
+        $hasCookingOptions = $request->has('has_cooking_options');
+        $cookingOptions = null;
+        if ($hasCookingOptions) {
+            $rawOptions = $request->input('cooking_options', ['Al Horno', 'Frita']);
+            $cookingOptions = !empty($rawOptions) ? array_values(array_filter($rawOptions)) : ['Al Horno', 'Frita'];
+        }
+
         $product->update([
             'category_id' => $validated['category_id'],
             'name' => $validated['name'],
@@ -192,6 +214,8 @@ class ProductController extends Controller
             'image_path' => $imagePath,
             'price' => $validated['price'] ?? null,
             'badge' => $validated['badge'] ?? null,
+            'has_cooking_options' => $hasCookingOptions,
+            'cooking_options' => $cookingOptions,
             'order' => $validated['order'] ?? $product->order,
             'is_available' => $request->has('is_available'),
         ]);

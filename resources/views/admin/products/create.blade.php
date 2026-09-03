@@ -144,6 +144,43 @@
                 </div>
             </div>
 
+            <!-- SISTEMA DE OPCIÓN DE COCCIÓN (HORNO / FREÍR) -->
+            <div class="border-t border-slate-100 pt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+                            <i class="fas fa-fire-burner text-amber-500"></i>
+                            <span>Opción de Cocción (Horno / Freír)</span>
+                        </h4>
+                        <p class="text-xs text-slate-500">Permite que el cliente elija la preparación (ideal para empanadas, pasteles, etc.). Solo se mostrará en el carrito si esta opción está activada.</p>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50/60 border border-amber-200/70 rounded-2xl p-4 space-y-3">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="has_cooking_options" id="has_cooking_options" value="1" {{ old('has_cooking_options') ? 'checked' : '' }}
+                               onchange="toggleCookingOptions(this.checked)"
+                               class="w-5 h-5 text-amber-600 rounded-lg border-slate-300 focus:ring-amber-500">
+                        <div>
+                            <span class="text-sm font-bold text-slate-800 block">Habilitar selección de Horno o Freír para este plato</span>
+                            <span class="text-xs text-slate-500">Al agregar el plato o en el carrito, el cliente podrá seleccionar si lo quiere al horno o frito.</span>
+                        </div>
+                    </label>
+
+                    <div id="cooking-options-details" class="{{ old('has_cooking_options') ? '' : 'hidden' }} pt-2 border-t border-amber-200/60 flex flex-wrap gap-4 items-center">
+                        <span class="text-xs font-bold text-slate-700">Variantes disponibles para el cliente:</span>
+                        <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-amber-200 shadow-2xs">
+                            <input type="checkbox" name="cooking_options[]" value="Al Horno" checked class="text-amber-600 rounded focus:ring-amber-500">
+                            <span>🔥 Al Horno</span>
+                        </label>
+                        <label class="inline-flex items-center space-x-2 text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-amber-200 shadow-2xs">
+                            <input type="checkbox" name="cooking_options[]" value="Frita" checked class="text-amber-600 rounded focus:ring-amber-500">
+                            <span>🍳 Frita</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <!-- FOTO DEL PLATO CON RECORTADOR CIRCULAR (CROPPER.JS) -->
             <div class="border-t border-slate-100 pt-6 space-y-3">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -238,6 +275,17 @@
         } else {
             document.getElementById('single-price-container').classList.add('hidden');
             document.getElementById('variants-container').classList.remove('hidden');
+        }
+    }
+
+    function toggleCookingOptions(isChecked) {
+        const details = document.getElementById('cooking-options-details');
+        if (details) {
+            if (isChecked) {
+                details.classList.remove('hidden');
+            } else {
+                details.classList.add('hidden');
+            }
         }
     }
 

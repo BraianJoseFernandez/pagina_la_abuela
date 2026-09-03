@@ -36,6 +36,12 @@
                                     {{ $item->variant_name }}
                                 </span>
                             @endif
+                            @if($item->cooking_method)
+                                <span class="inline-flex items-center space-x-1 bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-md {{ $item->variant_name ? 'ml-2' : 'ml-8' }} border border-amber-200">
+                                    <i class="fas fa-fire-burner text-[10px]"></i>
+                                    <span>{{ $item->cooking_method }}</span>
+                                </span>
+                            @endif
                             @if($item->notes)
                                 <p class="text-xs text-slate-500 italic ml-8"><i class="fas fa-pencil-alt text-[10px] mr-1 text-slate-400"></i>{{ $item->notes }}</p>
                             @endif

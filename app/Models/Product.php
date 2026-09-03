@@ -18,6 +18,8 @@ class Product extends Model
         'image_path',
         'price',
         'badge',
+        'has_cooking_options',
+        'cooking_options',
         'is_available',
         'order',
     ];
@@ -26,6 +28,8 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'has_cooking_options' => 'boolean',
+            'cooking_options' => 'array',
             'is_available' => 'boolean',
             'order' => 'integer',
         ];
@@ -44,6 +48,24 @@ class Product extends Model
     public function hasVariants(): bool
     {
         return $this->variants()->count() > 0;
+    }
+
+    public function hasCookingOptions(): bool
+    {
+        return (bool) $this->has_cooking_options;
+    }
+
+    public function getCookingOptionsList(): array
+    {
+        if (!$this->has_cooking_options) {
+            return [];
+        }
+
+        if (!empty($this->cooking_options) && is_array($this->cooking_options)) {
+            return $this->cooking_options;
+        }
+
+        return ['Al Horno', 'Frita'];
     }
 
     public function getFormattedPriceAttribute(): string
