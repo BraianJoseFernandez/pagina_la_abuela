@@ -45,6 +45,11 @@ class EventController extends Controller
             'is_active' => 'nullable|boolean',
         ], [
             'title.required' => 'El título del evento o promoción es obligatorio.',
+            'title.max' => 'El título no puede superar los 255 caracteres.',
+            'subtitle.max' => 'El subtítulo no puede superar los 500 caracteres.',
+            'image_file.image' => 'El archivo de la promoción debe ser una imagen válida.',
+            'image_file.mimes' => 'La imagen debe ser de formato JPG, JPEG, PNG o WEBP.',
+            'image_file.max' => 'La imagen no puede superar los 5 MB.',
         ]);
 
         $imagePath = $event->image_path;

@@ -34,6 +34,9 @@ class OrderController extends Controller
     {
         $request->validate([
             'status' => 'required|in:enviado_whatsapp,en_preparacion,entregado,cancelado',
+        ], [
+            'status.required' => 'Debes indicar el nuevo estado del pedido.',
+            'status.in' => 'El estado seleccionado no es válido.',
         ]);
 
         $order->update(['status' => $request->input('status')]);

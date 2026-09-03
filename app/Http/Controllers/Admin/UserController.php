@@ -57,28 +57,34 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $isSelf = ($user->id === Auth::id());
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:6',
-            'role' => 'required|in:admin,personal',
+            'role' => $isSelf ? 'nullable|in:admin,personal' : 'required|in:admin,personal',
             'is_active' => 'nullable|boolean',
         ], [
             'name.required' => 'El nombre completo es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
             'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Debes ingresar un correo electrónico válido.',
             'email.unique' => 'Este correo electrónico ya pertenece a otro usuario.',
-            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'password.min' => 'La nueva contraseña debe tener al menos 6 caracteres.',
+            'role.required' => 'Debes seleccionar un rol de acceso.',
+            'role.in' => 'El rol de acceso seleccionado no es válido.',
         ]);
 
         $updateData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'role' => $validated['role'],
-            'is_active' => $request->has('is_active'),
+            'role' => $isSelf ? $user->role : ($validated['role'] ?? $user->role),
+            'is_active' => $isSelf ? true : $request->has('is_active'),
         ];
 
-        // Evitar que el usuario logueado se desactive o se quite el rol admin a sí mismo por error
-        if ($user->id === Auth::id()) {
+        // Asegurar que el usuario logueado no pierda privilegios de administrador ni quede inactivo
+        if ($isSelf && $user->role === 'admin') {
             $updateData['role'] = 'admin';
             $updateData['is_active'] = true;
         }

@@ -85,17 +85,19 @@ function loadCategoryDynamic(slug, forceWithoutAnimation = false, isUserClick = 
     });
 }
 
-// Función para desplazar la vista dejando el icono y título de la categoría 100% visibles debajo de la barra sticky
+// Función para desplazar la vista dejando el icono y título de la categoría 100% visibles
 function scrollToMenuCategory() {
     const navEl = document.querySelector('.menu-categories-wrapper');
     const menuEl = document.getElementById('menu-content');
     if (!menuEl) return;
 
-    const navHeight = navEl ? navEl.offsetHeight : 70;
+    const isMobile = window.innerWidth < 768;
     const rect = menuEl.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
-    // Calculamos el desplazamiento exacto con margen para que el icono nunca quede tapado
+
+    // En mobile la barra es estática en el flujo normal (no flotante),
+    // por lo que nos desplazamos directamente al inicio del menú sin restar la barra.
+    const navHeight = (!isMobile && navEl) ? navEl.offsetHeight : 0;
     const targetY = rect.top + scrollTop - navHeight - 12;
 
     window.scrollTo({
@@ -171,13 +173,35 @@ function showImageSweetAlert(imageUrl, title) {
     });
 }
 
-// Modal interactivo de Promociones / Eventos con Confeti personalizable
+// Función auxiliar para separar emoticones con soporte para comas y secuencias de emojis
+function parseConfettiEmojis(rawEmojis) {
+    if (!rawEmojis || typeof rawEmojis !== 'string') return [];
+    let list = [];
+    if (rawEmojis.includes(',')) {
+        list = rawEmojis.split(',').map(e => e.trim()).filter(e => e.length > 0);
+    } else if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        try {
+            const segmenter = new Intl.Segmenter('es', { granularity: 'grapheme' });
+            list = Array.from(segmenter.segment(rawEmojis.trim()))
+                .map(s => s.segment.trim())
+                .filter(s => s.length > 0);
+        } catch (e) {
+            list = [rawEmojis.trim()];
+        }
+    } else {
+        list = rawEmojis.trim().split(/\s+/).filter(e => e.length > 0);
+    }
+    return list;
+}
+
+// Modal interactivo de Promociones / Eventos con Confeti personalizable y Emotes
 function showEventAlertDynamic(eventData) {
     const title = eventData?.title || 'Promoción Especial';
     const subtitle = eventData?.subtitle || '';
     const imagePath = eventData?.image_path ? `/${eventData.image_path}` : '/imagenes/eventos/mundial/oferta_mundial.jpeg';
-    const emojis = (eventData?.confetti_emojis || '⚽,🇦🇷,🏆').split(',').map(e => e.trim());
-    const colors = (eventData?.confetti_colors || '#75AADB,#FFFFFF,#F6B40E').split(',').map(c => c.trim());
+    const rawEmojis = eventData?.confetti_emojis || '⚽,🇦🇷,🏆,🎉';
+    const emojis = parseConfettiEmojis(rawEmojis);
+    const colors = (eventData?.confetti_colors || '#75AADB,#FFFFFF,#F6B40E').split(',').map(c => c.trim()).filter(c => c.length > 0);
     const customWhatsAppText = eventData?.whatsapp_custom_text || `Hola! Quiero consultar por la promo: ${title}`;
 
     Swal.fire({
@@ -201,25 +225,82 @@ function showEventAlertDynamic(eventData) {
             </div>
         `,
         didOpen: () => {
-            // Efecto de Confeti festivo continuo
-            const end = Date.now() + 3000;
+            if (typeof confetti !== 'function') return;
+
+            // Generar formas para los emoticones
+            let emojiShapes = [];
+            if (typeof confetti.shapeFromText === 'function' && emojis.length > 0) {
+                const scalar = 3;
+                emojis.forEach(emoji => {
+                    try {
+                        const shape = confetti.shapeFromText({ text: emoji, scalar });
+                        if (shape) emojiShapes.push(shape);
+                    } catch (e) {
+                        console.warn('Error al generar forma de confeti para:', emoji, e);
+                    }
+                });
+            }
+
+            // 1. Ráfaga inicial de bienvenida (Colores + Emotes en el centro)
+            confetti({
+                particleCount: 50,
+                spread: 80,
+                origin: { x: 0.5, y: 0.6 },
+                colors: colors.length > 0 ? colors : ['#75AADB', '#FFFFFF', '#F6B40E']
+            });
+
+            if (emojiShapes.length > 0) {
+                confetti({
+                    particleCount: 25,
+                    spread: 90,
+                    origin: { x: 0.5, y: 0.6 },
+                    shapes: emojiShapes,
+                    scalar: 3,
+                    flat: true
+                });
+            }
+
+            // 2. Efecto de Confeti festivo continuo por 3.5 segundos desde ambos laterales
+            const end = Date.now() + 3500;
             (function frame() {
-                if (typeof confetti === 'function') {
+                // Confeti de colores
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.7 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.7 },
+                    colors: colors
+                });
+
+                // Confeti de emoticones
+                if (emojiShapes.length > 0) {
                     confetti({
-                        particleCount: 4,
+                        particleCount: 1,
                         angle: 60,
-                        spread: 55,
+                        spread: 50,
                         origin: { x: 0, y: 0.7 },
-                        colors: colors
+                        shapes: emojiShapes,
+                        scalar: 2.8,
+                        flat: true
                     });
                     confetti({
-                        particleCount: 4,
+                        particleCount: 1,
                         angle: 120,
-                        spread: 55,
+                        spread: 50,
                         origin: { x: 1, y: 0.7 },
-                        colors: colors
+                        shapes: emojiShapes,
+                        scalar: 2.8,
+                        flat: true
                     });
                 }
+
                 if (Date.now() < end) {
                     requestAnimationFrame(frame);
                 }

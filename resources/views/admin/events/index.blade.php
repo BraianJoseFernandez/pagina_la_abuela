@@ -301,28 +301,62 @@
         renderColorChips();
     }
 
+    function parseAdminEmojis(rawEmojis) {
+        if (!rawEmojis || typeof rawEmojis !== 'string') return [];
+        let list = [];
+        if (rawEmojis.includes(',')) {
+            list = rawEmojis.split(',').map(e => e.trim()).filter(e => e.length > 0);
+        } else if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+            try {
+                const segmenter = new Intl.Segmenter('es', { granularity: 'grapheme' });
+                list = Array.from(segmenter.segment(rawEmojis.trim()))
+                    .map(s => s.segment.trim())
+                    .filter(s => s.length > 0);
+            } catch (e) {
+                list = [rawEmojis.trim()];
+            }
+        } else {
+            list = rawEmojis.trim().split(/\s+/).filter(e => e.length > 0);
+        }
+        return list;
+    }
+
     function testConfettiPreview() {
         const emojisRaw = document.getElementById('confetti_emojis_input').value;
-        const emojis = emojisRaw ? emojisRaw.split(',').map(e => e.trim()).filter(e => e.length > 0) : ['🎉', '✨'];
+        const emojis = parseAdminEmojis(emojisRaw);
         const colors = selectedColors.length > 0 ? selectedColors : ['#75AADB', '#FFFFFF', '#F6B40E'];
 
+        // 1. Confeti de colores
+        confetti({
+            colors: colors,
+            particleCount: 60,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+
+        // 2. Confeti de emoticones
         if (emojis.length > 0 && typeof confetti.shapeFromText === 'function') {
-            const scalar = 2.5;
-            const shapes = emojis.map(emoji => confetti.shapeFromText({ text: emoji, scalar }));
-            confetti({
-                shapes: shapes,
-                scalar,
-                particleCount: 50,
-                spread: 100,
-                origin: { y: 0.6 }
+            const scalar = 3;
+            const shapes = [];
+            emojis.forEach(emoji => {
+                try {
+                    const s = confetti.shapeFromText({ text: emoji, scalar });
+                    if (s) shapes.push(s);
+                } catch (err) {
+                    console.warn('Error convirtiendo emoticón:', emoji, err);
+                }
             });
-        } else {
-            confetti({
-                colors: colors,
-                particleCount: 80,
-                spread: 80,
-                origin: { y: 0.6 }
-            });
+
+            if (shapes.length > 0) {
+                confetti({
+                    shapes: shapes,
+                    scalar: 3,
+                    particleCount: 30,
+                    spread: 90,
+                    origin: { y: 0.6 },
+                    flat: true
+                });
+            }
         }
     }
 

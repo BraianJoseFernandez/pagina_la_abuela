@@ -141,6 +141,14 @@ body {
   box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
+@media (max-width: 767px) {
+  .menu-categories-wrapper {
+    position: relative !important;
+    top: auto !important;
+    z-index: 20 !important;
+  }
+}
+
 .category-btn {
   display: inline-flex;
   align-items: center;

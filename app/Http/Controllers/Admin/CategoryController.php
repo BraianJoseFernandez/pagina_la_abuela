@@ -39,7 +39,11 @@ class CategoryController extends Controller
             'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
             'slug.unique' => 'Ya existe una categoría con ese enlace permanente (slug).',
+            'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
+            'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
+            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 5 MB.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
@@ -98,7 +102,11 @@ class CategoryController extends Controller
             'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
             'slug.unique' => 'Ya existe otra categoría con ese enlace permanente (slug).',
+            'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
+            'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
+            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 5 MB.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);

@@ -99,7 +99,7 @@
     </header>
 
     <!-- NAVEGACIÓN DE CATEGORÍAS (Formato píldoras con distribución elegante) -->
-    <div class="menu-categories-wrapper py-3.5 px-3 sticky top-0 z-30 shadow-sm">
+    <div class="menu-categories-wrapper py-3.5 px-3 relative md:sticky md:top-0 z-30 shadow-sm">
         <div class="max-w-6xl mx-auto">
             <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3" id="categories-tabs-nav">
                 @foreach($categories as $category)

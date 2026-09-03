@@ -1,0 +1,10 @@
+{
+    "The :attribute field is required.": "El campo :attribute es obligatorio.",
+    "Dashboard": "Panel Principal",
+    "Users": "Usuarios",
+    "Categories": "Categorías",
+    "Products": "Productos",
+    "Orders": "Pedidos",
+    "Settings": "Configuraciones",
+    "Events": "Eventos y Promociones"
+}

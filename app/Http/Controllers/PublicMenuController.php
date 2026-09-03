@@ -74,6 +74,14 @@ class PublicMenuController extends Controller
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.subtotal' => 'required|numeric',
             'items.*.notes' => 'nullable|string',
+        ], [
+            'customer_name.required' => 'Por favor, ingresa tu nombre completo.',
+            'customer_phone.required' => 'Por favor, ingresa tu número de teléfono o WhatsApp.',
+            'delivery_type.required' => 'Debes seleccionar si el pedido es para envío o retiro en el local.',
+            'delivery_type.in' => 'La modalidad de entrega seleccionada no es válida.',
+            'total_amount.required' => 'El monto total del pedido es obligatorio.',
+            'items.required' => 'El carrito no contiene productos.',
+            'items.min' => 'Debes agregar al menos un producto al pedido.',
         ]);
 
         $order = Order::create([

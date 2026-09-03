@@ -66,7 +66,16 @@ class ProductController extends Controller
             'variant_prices.*' => 'nullable|numeric|min:0',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
+            'category_id.exists' => 'La categoría seleccionada no existe en el sistema.',
             'name.required' => 'El nombre del producto o plato es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'price.min' => 'El precio no puede ser negativo.',
+            'image_file.image' => 'El archivo seleccionado debe ser una imagen válida.',
+            'image_file.mimes' => 'La imagen debe ser de formato JPG, JPEG, PNG o WEBP.',
+            'image_file.max' => 'La imagen no puede superar los 5 MB.',
+            'variant_prices.*.numeric' => 'El precio de cada variante debe ser un número válido.',
+            'variant_prices.*.min' => 'El precio de la variante no puede ser negativo.',
         ]);
 
         $imagePath = null;
@@ -168,7 +177,16 @@ class ProductController extends Controller
             'variant_prices.*' => 'nullable|numeric|min:0',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
+            'category_id.exists' => 'La categoría seleccionada no existe en el sistema.',
             'name.required' => 'El nombre del producto o plato es obligatorio.',
+            'name.max' => 'El nombre no puede superar los 255 caracteres.',
+            'price.numeric' => 'El precio debe ser un número válido.',
+            'price.min' => 'El precio no puede ser negativo.',
+            'image_file.image' => 'El archivo seleccionado debe ser una imagen válida.',
+            'image_file.mimes' => 'La imagen debe ser de formato JPG, JPEG, PNG o WEBP.',
+            'image_file.max' => 'La imagen no puede superar los 5 MB.',
+            'variant_prices.*.numeric' => 'El precio de cada variante debe ser un número válido.',
+            'variant_prices.*.min' => 'El precio de la variante no puede ser negativo.',
         ]);
 
         $imagePath = $product->image_path;

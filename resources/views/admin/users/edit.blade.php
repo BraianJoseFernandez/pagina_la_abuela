@@ -49,11 +49,20 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Rol de Acceso *
                     </label>
-                    <select name="role" required {{ $user->id === Auth::id() ? 'disabled' : '' }}
-                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition">
-                        <option value="personal" {{ old('role', $user->role) === 'personal' ? 'selected' : '' }}>Personal de Atención / Cocina</option>
-                        <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Administrador (Control Total)</option>
-                    </select>
+                    @if($user->id === Auth::id())
+                        <input type="hidden" name="role" value="{{ $user->role }}">
+                        <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 flex items-center justify-between">
+                            <span>{{ $user->role === 'admin' ? 'Administrador (Control Total)' : 'Personal de Atención / Cocina' }}</span>
+                            <span class="text-xs bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-semibold">Tu cuenta actual</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Tu rol de administrador se conserva automáticamente para proteger tu acceso.</p>
+                    @else
+                        <select name="role" required
+                                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition">
+                            <option value="personal" {{ old('role', $user->role) === 'personal' ? 'selected' : '' }}>Personal de Atención / Cocina</option>
+                            <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Administrador (Control Total)</option>
+                        </select>
+                    @endif
                 </div>
             </div>
 
