@@ -62,7 +62,9 @@ class Product extends Model
         }
 
         if (!empty($this->cooking_options) && is_array($this->cooking_options)) {
-            return $this->cooking_options;
+            return array_values(array_unique(array_map(function ($opt) {
+                return ($opt === 'Al Horno' || $opt === 'Horno') ? 'Horno' : $opt;
+            }, $this->cooking_options)));
         }
 
         return ['Horno', 'Frita'];

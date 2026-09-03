@@ -103,6 +103,14 @@
                     <input type="tel" id="order-customer-phone" placeholder="Ej: 3794-123456" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium" required>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1 flex items-center justify-between">
+                        <span>Correo Electrónico (opcional)</span>
+                        <span class="text-[10px] text-gray-400 font-normal lowercase">Para recibir copia del pedido</span>
+                    </label>
+                    <input type="email" id="order-customer-email" placeholder="Ej: tuemail@gmail.com" class="w-full text-sm px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium">
+                </div>
+
                 <!-- Tipo de entrega -->
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Tipo de Entrega *</label>

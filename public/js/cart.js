@@ -6,6 +6,18 @@
 const CART_STORAGE_KEY = 'roti_abuela_cart_v1';
 let currentSelectedProductForModal = null;
 
+function formatCookingLabel(method) {
+    if (!method) return '';
+    const clean = String(method).trim();
+    if (clean === 'Horno' || clean === 'Al Horno' || clean.toLowerCase().includes('horno')) {
+        return '🔥 Horno';
+    }
+    if (clean === 'Frita' || clean === 'Frito' || clean.toLowerCase().includes('frit')) {
+        return '🍳 Frita';
+    }
+    return clean;
+}
+
 class CartManager {
     constructor() {
         this.items = this.loadCart();
@@ -15,7 +27,16 @@ class CartManager {
     loadCart() {
         try {
             const data = localStorage.getItem(CART_STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
+            const items = data ? JSON.parse(data) : [];
+            return items.map(item => {
+                if (item.cookingMethod === 'Al Horno') {
+                    item.cookingMethod = 'Horno';
+                }
+                if (Array.isArray(item.cookingOptions)) {
+                    item.cookingOptions = item.cookingOptions.map(opt => (opt === 'Al Horno' ? 'Horno' : opt));
+                }
+                return item;
+            });
         } catch (e) {
             console.error('Error cargando carrito:', e);
             return [];
@@ -39,8 +60,10 @@ class CartManager {
 
         const hasCooking = !!product.has_cooking_options;
         let finalCookingMethod = cookingMethod;
-        if (hasCooking && !finalCookingMethod) {
-            finalCookingMethod = 'Horno';
+        if (hasCooking) {
+            if (!finalCookingMethod || finalCookingMethod === 'Al Horno') {
+                finalCookingMethod = 'Horno';
+            }
         }
 
         // Clave única para agrupar ítems idénticos considerando método de cocción
@@ -65,6 +88,9 @@ class CartManager {
                 }
             }
 
+            availableCookingOptions = availableCookingOptions.map(opt => (opt === 'Al Horno' || opt === 'Horno') ? 'Horno' : opt);
+            availableCookingOptions = [...new Set(availableCookingOptions)];
+
             this.items.push({
                 key: itemKey,
                 productId: product.id,
@@ -85,7 +111,7 @@ class CartManager {
         this.saveCart();
         let toastDetails = [];
         if (variantName) toastDetails.push(variantName);
-        if (finalCookingMethod) toastDetails.push(finalCookingMethod);
+        if (finalCookingMethod) toastDetails.push(formatCookingLabel(finalCookingMethod));
         const toastSubtitle = toastDetails.length > 0 ? ` (${toastDetails.join(' - ')})` : '';
         this.showToast(`¡Añadido! ${product.name}${toastSubtitle}`);
     }
@@ -95,10 +121,11 @@ class CartManager {
         if (index === -1) return;
 
         const item = this.items[index];
-        if (item.cookingMethod === newMethod) return;
+        const normalizedMethod = (newMethod === 'Al Horno' || newMethod === 'Horno') ? 'Horno' : newMethod;
+        if (item.cookingMethod === normalizedMethod) return;
 
         // Clave del nuevo ítem resultante
-        const newKey = `${item.productId}_${item.variantId || 'base'}_${newMethod || 'none'}_${(item.notes || '').trim().toLowerCase()}`;
+        const newKey = `${item.productId}_${item.variantId || 'base'}_${normalizedMethod || 'none'}_${(item.notes || '').trim().toLowerCase()}`;
         const duplicateIndex = this.items.findIndex(other => other.key === newKey);
 
         if (duplicateIndex > -1 && duplicateIndex !== index) {
@@ -107,12 +134,12 @@ class CartManager {
             this.items[duplicateIndex].subtotal = this.items[duplicateIndex].quantity * this.items[duplicateIndex].unitPrice;
             this.items.splice(index, 1);
         } else {
-            item.cookingMethod = newMethod;
+            item.cookingMethod = normalizedMethod;
             item.key = newKey;
         }
 
         this.saveCart();
-        this.showToast(`Cambiado a ${newMethod}`);
+        this.showToast(`Cambiado a ${formatCookingLabel(normalizedMethod)}`);
     }
 
     updateQuantity(itemKey, delta) {
@@ -205,12 +232,17 @@ class CartManager {
                                     <span class="text-[11px] font-bold text-amber-900 flex items-center pr-1">
                                         <i class="fas fa-fire-burner text-amber-600 mr-1 text-xs"></i> Cocción:
                                     </span>
-                                    ${(item.cookingOptions || ['Horno', 'Frita']).map(opt => `
-                                        <button type="button" onclick="cartManager.setCookingMethod('${item.key}', '${opt}')"
-                                                class="px-2.5 py-1 text-xs rounded-lg font-black transition-all ${item.cookingMethod === opt ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-600 hover:bg-amber-100/50 hover:text-amber-800 border border-amber-200'}">
-                                            ${opt === 'Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}
-                                        </button>
-                                    `).join('')}
+                                    ${(item.cookingOptions || ['Horno', 'Frita']).map(opt => {
+                                        const cleanOpt = (opt === 'Al Horno' || opt === 'Horno') ? 'Horno' : opt;
+                                        const label = formatCookingLabel(cleanOpt);
+                                        const isSelected = item.cookingMethod === cleanOpt || (cleanOpt === 'Horno' && (item.cookingMethod === 'Horno' || item.cookingMethod === 'Al Horno'));
+                                        return `
+                                            <button type="button" onclick="cartManager.setCookingMethod('${item.key}', '${cleanOpt}')"
+                                                    class="px-2.5 py-1 text-xs rounded-lg font-black transition-all ${isSelected ? 'bg-amber-600 text-white shadow-xs' : 'bg-white text-gray-600 hover:bg-amber-100/50 hover:text-amber-800 border border-amber-200'}">
+                                                ${label}
+                                            </button>
+                                        `;
+                                    }).join('')}
                                 </div>
                             ` : ''}
                             ${item.notes ? `<p class="text-xs text-gray-500 italic mt-1.5"><i class="fas fa-pencil-alt text-[10px] mr-1 text-gray-400"></i>${item.notes}</p>` : ''}
@@ -427,13 +459,17 @@ function handleAddToCartClick(product) {
                 }
             }
 
+            const cleanAvailableCooking = availableCooking.map(opt => (opt === 'Al Horno' || opt === 'Horno') ? 'Horno' : opt);
+            const uniqueCooking = [...new Set(cleanAvailableCooking)];
+
             let cookingHtml = '';
-            availableCooking.forEach((opt, idx) => {
+            uniqueCooking.forEach((opt, idx) => {
+                const label = formatCookingLabel(opt);
                 cookingHtml += `
                     <label class="flex items-center justify-between p-3 rounded-2xl border-2 border-gray-200 cursor-pointer transition hover:bg-amber-50 has-[:checked]:border-amber-600 has-[:checked]:bg-amber-50">
                         <div class="flex items-center space-x-2.5">
                             <input type="radio" name="selected_cooking_option" value="${opt}" ${idx === 0 ? 'checked' : ''} class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-                            <span class="font-bold text-gray-800 text-xs sm:text-sm">${opt === 'Horno' ? '🔥 ' : (opt === 'Frita' ? '🍳 ' : '')}${opt}</span>
+                            <span class="font-bold text-gray-800 text-xs sm:text-sm">${label}</span>
                         </div>
                     </label>
                 `;
@@ -467,6 +503,7 @@ function handleAddToCartClick(product) {
                 const selectedCookingRadio = document.querySelector('input[name="selected_cooking_option"]:checked');
                 if (selectedCookingRadio) {
                     cookingMethod = selectedCookingRadio.value;
+                    if (cookingMethod === 'Al Horno') cookingMethod = 'Horno';
                 } else {
                     cookingMethod = 'Horno';
                 }
@@ -504,6 +541,7 @@ async function submitOrderToWhatsApp() {
 
     const nameInput = document.getElementById('order-customer-name');
     const phoneInput = document.getElementById('order-customer-phone');
+    const emailInput = document.getElementById('order-customer-email');
     const deliveryRadio = document.querySelector('input[name="order_delivery_type"]:checked');
     const addressInput = document.getElementById('order-customer-address');
     const paymentSelect = document.getElementById('order-payment-method');
@@ -511,6 +549,7 @@ async function submitOrderToWhatsApp() {
 
     const customerName = nameInput ? nameInput.value.trim() : '';
     const customerPhone = phoneInput ? phoneInput.value.trim() : '';
+    const customerEmail = emailInput ? emailInput.value.trim() : '';
     const deliveryType = deliveryRadio ? deliveryRadio.value : 'delivery';
     const address = addressInput ? addressInput.value.trim() : '';
     const paymentMethod = paymentSelect ? paymentSelect.value : 'Efectivo';
@@ -554,6 +593,7 @@ async function submitOrderToWhatsApp() {
         const orderPayload = {
             customer_name: customerName,
             customer_phone: customerPhone,
+            customer_email: customerEmail || null,
             delivery_type: deliveryType,
             delivery_address: address,
             payment_method: paymentMethod,
@@ -593,7 +633,7 @@ async function submitOrderToWhatsApp() {
     cartManager.items.forEach(item => {
         let details = [];
         if (item.variantName) details.push(item.variantName);
-        if (item.cookingMethod) details.push(item.cookingMethod);
+        if (item.cookingMethod) details.push(formatCookingLabel(item.cookingMethod));
         const detailsText = details.length > 0 ? ` (${details.join(' - ')})` : '';
         const itemSubtotal = '$' + item.subtotal.toLocaleString('es-AR');
         msg += `• *${item.quantity}x* ${item.productName}${detailsText} — ${itemSubtotal}\n`;

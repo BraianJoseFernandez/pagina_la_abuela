@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderConfirmationMail;
 use App\Models\Category;
 use App\Models\EventSetting;
 use App\Models\Order;
@@ -9,6 +10,8 @@ use App\Models\OrderItem;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class PublicMenuController extends Controller
@@ -60,6 +63,7 @@ class PublicMenuController extends Controller
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:50',
+            'customer_email' => 'nullable|email|max:255',
             'delivery_type' => 'required|in:delivery,takeaway',
             'delivery_address' => 'nullable|string|max:500',
             'payment_method' => 'nullable|string|max:100',
@@ -77,6 +81,7 @@ class PublicMenuController extends Controller
         ], [
             'customer_name.required' => 'Por favor, ingresa tu nombre completo.',
             'customer_phone.required' => 'Por favor, ingresa tu número de teléfono o WhatsApp.',
+            'customer_email.email' => 'Por favor, ingresa un correo electrónico válido.',
             'delivery_type.required' => 'Debes seleccionar si el pedido es para envío o retiro en el local.',
             'delivery_type.in' => 'La modalidad de entrega seleccionada no es válida.',
             'total_amount.required' => 'El monto total del pedido es obligatorio.',
@@ -87,6 +92,7 @@ class PublicMenuController extends Controller
         $order = Order::create([
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
+            'customer_email' => $validated['customer_email'] ?? null,
             'delivery_type' => $validated['delivery_type'],
             'delivery_address' => $validated['delivery_address'] ?? null,
             'payment_method' => $validated['payment_method'] ?? 'Efectivo',
@@ -107,6 +113,15 @@ class PublicMenuController extends Controller
                 'subtotal' => $item['subtotal'],
                 'notes' => $item['notes'] ?? null,
             ]);
+        }
+
+        // Si el cliente indicó un correo electrónico, enviamos confirmación del pedido
+        if (!empty($order->customer_email)) {
+            try {
+                Mail::to($order->customer_email)->send(new OrderConfirmationMail($order));
+            } catch (\Throwable $e) {
+                Log::error('Error enviando email de confirmación de pedido #' . $order->id . ': ' . $e->getMessage());
+            }
         }
 
         return response()->json([

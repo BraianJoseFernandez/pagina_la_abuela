@@ -39,7 +39,7 @@
                             @if($item->cooking_method)
                                 <span class="inline-flex items-center space-x-1 bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-md {{ $item->variant_name ? 'ml-2' : 'ml-8' }} border border-amber-200">
                                     <i class="fas fa-fire-burner text-[10px]"></i>
-                                    <span>{{ $item->cooking_method }}</span>
+                                    <span>{{ in_array($item->cooking_method, ['Horno', 'Al Horno', '🔥 Horno']) ? '🔥 Horno' : ($item->cooking_method === 'Frita' ? '🍳 Frita' : $item->cooking_method) }}</span>
                                 </span>
                             @endif
                             @if($item->notes)
@@ -81,6 +81,16 @@
                         <span>{{ $order->customer_phone }}</span>
                     </a>
                 </div>
+
+                @if($order->customer_email)
+                    <div>
+                        <span class="text-xs text-slate-400 block">Correo Electrónico</span>
+                        <a href="mailto:{{ $order->customer_email }}" class="text-xs font-bold text-red-600 hover:text-red-700 flex items-center space-x-1.5 mt-0.5">
+                            <i class="fas fa-envelope text-slate-400"></i>
+                            <span>{{ $order->customer_email }}</span>
+                        </a>
+                    </div>
+                @endif
 
                 <div>
                     <span class="text-xs text-slate-400 block">Tipo de Entrega</span>

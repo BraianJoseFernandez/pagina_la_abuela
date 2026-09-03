@@ -193,8 +193,8 @@
     </footer>
 
     <!-- Scripts de la aplicación -->
-    <script src="{{ asset('js/cart.js') }}"></script>
-    <script src="{{ asset('js/menu.js') }}"></script>
+    <script src="{{ asset('js/cart.js') }}?v={{ file_exists(public_path('js/cart.js')) ? filemtime(public_path('js/cart.js')) : time() }}"></script>
+    <script src="{{ asset('js/menu.js') }}?v={{ file_exists(public_path('js/menu.js')) ? filemtime(public_path('js/menu.js')) : time() }}"></script>
 
     @stack('scripts')
 </body>

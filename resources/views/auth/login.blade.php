@@ -103,12 +103,15 @@
                 @enderror
             </div>
 
-            <!-- Recordarme -->
+            <!-- Recordarme y Olvidé mi Contraseña -->
             <div class="flex items-center justify-between">
                 <label class="flex items-center space-x-2 text-xs font-semibold text-gray-600 cursor-pointer select-none">
                     <input type="checkbox" name="remember" class="w-4 h-4 text-red-600 rounded border-gray-300 focus:ring-red-500">
-                    <span>Recordar mi sesión</span>
+                    <span>Recordarme</span>
                 </label>
+                <a href="{{ route('password.request') }}" class="text-xs font-bold text-red-600 hover:text-red-700 hover:underline transition">
+                    ¿Olvidaste tu contraseña?
+                </a>
             </div>
 
             <!-- Botón de Ingreso -->

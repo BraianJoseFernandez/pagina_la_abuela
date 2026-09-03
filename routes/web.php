@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\PublicMenuController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,10 +23,15 @@ Route::get('/', [PublicMenuController::class, 'index'])->name('home');
 Route::get('/categoria/{slug}', [PublicMenuController::class, 'getCategory'])->name('menu.category');
 Route::post('/pedido/guardar', [PublicMenuController::class, 'saveOrder'])->name('order.save');
 
-// Autenticación
+// Autenticación & Recuperación de Contraseña
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 
 // Panel Administrativo y Personal
 Route::middleware(['auth', 'role:admin,personal'])->prefix('admin')->name('admin.')->group(function () {

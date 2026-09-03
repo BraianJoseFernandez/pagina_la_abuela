@@ -111,7 +111,9 @@ class ProductController extends Controller
         $cookingOptions = null;
         if ($hasCookingOptions) {
             $rawOptions = $request->input('cooking_options', ['Horno', 'Frita']);
-            $cookingOptions = !empty($rawOptions) ? array_values(array_filter($rawOptions)) : ['Horno', 'Frita'];
+            $cookingOptions = !empty($rawOptions) ? array_values(array_unique(array_map(function ($opt) {
+                return ($opt === 'Al Horno' || $opt === 'Horno') ? 'Horno' : $opt;
+            }, array_filter($rawOptions)))) : ['Horno', 'Frita'];
         }
 
         $product = Product::create([
@@ -222,7 +224,9 @@ class ProductController extends Controller
         $cookingOptions = null;
         if ($hasCookingOptions) {
             $rawOptions = $request->input('cooking_options', ['Horno', 'Frita']);
-            $cookingOptions = !empty($rawOptions) ? array_values(array_filter($rawOptions)) : ['Horno', 'Frita'];
+            $cookingOptions = !empty($rawOptions) ? array_values(array_unique(array_map(function ($opt) {
+                return ($opt === 'Al Horno' || $opt === 'Horno') ? 'Horno' : $opt;
+            }, array_filter($rawOptions)))) : ['Horno', 'Frita'];
         }
 
         $product->update([

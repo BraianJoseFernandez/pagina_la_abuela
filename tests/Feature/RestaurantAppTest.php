@@ -2,11 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderConfirmationMail;
+use App\Mail\ResetPasswordMail;
 use App\Models\Category;
 use App\Models\EventSetting;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Tests\TestCase;
 
 class RestaurantAppTest extends TestCase
@@ -234,6 +239,105 @@ class RestaurantAppTest extends TestCase
         $editRes->assertStatus(200);
         $editRes->assertSee('Opción de Cocción (Horno / Freír)');
         $editRes->assertSee('has_cooking_options');
+        $editRes->assertSee('🔥 Horno');
         $editRes->assertSee('checked', false); // Verify it has checked status for empanadas
+    }
+
+    public function test_public_menu_and_admin_render_fire_horno_badge(): void
+    {
+        $response = $this->get('/categoria/empanadas');
+        $response->assertStatus(200);
+        $response->assertSee('🔥 Horno o Frita');
+
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $adminRes = $this->actingAs($admin)->get('/admin/products');
+        $adminRes->assertStatus(200);
+        $adminRes->assertSee('🔥 Horno / Frita');
+    }
+
+    public function test_product_model_normalizes_al_horno_to_horno(): void
+    {
+        $product = Product::where('id', 17)->first();
+        $product->cooking_options = ['Al Horno', 'Frita'];
+        $this->assertEquals(['Horno', 'Frita'], $product->getCookingOptionsList());
+    }
+
+    public function test_order_with_customer_email_sends_confirmation_email(): void
+    {
+        Mail::fake();
+
+        $payload = [
+            'customer_name' => 'Cliente Con Email',
+            'customer_phone' => '3794112233',
+            'customer_email' => 'cliente@test.com',
+            'delivery_type' => 'delivery',
+            'delivery_address' => 'Av. Siempre Viva 742',
+            'payment_method' => 'Transferencia',
+            'total_amount' => 7500,
+            'items' => [
+                [
+                    'product_id' => 17,
+                    'product_name' => 'Empanadas de Carne',
+                    'variant_name' => 'Media Docena (6 un.)',
+                    'cooking_method' => 'Horno',
+                    'unit_price' => 7500,
+                    'quantity' => 1,
+                    'subtotal' => 7500,
+                    'notes' => 'Con servilletas',
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/pedido/guardar', $payload);
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('orders', [
+            'customer_name' => 'Cliente Con Email',
+            'customer_email' => 'cliente@test.com',
+        ]);
+
+        Mail::assertSent(OrderConfirmationMail::class, function ($mail) {
+            return $mail->hasTo('cliente@test.com') && $mail->order->customer_email === 'cliente@test.com';
+        });
+    }
+
+    public function test_forgot_password_sends_reset_email(): void
+    {
+        Mail::fake();
+
+        $response = $this->post('/forgot-password', [
+            'email' => 'admin@laabuela.com',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status');
+
+        Mail::assertSent(ResetPasswordMail::class, function ($mail) {
+            return $mail->hasTo('admin@laabuela.com');
+        });
+    }
+
+    public function test_user_can_reset_password_with_valid_token(): void
+    {
+        $user = User::where('email', 'admin@laabuela.com')->first();
+        $token = Password::broker()->createToken($user);
+
+        $response = $this->post('/reset-password', [
+            'token' => $token,
+            'email' => 'admin@laabuela.com',
+            'password' => 'nueva_clave_segura_123',
+            'password_confirmation' => 'nueva_clave_segura_123',
+        ]);
+
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('success');
+
+        $user->refresh();
+        $this->assertTrue(Hash::check('nueva_clave_segura_123', $user->password));
+
+        // Restore admin password back to 'admin123' for subsequent tests
+        $user->password = Hash::make('admin123');
+        $user->save();
     }
 }

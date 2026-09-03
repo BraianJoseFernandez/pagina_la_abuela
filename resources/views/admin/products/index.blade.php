@@ -101,7 +101,7 @@
                                             @if($product->has_cooking_options)
                                                 <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center space-x-1 border border-amber-200" title="Permite elegir Horno o Freír">
                                                     <i class="fas fa-fire-burner text-[9px]"></i>
-                                                    <span>Horno / Frita</span>
+                                                    <span>🔥 Horno / Frita</span>
                                                 </span>
                                             @endif
                                         </div>
