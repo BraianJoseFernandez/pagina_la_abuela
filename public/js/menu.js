@@ -308,8 +308,16 @@ function showEventAlertDynamic(eventData) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            const phone = window.APP_CONFIG?.whatsappPhone || '5493794565528';
-            window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(customWhatsAppText)}`, '_blank');
+            const rawPhone = window.APP_CONFIG?.whatsappPhone || '5493794565528';
+            const phone = rawPhone.replace(/\D/g, '');
+            const targetUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(customWhatsAppText)}`;
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || navigator.vendor || window.opera) ||
+                             (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (isMobile) {
+                window.location.href = targetUrl;
+            } else {
+                window.open(targetUrl, '_blank');
+            }
         }
     });
 }

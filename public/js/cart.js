@@ -618,7 +618,8 @@ async function submitOrderToWhatsApp() {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': window.APP_CONFIG.csrfToken || ''
                 },
-                body: JSON.stringify(orderPayload)
+                body: JSON.stringify(orderPayload),
+                keepalive: true
             }).catch(err => console.log('Registro local de pedido completado.', err));
         }
     } catch (e) {
@@ -659,21 +660,42 @@ async function submitOrderToWhatsApp() {
     msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
     msg += `_¡Muchas gracias!_ ✨`;
 
-    const whatsappNumber = window.APP_CONFIG?.whatsappPhone || '5493794565528';
+    const rawNumber = window.APP_CONFIG?.whatsappPhone || '5493794565528';
+    const whatsappNumber = rawNumber.replace(/\D/g, '');
     const whatsappUrl = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(msg)}`;
 
     // Feedback visual y apertura de WhatsApp
     closeCartModal();
+    cartManager.clearCart();
 
+    // Detección de dispositivos móviles (iOS / Android)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || navigator.vendor || window.opera) ||
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    // En iOS (Safari) y Android, window.open() dentro de promesas/timers es bloqueado como popup por el navegador.
+    // Usar window.location.href directamente en el flujo del usuario abre WhatsApp de forma nativa e inmediata.
+    if (isMobile) {
+        window.location.href = whatsappUrl;
+    } else {
+        window.open(whatsappUrl, '_blank');
+    }
+
+    // Modal de confirmación con botón de respaldo directo por si el navegador o modo privado bloquea la redirección
     Swal.fire({
         icon: 'success',
         title: '¡Pedido armado con éxito!',
-        text: 'Te estamos redirigiendo a WhatsApp para enviar tu pedido...',
+        html: `
+            <p class="text-sm text-slate-600 mb-3">Te estamos redirigiendo a WhatsApp para enviar tu pedido...</p>
+            <div class="py-1">
+                <a href="${whatsappUrl}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/30 transition">
+                    <i class="fab fa-whatsapp text-lg"></i>
+                    <span>Abrir WhatsApp</span>
+                </a>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-3">Si WhatsApp no se abrió automáticamente, toca el botón de arriba.</p>
+        `,
         showConfirmButton: false,
-        timer: 2000,
+        timer: 6000,
         timerProgressBar: true
-    }).then(() => {
-        cartManager.clearCart();
-        window.open(whatsappUrl, '_blank');
     });
 }
