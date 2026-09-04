@@ -13,6 +13,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'category_name',
         'product_name',
         'variant_name',
         'cooking_method',
@@ -39,5 +40,25 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getCategoryNameAttribute(?string $value): ?string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        if ($this->product && $this->product->category) {
+            return $this->product->category->name;
+        }
+
+        if (!empty($this->product_name)) {
+            $matchedProduct = Product::with('category')->where('name', $this->product_name)->first();
+            if ($matchedProduct && $matchedProduct->category) {
+                return $matchedProduct->category->name;
+            }
+        }
+
+        return null;
     }
 }

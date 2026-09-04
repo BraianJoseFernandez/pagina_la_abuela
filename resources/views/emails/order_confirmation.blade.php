@@ -131,6 +131,19 @@
             font-size: 14px;
             vertical-align: top;
         }
+        .item-category {
+            display: inline-block;
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
         .item-title {
             font-weight: 700;
             color: #0f172a;
@@ -277,6 +290,9 @@
                         @foreach($order->items as $item)
                             <tr>
                                 <td>
+                                    @if($item->category_name)
+                                        <div><span class="item-category">{{ $item->category_name }}</span></div>
+                                    @endif
                                     <div class="item-title">{{ $item->product_name }}</div>
                                     @if($item->variant_name)
                                         <span class="item-variant">{{ $item->variant_name }}</span>

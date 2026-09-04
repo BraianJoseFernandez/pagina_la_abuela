@@ -100,7 +100,7 @@
                 <!-- Botón de Agregar al Carrito -->
                 <div class="flex-shrink-0 flex items-center justify-end sm:justify-center">
                     @if($product->is_available)
-                        <button onclick="handleAddToCartClick(@js($product))"
+                        <button onclick="handleAddToCartClick(@js(array_merge($product->toArray(), ['category_name' => $category->name])))"
                                 class="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-sm shadow-md shadow-red-500/25 transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer">
                             <i class="fas fa-cart-plus text-base"></i>
                             <span>Agregar</span>

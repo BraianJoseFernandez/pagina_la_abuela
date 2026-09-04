@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\EventSetting;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class PublicMenuController extends Controller
             ->where('is_active', true)
             ->with([
                 'images' => fn($q) => $q->orderBy('order'),
-                'activeProducts' => fn($q) => $q->with(['variants' => fn($v) => $v->orderBy('order')])
+                'activeProducts' => fn($q) => $q->with(['category', 'variants' => fn($v) => $v->orderBy('order')])
             ])
             ->firstOrFail();
 
@@ -71,6 +72,7 @@ class PublicMenuController extends Controller
             'total_amount' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'nullable|integer',
+            'items.*.category_name' => 'nullable|string|max:255',
             'items.*.product_name' => 'required|string',
             'items.*.variant_name' => 'nullable|string',
             'items.*.cooking_method' => 'nullable|string',
@@ -102,9 +104,20 @@ class PublicMenuController extends Controller
         ]);
 
         foreach ($validated['items'] as $item) {
+            $categoryName = $item['category_name'] ?? null;
+            if (!$categoryName && !empty($item['product_id'])) {
+                $matchedProd = Product::with('category')->find($item['product_id']);
+                $categoryName = $matchedProd?->category?->name;
+            }
+            if (!$categoryName && !empty($item['product_name'])) {
+                $matchedProd = Product::with('category')->where('name', $item['product_name'])->first();
+                $categoryName = $matchedProd?->category?->name;
+            }
+
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item['product_id'] ?? null,
+                'category_name' => $categoryName,
                 'product_name' => $item['product_name'],
                 'variant_name' => $item['variant_name'] ?? null,
                 'cooking_method' => $item['cooking_method'] ?? null,

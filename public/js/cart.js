@@ -91,9 +91,12 @@ class CartManager {
             availableCookingOptions = availableCookingOptions.map(opt => (opt === 'Al Horno' || opt === 'Horno') ? 'Horno' : opt);
             availableCookingOptions = [...new Set(availableCookingOptions)];
 
+            const categoryName = product.category?.name || product.category_name || '';
+
             this.items.push({
                 key: itemKey,
                 productId: product.id,
+                categoryName: categoryName,
                 productName: product.name,
                 variantId: variantId,
                 variantName: variantName,
@@ -223,6 +226,7 @@ class CartManager {
                 <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200/80 shadow-sm flex flex-col space-y-2 relative transition hover:border-red-200">
                     <div class="flex justify-between items-start">
                         <div class="pr-6">
+                            ${item.categoryName ? `<span class="inline-block text-[10px] uppercase font-black tracking-wider text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md mb-1">${item.categoryName}</span>` : ''}
                             <h4 class="font-bold text-gray-800 text-base leading-tight">${item.productName}</h4>
                             <div class="flex flex-wrap items-center gap-1.5 mt-1">
                                 ${item.variantName ? `<span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-2 py-0.5 rounded-md">${item.variantName}</span>` : ''}
@@ -601,6 +605,7 @@ async function submitOrderToWhatsApp() {
             total_amount: cartManager.getTotalAmount(),
             items: cartManager.items.map(item => ({
                 product_id: item.productId,
+                category_name: item.categoryName || null,
                 product_name: item.productName,
                 variant_name: item.variantName,
                 cooking_method: item.cookingMethod || null,
@@ -637,7 +642,8 @@ async function submitOrderToWhatsApp() {
         if (item.cookingMethod) details.push(formatCookingLabel(item.cookingMethod));
         const detailsText = details.length > 0 ? ` (${details.join(' - ')})` : '';
         const itemSubtotal = '$' + item.subtotal.toLocaleString('es-AR');
-        msg += `• *${item.quantity}x* ${item.productName}${detailsText} — ${itemSubtotal}\n`;
+        const categoryPrefix = item.categoryName ? `[${item.categoryName}] ` : '';
+        msg += `• *${item.quantity}x* ${categoryPrefix}${item.productName}${detailsText} — ${itemSubtotal}\n`;
         if (item.notes) {
             msg += `   └ _Nota: ${item.notes}_\n`;
         }

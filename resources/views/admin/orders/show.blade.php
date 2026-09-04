@@ -27,9 +27,15 @@
                 @foreach($order->items as $item)
                     <div class="py-3.5 flex justify-between items-start">
                         <div class="space-y-1">
-                            <div class="flex items-center space-x-2">
-                                <span class="font-black text-sm bg-purple-100 text-purple-800 w-6 h-6 rounded-lg flex items-center justify-center">{{ $item->quantity }}x</span>
+                            <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+                                <span class="font-black text-sm bg-purple-100 text-purple-800 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0">{{ $item->quantity }}x</span>
                                 <h4 class="font-bold text-slate-800 text-base">{{ $item->product_name }}</h4>
+                                @if($item->category_name)
+                                    <span class="inline-flex items-center space-x-1 bg-red-50 text-red-700 border border-red-200/80 text-[11px] font-bold px-2 py-0.5 rounded-lg shadow-2xs">
+                                        <i class="fas fa-tag text-[9px] text-red-500"></i>
+                                        <span>{{ $item->category_name }}</span>
+                                    </span>
+                                @endif
                             </div>
                             @if($item->variant_name)
                                 <span class="inline-block bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-md ml-8">

@@ -303,6 +303,83 @@ class RestaurantAppTest extends TestCase
         });
     }
 
+    public function test_order_saves_and_displays_category_name_in_admin_and_email(): void
+    {
+        Mail::fake();
+
+        $payload = [
+            'customer_name' => 'Juan Perez',
+            'customer_phone' => '3794998877',
+            'customer_email' => 'juan@test.com',
+            'delivery_type' => 'takeaway',
+            'payment_method' => 'Efectivo',
+            'total_amount' => 6500,
+            'items' => [
+                [
+                    'category_name' => 'Hamburguesas',
+                    'product_name' => 'Super',
+                    'unit_price' => 6500,
+                    'quantity' => 1,
+                    'subtotal' => 6500,
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/pedido/guardar', $payload);
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('order_items', [
+            'product_name' => 'Super',
+            'category_name' => 'Hamburguesas',
+        ]);
+
+        $order = Order::latest()->first();
+
+        // Check admin order show view contains category badge
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $adminRes = $this->actingAs($admin)->get('/admin/orders/' . $order->id);
+        $adminRes->assertStatus(200);
+        $adminRes->assertSee('Hamburguesas');
+        $adminRes->assertSee('Super');
+
+        // Check confirmation email contains category tag
+        $mailable = new OrderConfirmationMail($order);
+        $mailable->assertSeeInHtml('Hamburguesas');
+        $mailable->assertSeeInHtml('Super');
+    }
+
+    public function test_order_resolves_category_name_automatically_from_product(): void
+    {
+        Mail::fake();
+
+        $empanadasProduct = Product::with('category')->where('id', 17)->first();
+
+        $payload = [
+            'customer_name' => 'Maria Lopez',
+            'customer_phone' => '3794123456',
+            'delivery_type' => 'takeaway',
+            'payment_method' => 'Efectivo',
+            'total_amount' => 7500,
+            'items' => [
+                [
+                    'product_id' => $empanadasProduct->id,
+                    'product_name' => $empanadasProduct->name,
+                    'unit_price' => 7500,
+                    'quantity' => 1,
+                    'subtotal' => 7500,
+                ]
+            ]
+        ];
+
+        $response = $this->postJson('/pedido/guardar', $payload);
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('order_items', [
+            'product_name' => $empanadasProduct->name,
+            'category_name' => $empanadasProduct->category->name,
+        ]);
+    }
+
     public function test_forgot_password_sends_reset_email(): void
     {
         Mail::fake();
