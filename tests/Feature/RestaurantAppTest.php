@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\OrderConfirmationMail;
 use App\Mail\ResetPasswordMail;
 use App\Models\Category;
+use App\Models\CategoryImage;
 use App\Models\EventSetting;
 use App\Models\Order;
 use App\Models\Product;
@@ -490,6 +491,61 @@ class RestaurantAppTest extends TestCase
         $this->assertSoftDeleted('orders', ['id' => $order->id]);
 
         $order->forceDelete();
+    }
+
+    public function test_admin_can_toggle_category_image_visibility(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $category = Category::where('slug', 'pizzas')->first();
+
+        // Crear una imagen de prueba
+        $img = CategoryImage::create([
+            'category_id' => $category->id,
+            'image_path' => 'imagenes/pizzas/test_toggle.jpg',
+            'alt_text' => 'Pizza Test Toggle',
+            'order' => 99,
+            'is_visible' => true,
+        ]);
+
+        $this->assertTrue($img->is_visible);
+
+        // 1. Ocultar imagen
+        $resHide = $this->actingAs($admin)->postJson('/admin/categories/images/' . $img->id . '/toggle-visibility');
+        $resHide->assertStatus(200);
+        $resHide->assertJson([
+            'success' => true,
+            'is_visible' => false,
+        ]);
+        $this->assertFalse($img->fresh()->is_visible);
+
+        // 2. Comprobar que en el menú público /categoria/pizzas NO se muestra
+        $publicRes = $this->get('/categoria/pizzas');
+        $publicRes->assertStatus(200);
+        $publicRes->assertDontSee('Pizza Test Toggle');
+
+        // 3. Comprobar que en el admin edit sí se muestra y tiene el badge de Oculta
+        $adminEditRes = $this->actingAs($admin)->get('/admin/categories/' . $category->id . '/edit');
+        $adminEditRes->assertStatus(200);
+        $adminEditRes->assertSee('Pizza Test Toggle');
+        $adminEditRes->assertSee('Oculta');
+        $adminEditRes->assertSee('fa-eye-slash');
+
+        // 4. Volver a mostrar imagen
+        $resShow = $this->actingAs($admin)->postJson('/admin/categories/images/' . $img->id . '/toggle-visibility');
+        $resShow->assertStatus(200);
+        $resShow->assertJson([
+            'success' => true,
+            'is_visible' => true,
+        ]);
+        $this->assertTrue($img->fresh()->is_visible);
+
+        // 5. Comprobar que ahora en el menú público SÍ se muestra
+        $publicRes2 = $this->get('/categoria/pizzas');
+        $publicRes2->assertStatus(200);
+        $publicRes2->assertSee('Pizza Test Toggle');
+
+        // Limpiar
+        $img->delete();
     }
 }
 

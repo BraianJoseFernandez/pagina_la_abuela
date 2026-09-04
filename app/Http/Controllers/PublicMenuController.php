@@ -41,7 +41,7 @@ class PublicMenuController extends Controller
         $category = Category::where('slug', $slug)
             ->where('is_active', true)
             ->with([
-                'images' => fn($q) => $q->orderBy('order'),
+                'images' => fn($q) => $q->where('is_visible', true)->orderBy('order'),
                 'activeProducts' => fn($q) => $q->with(['category', 'variants' => fn($v) => $v->orderBy('order')])
             ])
             ->firstOrFail();

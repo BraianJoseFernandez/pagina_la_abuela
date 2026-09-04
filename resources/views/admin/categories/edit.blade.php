@@ -132,23 +132,46 @@
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
                                 Fotos Actuales del Carrusel (Arrastrar para Reordenar)
                             </label>
-                            <p class="text-xs text-slate-400">Arrastra y suelta las tarjetas de fotos para cambiar el orden de visualización.</p>
+                            <p class="text-xs text-slate-400">Arrastra para reordenar. Haz clic en el ícono del <i class="fas fa-eye text-emerald-600"></i> ojo para ocultar o mostrar cada foto en la carta pública sin borrarla del disco.</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3.5" id="category-photos-sortable-grid">
                         @foreach($category->images->sortBy('order') as $img)
-                            <div class="relative group rounded-2xl overflow-hidden border-2 border-slate-200 bg-white p-2 flex flex-col items-center cursor-grab active:cursor-grabbing hover:border-purple-400 hover:shadow-md transition photo-sort-card"
-                                 data-id="{{ $img->id }}">
-                                <div class="w-full h-24 rounded-xl overflow-hidden mb-1.5 bg-slate-100 flex items-center justify-center">
-                                    <img src="{{ asset($img->image_path) }}" alt="{{ $img->alt_text }}" class="w-full h-full object-cover">
+                            <div class="relative group rounded-2xl overflow-hidden border-2 {{ $img->is_visible ? 'border-slate-200 bg-white' : 'border-dashed border-slate-300 bg-slate-50/80 opacity-75' }} p-2 flex flex-col items-center cursor-grab active:cursor-grabbing hover:border-purple-400 hover:shadow-md transition photo-sort-card"
+                                 id="photo-card-{{ $img->id }}"
+                                 data-id="{{ $img->id }}"
+                                 data-visible="{{ $img->is_visible ? '1' : '0' }}">
+                                <div class="relative w-full h-24 rounded-xl overflow-hidden mb-1.5 bg-slate-100 flex items-center justify-center">
+                                    <img src="{{ asset($img->image_path) }}" alt="{{ $img->alt_text }}"
+                                         id="photo-img-{{ $img->id }}"
+                                         class="w-full h-full object-cover transition duration-200 {{ $img->is_visible ? '' : 'grayscale-[60%] brightness-90' }}">
+                                    
+                                    <div id="photo-hidden-badge-{{ $img->id }}" class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center {{ $img->is_visible ? 'hidden' : '' }}">
+                                        <span class="px-2 py-0.5 rounded-full bg-slate-900/90 text-white text-[10px] font-black uppercase tracking-wider flex items-center space-x-1 shadow-sm">
+                                            <i class="fas fa-eye-slash text-[9px] text-rose-400"></i>
+                                            <span>Oculta</span>
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <span class="text-[11px] font-bold text-slate-700 truncate w-full text-center">{{ $img->alt_text ?: 'Foto' }}</span>
                                 <span class="text-[10px] text-purple-600 font-black photo-order-num">#{{ $img->order }}</span>
 
+                                <!-- Botón Ojo: Visibilidad (Mostrar / Ocultar) -->
                                 <button type="button"
-                                        onclick="if(confirm('¿Eliminar esta foto del carrusel?')) { document.getElementById('delete-img-form-{{ $img->id }}').submit(); }"
-                                        class="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-md" title="Eliminar foto">
+                                        onclick="toggleImageVisibility({{ $img->id }}, event)"
+                                        id="photo-toggle-btn-{{ $img->id }}"
+                                        class="absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md z-10 {{ $img->is_visible ? 'bg-white/95 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200' : 'bg-slate-800 text-white hover:bg-slate-700 border border-slate-600' }}"
+                                        title="{{ $img->is_visible ? 'Visible para el público (Clic para ocultar)' : 'Oculta para el público (Clic para mostrar)' }}">
+                                    <i class="fas {{ $img->is_visible ? 'fa-eye' : 'fa-eye-slash' }} text-xs"></i>
+                                </button>
+
+                                <!-- Botón Eliminar Foto -->
+                                <button type="button"
+                                        onclick="if(confirm('¿Eliminar definitivamente esta foto del carrusel y del disco?')) { document.getElementById('delete-img-form-{{ $img->id }}').submit(); }"
+                                        class="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                                        title="Eliminar foto permanentemente">
                                     <i class="fas fa-times text-xs"></i>
                                 </button>
                             </div>
@@ -228,6 +251,8 @@
         Sortable.create(photoGrid, {
             animation: 200,
             ghostClass: 'opacity-40',
+            filter: 'button, button *',
+            preventOnFilter: false,
             onEnd: function () {
                 const cards = photoGrid.querySelectorAll('.photo-sort-card');
                 const orderIds = [];
@@ -266,6 +291,85 @@
             }
         });
     });
+
+    function toggleImageVisibility(imgId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        const url = `/admin/categories/images/${imgId}/toggle-visibility`;
+        const card = document.getElementById(`photo-card-${imgId}`);
+        const btn = document.getElementById(`photo-toggle-btn-${imgId}`);
+        const img = document.getElementById(`photo-img-${imgId}`);
+        const badge = document.getElementById(`photo-hidden-badge-${imgId}`);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const isVisible = data.is_visible;
+                if (card) {
+                    card.setAttribute('data-visible', isVisible ? '1' : '0');
+                    if (isVisible) {
+                        card.classList.remove('border-dashed', 'border-slate-300', 'bg-slate-50/80', 'opacity-75');
+                        card.classList.add('border-slate-200', 'bg-white');
+                    } else {
+                        card.classList.remove('border-slate-200', 'bg-white');
+                        card.classList.add('border-dashed', 'border-slate-300', 'bg-slate-50/80', 'opacity-75');
+                    }
+                }
+
+                if (img) {
+                    if (isVisible) {
+                        img.classList.remove('grayscale-[60%]', 'brightness-90');
+                    } else {
+                        img.classList.add('grayscale-[60%]', 'brightness-90');
+                    }
+                }
+
+                if (badge) {
+                    if (isVisible) {
+                        badge.classList.add('hidden');
+                    } else {
+                        badge.classList.remove('hidden');
+                    }
+                }
+
+                if (btn) {
+                    if (isVisible) {
+                        btn.className = 'absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md z-10 bg-white/95 text-emerald-600 hover:bg-emerald-600 hover:text-white border border-emerald-200';
+                        btn.setAttribute('title', 'Visible para el público (Clic para ocultar)');
+                        btn.innerHTML = '<i class="fas fa-eye text-xs"></i>';
+                    } else {
+                        btn.className = 'absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center transition-all shadow-md z-10 bg-slate-800 text-white hover:bg-slate-700 border border-slate-600';
+                        btn.setAttribute('title', 'Oculta para el público (Clic para mostrar)');
+                        btn.innerHTML = '<i class="fas fa-eye-slash text-xs"></i>';
+                    }
+                }
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: isVisible ? 'success' : 'info',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 1800,
+                    timerProgressBar: true
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            Swal.fire('Error', 'No se pudo actualizar la visibilidad de la foto.', 'error');
+        });
+    }
 </script>
 @endpush
 @endsection

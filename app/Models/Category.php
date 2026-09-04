@@ -42,4 +42,9 @@ class Category extends Model
     {
         return $this->hasMany(CategoryImage::class)->orderBy('order');
     }
+
+    public function visibleImages(): HasMany
+    {
+        return $this->hasMany(CategoryImage::class)->where('is_visible', true)->orderBy('order');
+    }
 }

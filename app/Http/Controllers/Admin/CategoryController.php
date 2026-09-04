@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryImage;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -194,5 +195,20 @@ class CategoryController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => '¡Orden de fotos actualizado!']);
+    }
+
+    /**
+     * Alternar visibilidad de una imagen del carrusel (Ocultar / Mostrar al público).
+     */
+    public function toggleImageVisibility(CategoryImage $image): JsonResponse
+    {
+        $image->is_visible = !$image->is_visible;
+        $image->save();
+
+        return response()->json([
+            'success' => true,
+            'is_visible' => $image->is_visible,
+            'message' => 'Foto ' . ($image->is_visible ? 'visible para el público.' : 'ocultada del público.')
+        ]);
     }
 }

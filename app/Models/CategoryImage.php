@@ -15,12 +15,14 @@ class CategoryImage extends Model
         'image_path',
         'alt_text',
         'order',
+        'is_visible',
     ];
 
     protected function casts(): array
     {
         return [
             'order' => 'integer',
+            'is_visible' => 'boolean',
         ];
     }
 
