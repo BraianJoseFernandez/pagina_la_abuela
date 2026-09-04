@@ -28,6 +28,12 @@
     <!-- SortableJS (Para reordenar por Drag and Drop categorías, platos y fotos) -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
+    <!-- Flatpickr (Calendario con soporte móvil y localización en español) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
     <link rel="shortcut icon" class="rounded-full" href="{{ asset('imagenes/logo.jpg') }}" type="image/x-icon">
 
     <style>
@@ -50,6 +56,41 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+        }
+        /* Drag handle específico para que en móvil no interfiera con el scroll */
+        .drag-handle {
+            touch-action: none !important;
+            cursor: grab !important;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .drag-handle:active {
+            cursor: grabbing !important;
+        }
+        /* Flatpickr estilo personalizado */
+        .flatpickr-calendar {
+            border-radius: 1.25rem !important;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+            border: 1px solid #e2e8f0 !important;
+            font-family: inherit !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+            background: #e11d48 !important;
+            border-color: #e11d48 !important;
+        }
+        /* Ocultar barra de desplazamiento sin perder funcionalidad de scroll táctil */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Columna de acciones pegajosa en tablas de escritorio para que nunca quede fuera de pantalla */
+        .sticky-action-col {
+            position: sticky !important;
+            right: 0 !important;
+            box-shadow: -6px 0 12px -4px rgba(0, 0, 0, 0.07);
         }
     </style>
 </head>
@@ -163,17 +204,17 @@
     </aside>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <div class="flex-grow md:ml-72 flex flex-col min-h-screen">
+    <div class="flex-grow md:ml-72 flex flex-col min-h-screen min-w-0 overflow-x-hidden">
         <!-- Barra Superior -->
-        <header class="bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-            <div class="flex items-center space-x-3">
-                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1 rounded-lg">
+        <header class="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+            <div class="flex items-center space-x-3 min-w-0">
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-xl hover:bg-slate-100 flex-shrink-0">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
-                <h2 class="text-xl font-black text-slate-800 tracking-tight">@yield('page-title', 'Panel de Control')</h2>
+                <h2 class="text-lg sm:text-xl font-black text-slate-800 tracking-tight truncate">@yield('page-title', 'Panel de Control')</h2>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 flex-shrink-0">
                 <a href="{{ route('home') }}" target="_blank"
                    class="hidden sm:inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition">
                     <i class="fas fa-utensils"></i>
@@ -183,7 +224,7 @@
         </header>
 
         <!-- Cuerpo de la Página -->
-        <main class="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main class="flex-grow p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
             <!-- Mensajes Flash de Éxito / Error -->
             @if(session('success'))
                 <div class="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center justify-between shadow-xs">
