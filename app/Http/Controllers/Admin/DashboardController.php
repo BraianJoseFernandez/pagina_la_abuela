@@ -29,30 +29,33 @@ class DashboardController extends Controller
         $productsCount = Product::count();
         $availableProductsCount = Product::where('is_available', true)->count();
         $usersCount = User::count();
-        $totalAllTimeOrders = Order::count();
+        $totalAllTimeOrders = Order::whereNotIn('status', ['cancelado'])->count();
 
-        // Consulta filtrada para la jornada/turno
-        $ordersQuery = Order::query();
+        // Consulta base para la jornada/turno
+        $shiftBaseQuery = Order::query();
         $shiftInfo = null;
 
         if ($date && $date !== 'all') {
             $shiftInfo = BusinessShiftService::getShiftRange($date, $shift);
-            $ordersQuery->whereBetween('created_at', [$shiftInfo['start'], $shiftInfo['end']]);
+            $shiftBaseQuery->whereBetween('created_at', [$shiftInfo['start'], $shiftInfo['end']]);
         }
 
+        // Métricas de la jornada / turno seleccionado:
+        // Las ventas contabilizan pedidos activos y entregados, excluyendo estrictamente cancelados y borrados (SoftDeletes)
+        $shiftOrdersCount = (clone $shiftBaseQuery)->count();
+        $shiftTotalSales = (clone $shiftBaseQuery)->whereNotIn('status', ['cancelado'])->sum('total_amount');
+        $shiftDeliveredCount = (clone $shiftBaseQuery)->where('status', 'entregado')->count();
+        $shiftPendingCount = (clone $shiftBaseQuery)->whereIn('status', ['enviado_whatsapp', 'en_preparacion'])->count();
+        $shiftCancelledCount = (clone $shiftBaseQuery)->where('status', 'cancelado')->count();
+
+        // Consulta filtrada para la tabla/tarjetas de pedidos de la jornada según estado
+        $ordersQuery = clone $shiftBaseQuery;
         if ($status && in_array($status, ['enviado_whatsapp', 'en_preparacion', 'entregado', 'cancelado'])) {
             $ordersQuery->where('status', $status);
         }
 
-        // Métricas de la jornada / turno seleccionado
-        $shiftOrdersCount = (clone $ordersQuery)->count();
-        $shiftTotalSales = (clone $ordersQuery)->where('status', '!=', 'cancelado')->sum('total_amount');
-        $shiftDeliveredCount = (clone $ordersQuery)->where('status', 'entregado')->count();
-        $shiftPendingCount = (clone $ordersQuery)->whereIn('status', ['enviado_whatsapp', 'en_preparacion'])->count();
-        $shiftCancelledCount = (clone $ordersQuery)->where('status', 'cancelado')->count();
-
         // Pedidos a mostrar en la tabla/tarjetas de la jornada (hasta 15 pedidos)
-        $recentOrders = (clone $ordersQuery)->with('items')->latest()->take(15)->get();
+        $recentOrders = $ordersQuery->with('items')->latest()->take(15)->get();
         $activeEvent = EventSetting::where('is_active', true)->first();
 
         return view('admin.dashboard', compact(

@@ -37,7 +37,13 @@ class OrderController extends Controller
 
         // Métricas resumidas de la consulta actual (para mostrar en cabecera)
         $totalOrdersFiltered = (clone $query)->count();
-        $totalAmountFiltered = (clone $query)->sum('total_amount');
+
+        // La cuenta de ventas no debe contabilizar los pedidos cancelados ni borrados (SoftDeletes)
+        $totalAmountQuery = clone $query;
+        if ($status !== 'cancelado') {
+            $totalAmountQuery->whereNotIn('status', ['cancelado']);
+        }
+        $totalAmountFiltered = $totalAmountQuery->sum('total_amount');
 
         $orders = $query->paginate(20)->withQueryString();
 
@@ -76,7 +82,8 @@ class OrderController extends Controller
 
     public function destroy(Order $order): RedirectResponse
     {
+        $orderId = $order->id;
         $order->delete();
-        return redirect()->route('admin.orders.index')->with('success', 'Pedido eliminado del historial.');
+        return redirect()->route('admin.orders.index')->with('success', 'Pedido #' . $orderId . ' eliminado correctamente del sistema.');
     }
 }

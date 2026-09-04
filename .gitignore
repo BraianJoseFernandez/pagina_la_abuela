@@ -25,3 +25,16 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Imágenes y multimedia
+/public/imagenes/
+/imagenes/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.avif
+*.svg
+*.ico
+*.bmp

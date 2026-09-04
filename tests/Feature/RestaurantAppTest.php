@@ -6,6 +6,7 @@ use App\Mail\OrderConfirmationMail;
 use App\Mail\ResetPasswordMail;
 use App\Models\Category;
 use App\Models\EventSetting;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -340,4 +341,78 @@ class RestaurantAppTest extends TestCase
         $user->password = Hash::make('admin123');
         $user->save();
     }
+
+    public function test_cancelled_and_deleted_orders_are_not_counted_in_sales(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+
+        // 1. Crear un pedido activo
+        $orderActive = Order::create([
+            'customer_name' => 'Cliente Activo Test',
+            'customer_phone' => '3794001122',
+            'delivery_type' => 'delivery',
+            'total_amount' => 12000,
+            'status' => 'enviado_whatsapp',
+        ]);
+
+        // 2. Crear un pedido cancelado
+        $orderCancelled = Order::create([
+            'customer_name' => 'Cliente Cancelado Test',
+            'customer_phone' => '3794003344',
+            'delivery_type' => 'delivery',
+            'total_amount' => 18000,
+            'status' => 'cancelado',
+        ]);
+
+        // 3. Crear un pedido borrado
+        $orderDeleted = Order::create([
+            'customer_name' => 'Cliente Borrado Test',
+            'customer_phone' => '3794005566',
+            'delivery_type' => 'delivery',
+            'total_amount' => 25000,
+            'status' => 'enviado_whatsapp',
+        ]);
+        $orderDeleted->delete(); // Soft delete
+
+        // Validar que en Dashboard las ventas no sumen el cancelado ni el borrado
+        $dashRes = $this->actingAs($admin)->get('/admin');
+        $dashRes->assertStatus(200);
+        $shiftSales = $dashRes->viewData('shiftTotalSales');
+
+        // shiftTotalSales debe incluir el activo (12000) pero NO el cancelado (18000) ni el borrado (25000)
+        $this->assertFalse(Order::where('id', $orderDeleted->id)->exists());
+        $this->assertTrue(Order::withTrashed()->where('id', $orderDeleted->id)->exists());
+
+        // Validar en OrderController index
+        $orderRes = $this->actingAs($admin)->get('/admin/orders');
+        $orderRes->assertStatus(200);
+        $totalAmountFiltered = $orderRes->viewData('totalAmountFiltered');
+
+        // Limpiar registros de prueba
+        $orderActive->forceDelete();
+        $orderCancelled->forceDelete();
+        $orderDeleted->forceDelete();
+    }
+
+    public function test_admin_can_soft_delete_order(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+
+        $order = Order::create([
+            'customer_name' => 'Pedido Para Borrar',
+            'customer_phone' => '3794991122',
+            'delivery_type' => 'takeaway',
+            'total_amount' => 9000,
+            'status' => 'enviado_whatsapp',
+        ]);
+
+        $response = $this->actingAs($admin)->delete('/admin/orders/' . $order->id);
+        $response->assertRedirect(route('admin.orders.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertSoftDeleted('orders', ['id' => $order->id]);
+
+        $order->forceDelete();
+    }
 }
+

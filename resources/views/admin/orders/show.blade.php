@@ -130,6 +130,25 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Zona de Peligro: Eliminar Pedido -->
+            <div class="bg-white rounded-3xl p-6 shadow-sm border border-rose-100 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-rose-500 flex items-center space-x-1.5">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                    <span>Eliminar Pedido</span>
+                </h4>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    Eliminar este pedido lo quitará de las ventas del turno, del historial y de todas las métricas del sistema.
+                </p>
+                <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este pedido (#{{ $order->id }})? Esta acción lo quitará de las ventas y del historial.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition flex items-center justify-center space-x-2">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                        <span>Eliminar Pedido #{{ $order->id }}</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
