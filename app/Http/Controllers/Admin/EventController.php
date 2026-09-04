@@ -40,7 +40,7 @@ class EventController extends Controller
             'confetti_emojis' => 'nullable|string|max:255',
             'confetti_colors' => 'nullable|string|max:255',
             'whatsapp_custom_text' => 'nullable|string|max:500',
-            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
             'cropped_image_base64' => 'nullable|string',
             'is_active' => 'nullable|boolean',
         ], [
@@ -49,7 +49,7 @@ class EventController extends Controller
             'subtitle.max' => 'El subtítulo no puede superar los 500 caracteres.',
             'image_file.image' => 'El archivo de la promoción debe ser una imagen válida.',
             'image_file.mimes' => 'La imagen debe ser de formato JPG, JPEG, PNG o WEBP.',
-            'image_file.max' => 'La imagen no puede superar los 5 MB.',
+            'image_file.max' => 'La imagen no puede superar los 6 GB.',
         ]);
 
         $imagePath = $event->image_path;

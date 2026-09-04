@@ -36,14 +36,14 @@ class CategoryController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
-            'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
             'slug.unique' => 'Ya existe una categoría con ese enlace permanente (slug).',
             'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
             'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
-            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 5 MB.',
+            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 6 GB.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
@@ -67,9 +67,14 @@ class CategoryController extends Controller
 
         // Procesar subida de imágenes para el carrusel de la categoría
         if ($request->hasFile('carousel_images')) {
+            $destinationPath = public_path('imagenes/uploads');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0775, true);
+            }
+
             foreach ($request->file('carousel_images') as $idx => $file) {
                 $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('imagenes/uploads'), $filename);
+                $file->move($destinationPath, $filename);
 
                 CategoryImage::create([
                     'category_id' => $category->id,
@@ -99,14 +104,14 @@ class CategoryController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
-            'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
             'slug.unique' => 'Ya existe otra categoría con ese enlace permanente (slug).',
             'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
             'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
-            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 5 MB.',
+            'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 6 GB.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
@@ -122,10 +127,15 @@ class CategoryController extends Controller
 
         // Procesar subida de imágenes nuevas
         if ($request->hasFile('carousel_images')) {
+            $destinationPath = public_path('imagenes/uploads');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0775, true);
+            }
+
             $currentMaxOrder = $category->images()->max('order') ?? 0;
             foreach ($request->file('carousel_images') as $idx => $file) {
                 $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                $file->move(public_path('imagenes/uploads'), $filename);
+                $file->move($destinationPath, $filename);
 
                 CategoryImage::create([
                     'category_id' => $category->id,
