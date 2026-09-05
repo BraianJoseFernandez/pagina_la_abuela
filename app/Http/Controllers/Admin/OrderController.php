@@ -14,18 +14,41 @@ class OrderController extends Controller
 {
     public function index(Request $request): View
     {
-        $status = $request->query('status');
-        $date = $request->query('date');
-        $shift = $request->query('shift', 'completo');
-
         $currentBusinessDate = BusinessShiftService::getCurrentBusinessDate();
         $activeShift = BusinessShiftService::getCurrentActiveShift();
 
+        // Si la petición trae parámetros explícitos, los guardamos en la sesión
+        if ($request->has('date') || $request->has('shift') || $request->has('status')) {
+            $status = $request->query('status');
+            $date = $request->query('date');
+            $shift = $request->query('shift', 'completo');
+
+            session(['admin_orders_filter' => [
+                'status' => $status,
+                'date' => $date,
+                'shift' => $shift,
+            ]]);
+        } elseif (session()->has('admin_orders_filter')) {
+            // Si no vienen parámetros pero tenemos una selección previa en sesión
+            $saved = session('admin_orders_filter');
+            $status = $saved['status'] ?? null;
+            $date = $saved['date'] ?? $currentBusinessDate;
+            $shift = $saved['shift'] ?? 'completo';
+        } else {
+            // Por defecto: jornada actual
+            $status = null;
+            $date = $currentBusinessDate;
+            $shift = 'completo';
+        }
+
+        // Recordar la URL completa del listado para retornos
+        session(['admin_orders_return_url' => $request->fullUrl()]);
+
         $query = Order::with('items')->latest();
 
-        // Filtro por fecha operativa y turno
+        // Filtro por fecha operativa y turno (date === 'all' significa todas las fechas)
         $shiftInfo = null;
-        if ($date) {
+        if ($date && $date !== 'all') {
             $shiftInfo = BusinessShiftService::getShiftRange($date, $shift);
             $query->whereBetween('created_at', [$shiftInfo['start'], $shiftInfo['end']]);
         }
@@ -60,9 +83,17 @@ class OrderController extends Controller
         ));
     }
 
-    public function show(Order $order): View
+    public function show(Request $request, Order $order): View
     {
         $order->load('items');
+
+        // Si viene return_url explícito o en referer previo, guardarlo en sesión
+        if ($request->has('return_url')) {
+            session(['admin_orders_return_url' => $request->query('return_url')]);
+        } elseif ($request->headers->has('referer') && !str_contains($request->headers->get('referer'), '/orders/' . $order->id)) {
+            session(['admin_orders_return_url' => $request->headers->get('referer')]);
+        }
+
         $cadetesJson = \App\Models\Setting::get('delivery_cadetes');
         $allCadetes = $cadetesJson ? json_decode($cadetesJson, true) : [];
         // Filtrar estrictamente cadetes que estén activos y tengan teléfono
@@ -92,6 +123,7 @@ class OrderController extends Controller
     {
         $orderId = $order->id;
         $order->delete();
-        return redirect()->route('admin.orders.index')->with('success', 'Pedido #' . $orderId . ' eliminado correctamente del sistema.');
+        $returnUrl = session('admin_orders_return_url') ?? route('admin.orders.index');
+        return redirect()->to($returnUrl)->with('success', 'Pedido #' . $orderId . ' eliminado correctamente del sistema.');
     }
 }

@@ -329,7 +329,7 @@
                                 {{ $order->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td class="py-3.5 px-4 text-right sticky-action-col bg-white group-hover:bg-slate-50 transition-colors whitespace-nowrap space-x-1.5">
-                                <a href="{{ route('admin.orders.show', $order) }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition inline-block whitespace-nowrap">
+                                <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition inline-block whitespace-nowrap">
                                     Ver Detalle
                                 </a>
                                 <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Eliminar pedido #{{ $order->id }}? Se descontará de las ventas y métricas.');">
@@ -422,7 +422,7 @@
                                     <i class="fas fa-trash-alt text-xs"></i>
                                 </button>
                             </form>
-                            <a href="{{ route('admin.orders.show', $order) }}"
+                            <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}"
                                class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center space-x-1">
                                 <span>Ver Detalle</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>

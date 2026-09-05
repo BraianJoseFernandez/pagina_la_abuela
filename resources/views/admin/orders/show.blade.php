@@ -3,12 +3,31 @@
 @section('title', 'Detalle de Pedido #' . $order->id)
 @section('page-title', 'Pedido #' . $order->id)
 
+@php
+    $returnUrl = request('return_url');
+    if (!$returnUrl && session()->has('admin_orders_return_url')) {
+        $returnUrl = session('admin_orders_return_url');
+    }
+    if (!$returnUrl) {
+        $previous = url()->previous();
+        if ($previous && $previous !== url()->current() && !str_contains($previous, '/login')) {
+            $returnUrl = $previous;
+        }
+    }
+    if (!$returnUrl) {
+        $returnUrl = route('admin.orders.index');
+    }
+
+    $isDashboard = (str_contains($returnUrl, '/admin') && !str_contains($returnUrl, '/admin/orders')) || str_ends_with(rtrim(parse_url($returnUrl, PHP_URL_PATH) ?? '', '/'), '/admin');
+    $backLabel = $isDashboard ? 'Volver al Dashboard' : 'Volver al Listado';
+@endphp
+
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
-        <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center space-x-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition">
-            <i class="fas fa-arrow-left text-xs"></i>
-            <span>Volver al Listado</span>
+        <a href="{{ $returnUrl }}" class="inline-flex items-center space-x-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition group">
+            <i class="fas fa-arrow-left text-xs group-hover:-translate-x-1 transition-transform"></i>
+            <span>{{ $backLabel }}</span>
         </a>
     </div>
 

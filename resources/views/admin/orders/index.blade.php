@@ -24,10 +24,10 @@
                 <!-- Input Flatpickr para selección de fecha -->
                 <div class="relative flex-grow sm:w-44">
                     <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-rose-500 text-xs pointer-events-none"></i>
-                    <input type="text" name="date" id="order-date-picker" value="{{ $date }}"
+                    <input type="text" name="date" id="order-date-picker" value="{{ ($date && $date !== 'all') ? $date : '' }}"
                            placeholder="Elegir fecha..."
                            class="w-full pl-8 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer">
-                    @if($date)
+                    @if($date && $date !== 'all')
                         <button type="button" onclick="clearDateFilter()" title="Quitar fecha"
                                 class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-600 text-xs">
                             <i class="fas fa-times-circle"></i>
@@ -50,8 +50,8 @@
                         Ayer
                     </a>
 
-                    <a href="{{ route('admin.orders.index', array_filter(['status' => $status])) }}"
-                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ empty($date) ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
+                    <a href="{{ route('admin.orders.index', array_filter(['date' => 'all', 'status' => $status])) }}"
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ ($date === 'all') ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900' }}">
                         Todas
                     </a>
                 </div>
@@ -224,7 +224,7 @@
                                 {{ $order->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td class="py-3.5 px-4 text-right space-x-1.5 sticky-action-col bg-white group-hover:bg-slate-50 transition-colors whitespace-nowrap">
-                                <a href="{{ route('admin.orders.show', $order) }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition inline-block">
+                                <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition inline-block">
                                     Ver Detalle
                                 </a>
                                 <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Eliminar pedido #{{ $order->id }}? Se descontará de las ventas y métricas.');">
@@ -329,7 +329,7 @@
                                     <i class="fas fa-trash-alt text-xs"></i>
                                 </button>
                             </form>
-                            <a href="{{ route('admin.orders.show', $order) }}"
+                            <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}"
                                class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow-xs">
                                 <span>Ver Detalle</span>
                                 <i class="fas fa-arrow-right text-[10px]"></i>
@@ -361,7 +361,7 @@
             altInput: true,
             altFormat: 'd/m/Y',
             allowInput: false,
-            defaultDate: "{{ $date ?: '' }}",
+            defaultDate: "{{ ($date && $date !== 'all') ? $date : '' }}",
             onChange: function(selectedDates, dateStr) {
                 if (dateStr) {
                     const form = document.getElementById('order-date-filter-form');
@@ -376,7 +376,7 @@
         input.value = '';
         const form = document.getElementById('order-date-filter-form');
         const hiddenDate = form.querySelector('input[name="date"]');
-        if (hiddenDate) hiddenDate.value = '';
+        if (hiddenDate) hiddenDate.value = 'all';
         form.submit();
     }
 </script>
