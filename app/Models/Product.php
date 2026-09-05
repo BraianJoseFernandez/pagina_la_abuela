@@ -20,6 +20,7 @@ class Product extends Model
         'badge',
         'has_cooking_options',
         'cooking_options',
+        'has_garnishes',
         'is_available',
         'order',
     ];
@@ -30,6 +31,7 @@ class Product extends Model
             'price' => 'decimal:2',
             'has_cooking_options' => 'boolean',
             'cooking_options' => 'array',
+            'has_garnishes' => 'boolean',
             'is_available' => 'boolean',
             'order' => 'integer',
         ];
@@ -45,9 +47,19 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)->orderBy('order');
     }
 
+    public function garnishes(): HasMany
+    {
+        return $this->hasMany(ProductGarnish::class)->orderBy('order');
+    }
+
     public function hasVariants(): bool
     {
         return $this->variants()->count() > 0;
+    }
+
+    public function hasGarnishes(): bool
+    {
+        return (bool) $this->has_garnishes;
     }
 
     public function hasCookingOptions(): bool

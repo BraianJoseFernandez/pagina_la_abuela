@@ -134,7 +134,9 @@
         initialCategorySlug: "{{ $categories->first()?->slug ?? 'pizzas' }}",
         categoryRouteUrl: "{{ url('/categoria') }}",
         orderSaveUrl: "{{ route('order.save') }}",
-        csrfToken: "{{ csrf_token() }}"
+        csrfToken: "{{ csrf_token() }}",
+        googleMapsApiKey: "{{ $settings['google_maps_api_key'] ?? env('GOOGLE_MAPS_API_KEY', '') }}",
+        resolveMapsUrl: "{{ route('maps.resolve') }}"
     };
 </script>
 @endpush

@@ -17,6 +17,8 @@ class OrderItem extends Model
         'product_name',
         'variant_name',
         'cooking_method',
+        'garnish_name',
+        'garnish_price',
         'unit_price',
         'quantity',
         'subtotal',
@@ -27,6 +29,7 @@ class OrderItem extends Model
     {
         return [
             'unit_price' => 'decimal:2',
+            'garnish_price' => 'decimal:2',
             'quantity' => 'integer',
             'subtotal' => 'decimal:2',
         ];

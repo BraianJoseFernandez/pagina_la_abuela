@@ -169,7 +169,7 @@
 
                                 <!-- Botón Eliminar Foto -->
                                 <button type="button"
-                                        onclick="if(confirm('¿Eliminar definitivamente esta foto del carrusel y del disco?')) { document.getElementById('delete-img-form-{{ $img->id }}').submit(); }"
+                                        onclick="confirmDeleteCarouselImage({{ $img->id }})"
                                         class="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
                                         title="Eliminar foto permanentemente">
                                     <i class="fas fa-times text-xs"></i>
@@ -369,6 +369,33 @@
             console.error(err);
             Swal.fire('Error', 'No se pudo actualizar la visibilidad de la foto.', 'error');
         });
+    }
+
+    function confirmDeleteCarouselImage(imgId) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¿Eliminar foto?',
+                text: '¿Deseas eliminar definitivamente esta foto del carrusel y del disco?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-3xl shadow-2xl font-[Poppins]'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-img-form-' + imgId).submit();
+                }
+            });
+        } else {
+            if (confirm('¿Eliminar definitivamente esta foto del carrusel y del disco?')) {
+                document.getElementById('delete-img-form-' + imgId).submit();
+            }
+        }
     }
 </script>
 @endpush

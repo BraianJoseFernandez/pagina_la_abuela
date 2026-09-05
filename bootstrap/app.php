@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        $middleware->trustProxies(at: '*');
+        $middleware->validateCsrfTokens(except: [
+            'resolver-mapa',
+            'pedido/guardar',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

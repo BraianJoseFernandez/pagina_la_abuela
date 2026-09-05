@@ -38,3 +38,11 @@ Thumbs.db
 *.svg
 *.ico
 *.bmp
+
+# WhatsApp Microservice
+/whatsapp-service/node_modules/
+/whatsapp-service/auth_info/
+
+# Local SSL certificates and dev proxies
+*.pem
+https-proxy.cjs

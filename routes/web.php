@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WhatsAppController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\PublicMenuController;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicMenuController::class, 'index'])->name('home');
 Route::get('/categoria/{slug}', [PublicMenuController::class, 'getCategory'])->name('menu.category');
 Route::post('/pedido/guardar', [PublicMenuController::class, 'saveOrder'])->name('order.save');
+Route::post('/resolver-mapa', [PublicMenuController::class, 'resolveMapsUrl'])->name('maps.resolve');
 
 // Autenticación & Recuperación de Contraseña
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -55,11 +57,17 @@ Route::middleware(['auth', 'role:admin,personal'])->prefix('admin')->name('admin
     Route::get('events', [EventController::class, 'index'])->name('events.index');
     Route::post('events', [EventController::class, 'update'])->name('events.update');
 
-    // Historial de Pedidos WhatsApp
+    // Historial de Pedidos WhatsApp y Despacho Automático
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+    Route::post('orders/{order}/dispatch-whatsapp', [WhatsAppController::class, 'dispatchOrder'])->name('orders.dispatch-whatsapp');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
+
+    // Gestión de WhatsApp Automático (Baileys API)
+    Route::get('whatsapp/status', [WhatsAppController::class, 'status'])->name('whatsapp.status');
+    Route::get('whatsapp/qr', [WhatsAppController::class, 'qr'])->name('whatsapp.qr');
+    Route::post('whatsapp/disconnect', [WhatsAppController::class, 'disconnect'])->name('whatsapp.disconnect');
 
     // Configuración del Negocio
     Route::get('settings', [SettingController::class, 'index'])->name('settings.index');

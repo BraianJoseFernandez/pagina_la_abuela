@@ -194,6 +194,49 @@
                 </div>
             </div>
 
+            @php
+                $hasGarnishes = old('has_garnishes', $product->has_garnishes);
+            @endphp
+
+            <!-- SISTEMA DE GUARNICIONES (ACOMPAÑAMIENTOS) -->
+            <div class="border-t border-slate-100 pt-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+                            <i class="fas fa-bowl-food text-emerald-600"></i>
+                            <span>Guarniciones / Acompañamientos</span>
+                        </h4>
+                        <p class="text-xs text-slate-500">Configura opciones de guarnición para que el cliente elija (con foto redondeada, precio extra y descripción).</p>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-200/70 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" name="has_garnishes" id="has_garnishes" value="1" {{ $hasGarnishes ? 'checked' : '' }}
+                               onchange="toggleGarnishesSection(this.checked)"
+                               class="w-5 h-5 text-emerald-600 rounded-lg border-slate-300 focus:ring-emerald-500">
+                        <div>
+                            <span class="text-sm font-bold text-slate-800 block">Habilitar selección de Guarnición para este plato</span>
+                            <span class="text-xs text-slate-500">El cliente podrá seleccionar qué guarnición prefiere al pedir este plato.</span>
+                        </div>
+                    </label>
+
+                    <div id="garnishes-section-details" class="{{ $hasGarnishes ? '' : 'hidden' }} pt-3 border-t border-emerald-200/60 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase tracking-wider text-emerald-900">Opciones de Guarnición (sin límite):</span>
+                            <button type="button" onclick="addGarnishRow()" class="inline-flex items-center space-x-1.5 text-xs font-black text-emerald-700 hover:text-emerald-900 bg-white hover:bg-emerald-100/60 px-3 py-1.5 rounded-xl border border-emerald-300 shadow-2xs transition">
+                                <i class="fas fa-plus"></i>
+                                <span>Añadir otra guarnición</span>
+                            </button>
+                        </div>
+
+                        <div id="garnishes-list" class="space-y-3">
+                            <!-- Filas dinámicas de guarniciones -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- FOTO DEL PLATO CON RECORTADOR CIRCULAR (CROPPER.JS) -->
             <div class="border-t border-slate-100 pt-6 space-y-3">
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
@@ -329,39 +372,175 @@
         btn.closest('.variant-row').remove();
     }
 
-    // Inicializador de Cropper.js
+    // Lógica para Guarniciones
+    function toggleGarnishesSection(isChecked) {
+        const section = document.getElementById('garnishes-section-details');
+        if (section) {
+            if (isChecked) {
+                section.classList.remove('hidden');
+                const list = document.getElementById('garnishes-list');
+                if (list && list.children.length === 0) {
+                    addGarnishRow('Papas Fritas Tradicionales', 0, 'Papas bastón crocantes doradas al punto justo');
+                    addGarnishRow('Puré de Papas Casero', 0, 'Puré suave y cremoso con manteca y nuez moscada');
+                }
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+    }
+
+    function addGarnishRow(name = '', price = '0', desc = '', image = '') {
+        const list = document.getElementById('garnishes-list');
+        const row = document.createElement('div');
+        row.className = 'garnish-row bg-white p-3.5 sm:p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center gap-3.5 transition hover:border-emerald-400';
+        
+        row.innerHTML = `
+            <!-- Foto con Recortador Circular -->
+            <div class="flex items-center space-x-3 flex-shrink-0">
+                <div class="relative group cursor-pointer" onclick="this.parentElement.querySelector('.garnish-file-input').click()" title="Toca para subir y recortar foto en círculo">
+                    <img src="${image || ''}" class="garnish-preview-img w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-sm ${image ? '' : 'hidden'}">
+                    <div class="garnish-icon-placeholder w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center border-2 border-dashed border-emerald-400 group-hover:bg-emerald-200 transition ${image ? 'hidden' : ''}">
+                        <i class="fas fa-camera text-base"></i>
+                    </div>
+                    <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-white text-xs">
+                        <i class="fas fa-crop-simple"></i>
+                    </div>
+                </div>
+                <input type="file" accept="image/*" class="garnish-file-input hidden" onchange="handleGarnishFileSelect(this)">
+                <input type="hidden" name="garnish_cropped_base64[]" class="garnish-cropped-input" value="">
+                <input type="hidden" name="garnish_existing_images[]" class="garnish-existing-input" value="${image ? image.replace('{{ asset('') }}', '') : ''}">
+            </div>
+
+            <!-- Campos -->
+            <div class="flex-grow grid grid-cols-1 sm:grid-cols-12 gap-2.5 w-full">
+                <div class="sm:col-span-5">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Nombre Guarnición *</label>
+                    <input type="text" name="garnish_names[]" value="${escapeHtml(name)}" placeholder="Ej: Papas Fritas" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Precio Extra ($)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 font-bold text-xs">$</span>
+                        <input type="number" step="0.01" min="0" name="garnish_prices[]" value="${price !== '' ? price : '0'}" placeholder="0 (Incluida)" class="w-full pl-7 pr-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                    </div>
+                </div>
+                <div class="sm:col-span-4">
+                    <label class="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">Breve Descripción</label>
+                    <input type="text" name="garnish_descriptions[]" value="${escapeHtml(desc)}" placeholder="Ej: Doradas y crocantes" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                </div>
+            </div>
+
+            <!-- Botón Eliminar con SweetAlert2 -->
+            <button type="button" onclick="removeGarnishRow(this)" class="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition flex-shrink-0" title="Eliminar opción">
+                <i class="fas fa-trash-alt text-sm"></i>
+            </button>
+        `;
+        list.appendChild(row);
+    }
+
+    function removeGarnishRow(btn) {
+        const row = btn.closest('.garnish-row');
+        const nameInput = row.querySelector('input[name="garnish_names[]"]');
+        const garnishName = nameInput && nameInput.value.trim() ? `"${nameInput.value.trim()}"` : 'esta guarnición';
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '¿Quitar guarnición?',
+                text: `¿Estás seguro de quitar ${garnishName}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, quitar',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'rounded-3xl shadow-2xl font-[Poppins]'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    row.remove();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Guarnición eliminada',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            });
+        } else {
+            if (confirm(`¿Quitar ${garnishName}?`)) {
+                row.remove();
+            }
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // Cargar guarniciones existentes en edición
+    document.addEventListener('DOMContentLoaded', function() {
+        const existingGarnishes = @json($product->garnishes ?? []);
+        if (existingGarnishes && existingGarnishes.length > 0) {
+            existingGarnishes.forEach(g => {
+                const imgUrl = g.image_path ? '{{ asset('') }}' + g.image_path : '';
+                addGarnishRow(g.name, g.price, g.description, imgUrl);
+            });
+        }
+    });
+
+    // Manejo de Cropper.js (Plato principal y Guarniciones)
     let cropper = null;
-    const fileInput = document.getElementById('dish_image_input');
+    let currentCroppingContext = { type: 'dish' };
+    const dishFileInput = document.getElementById('dish_image_input');
     const modal = document.getElementById('cropper-modal');
     const imageTarget = document.getElementById('cropper-image-target');
 
-    fileInput.addEventListener('change', function (e) {
+    function openCropperWithFile(file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            imageTarget.src = event.target.result;
+            modal.classList.remove('hidden');
+
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(imageTarget, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.9,
+                restore: false,
+                guides: false,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    dishFileInput.addEventListener('change', function (e) {
         const files = e.target.files;
         if (files && files.length > 0) {
-            const file = files[0];
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                imageTarget.src = event.target.result;
-                modal.classList.remove('hidden');
-
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(imageTarget, {
-                    aspectRatio: 1,
-                    viewMode: 1,
-                    dragMode: 'move',
-                    autoCropArea: 0.9,
-                    restore: false,
-                    guides: false,
-                    center: true,
-                    highlight: false,
-                    cropBoxMovable: true,
-                    cropBoxResizable: true,
-                    toggleDragModeOnDblclick: false,
-                });
-            };
-            reader.readAsDataURL(file);
+            currentCroppingContext = { type: 'dish' };
+            openCropperWithFile(files[0]);
         }
     });
+
+    function handleGarnishFileSelect(input) {
+        const files = input.files;
+        if (files && files.length > 0) {
+            currentCroppingContext = {
+                type: 'garnish',
+                row: input.closest('.garnish-row')
+            };
+            openCropperWithFile(files[0]);
+        }
+    }
 
     function closeCropperModal() {
         modal.classList.add('hidden');
@@ -389,12 +568,32 @@
         ctx.drawImage(canvas, 0, 0, 600, 600);
 
         const base64Data = roundedCanvas.toDataURL('image/png');
-        document.getElementById('cropped_image_base64').value = base64Data;
 
-        // Preview
-        document.getElementById('cropped-preview-img').src = base64Data;
-        document.getElementById('cropped-preview-container').classList.remove('hidden');
-        document.getElementById('cropped-preview-container').classList.add('flex');
+        if (currentCroppingContext.type === 'dish') {
+            document.getElementById('cropped_image_base64').value = base64Data;
+            document.getElementById('cropped-preview-img').src = base64Data;
+            document.getElementById('cropped-preview-container').classList.remove('hidden');
+            document.getElementById('cropped-preview-container').classList.add('flex');
+        } else if (currentCroppingContext.type === 'garnish' && currentCroppingContext.row) {
+            const row = currentCroppingContext.row;
+            row.querySelector('.garnish-cropped-input').value = base64Data;
+            const img = row.querySelector('.garnish-preview-img');
+            img.src = base64Data;
+            img.classList.remove('hidden');
+            const iconPlaceholder = row.querySelector('.garnish-icon-placeholder');
+            if (iconPlaceholder) iconPlaceholder.classList.add('hidden');
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: '¡Foto circular de guarnición aplicada!',
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+            }
+        }
 
         closeCropperModal();
     }

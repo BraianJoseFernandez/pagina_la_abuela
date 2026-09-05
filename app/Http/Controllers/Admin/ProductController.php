@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductGarnish;
 use App\Models\ProductVariant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -62,8 +63,15 @@ class ProductController extends Controller
             'cropped_image_base64' => 'nullable|string',
             'variant_names' => 'nullable|array',
             'variant_names.*' => 'nullable|string|max:255',
-            'variant_prices' => 'nullable|array',
-            'variant_prices.*' => 'nullable|numeric|min:0',
+            'has_garnishes' => 'nullable|boolean',
+            'garnish_names' => 'nullable|array',
+            'garnish_names.*' => 'nullable|string|max:255',
+            'garnish_prices' => 'nullable|array',
+            'garnish_prices.*' => 'nullable|numeric|min:0',
+            'garnish_descriptions' => 'nullable|array',
+            'garnish_descriptions.*' => 'nullable|string|max:500',
+            'garnish_cropped_base64' => 'nullable|array',
+            'garnish_existing_images' => 'nullable|array',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
             'category_id.exists' => 'La categoría seleccionada no existe en el sistema.',
@@ -76,6 +84,8 @@ class ProductController extends Controller
             'image_file.max' => 'La imagen no puede superar los 6 GB.',
             'variant_prices.*.numeric' => 'El precio de cada variante debe ser un número válido.',
             'variant_prices.*.min' => 'El precio de la variante no puede ser negativo.',
+            'garnish_prices.*.numeric' => 'El precio de cada guarnición debe ser un número válido.',
+            'garnish_prices.*.min' => 'El precio de la guarnición no puede ser negativo.',
         ]);
 
         $imagePath = null;
@@ -125,6 +135,7 @@ class ProductController extends Controller
             'badge' => $validated['badge'] ?? null,
             'has_cooking_options' => $hasCookingOptions,
             'cooking_options' => $cookingOptions,
+            'has_garnishes' => $request->has('has_garnishes'),
             'order' => $validated['order'] ?? (Product::where('category_id', $validated['category_id'])->max('order') + 1),
             'is_available' => $request->has('is_available'),
         ]);
@@ -146,6 +157,9 @@ class ProductController extends Controller
             }
         }
 
+        // Guardar guarniciones si se habilitaron
+        $this->saveGarnishes($request, $product);
+
         return redirect()->route('admin.products.index', ['category_id' => $product->category_id])
             ->with('success', '¡Plato "' . $product->name . '" creado exitosamente!');
     }
@@ -153,7 +167,10 @@ class ProductController extends Controller
     public function edit(Product $product): View
     {
         $categories = Category::where('is_active', true)->orderBy('order')->get();
-        $product->load(['variants' => fn($q) => $q->orderBy('order')]);
+        $product->load([
+            'variants' => fn($q) => $q->orderBy('order'),
+            'garnishes' => fn($q) => $q->orderBy('order'),
+        ]);
 
         return view('admin.products.edit', compact('product', 'categories'));
     }
@@ -177,6 +194,15 @@ class ProductController extends Controller
             'variant_names.*' => 'nullable|string|max:255',
             'variant_prices' => 'nullable|array',
             'variant_prices.*' => 'nullable|numeric|min:0',
+            'has_garnishes' => 'nullable|boolean',
+            'garnish_names' => 'nullable|array',
+            'garnish_names.*' => 'nullable|string|max:255',
+            'garnish_prices' => 'nullable|array',
+            'garnish_prices.*' => 'nullable|numeric|min:0',
+            'garnish_descriptions' => 'nullable|array',
+            'garnish_descriptions.*' => 'nullable|string|max:500',
+            'garnish_cropped_base64' => 'nullable|array',
+            'garnish_existing_images' => 'nullable|array',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
             'category_id.exists' => 'La categoría seleccionada no existe en el sistema.',
@@ -189,6 +215,8 @@ class ProductController extends Controller
             'image_file.max' => 'La imagen no puede superar los 6 GB.',
             'variant_prices.*.numeric' => 'El precio de cada variante debe ser un número válido.',
             'variant_prices.*.min' => 'El precio de la variante no puede ser negativo.',
+            'garnish_prices.*.numeric' => 'El precio de cada guarnición debe ser un número válido.',
+            'garnish_prices.*.min' => 'El precio de la guarnición no puede ser negativo.',
         ]);
 
         $imagePath = $product->image_path;
@@ -238,6 +266,7 @@ class ProductController extends Controller
             'badge' => $validated['badge'] ?? null,
             'has_cooking_options' => $hasCookingOptions,
             'cooking_options' => $cookingOptions,
+            'has_garnishes' => $request->has('has_garnishes'),
             'order' => $validated['order'] ?? $product->order,
             'is_available' => $request->has('is_available'),
         ]);
@@ -260,8 +289,71 @@ class ProductController extends Controller
             }
         }
 
+        // Guardar guarniciones si se habilitaron
+        $this->saveGarnishes($request, $product);
+
         return redirect()->route('admin.products.index', ['category_id' => $product->category_id])
             ->with('success', '¡Plato "' . $product->name . '" actualizado exitosamente!');
+    }
+
+    /**
+     * Guarda o actualiza las guarniciones asociadas al plato.
+     */
+    protected function saveGarnishes(Request $request, Product $product): void
+    {
+        $product->garnishes()->delete();
+
+        if (!$request->has('has_garnishes')) {
+            return;
+        }
+
+        $names = $request->input('garnish_names', []);
+        $prices = $request->input('garnish_prices', []);
+        $descriptions = $request->input('garnish_descriptions', []);
+        $croppedImages = $request->input('garnish_cropped_base64', []);
+        $existingImages = $request->input('garnish_existing_images', []);
+
+        $destinationPath = public_path('imagenes/uploads/garnishes');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0755, true);
+        }
+
+        foreach ($names as $idx => $gName) {
+            $trimmedName = trim($gName ?? '');
+            if (empty($trimmedName)) {
+                continue;
+            }
+
+            $price = isset($prices[$idx]) && is_numeric($prices[$idx]) ? floatval($prices[$idx]) : 0.00;
+            $desc = isset($descriptions[$idx]) ? trim($descriptions[$idx]) : null;
+            $imagePath = $existingImages[$idx] ?? null;
+
+            // Si se envió imagen recortada en Base64 con el Cropper circular
+            if (!empty($croppedImages[$idx]) && preg_match('/^data:image\/(\w+);base64,/', $croppedImages[$idx], $type)) {
+                $base64Str = substr($croppedImages[$idx], strpos($croppedImages[$idx], ',') + 1);
+                $ext = strtolower($type[1]);
+                $binaryData = base64_decode($base64Str);
+
+                $filename = 'garnish_' . time() . '_' . $idx . '_' . Str::random(6) . '.' . $ext;
+                file_put_contents($destinationPath . '/' . $filename, $binaryData);
+                $imagePath = 'imagenes/uploads/garnishes/' . $filename;
+            } elseif ($request->hasFile("garnish_images.{$idx}")) {
+                $file = $request->file("garnish_images.{$idx}");
+                $filename = 'garnish_' . time() . '_' . $idx . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+                $file->move($destinationPath, $filename);
+                $imagePath = 'imagenes/uploads/garnishes/' . $filename;
+            }
+
+            ProductGarnish::create([
+                'product_id' => $product->id,
+                'name' => $trimmedName,
+                'description' => $desc,
+                'price' => $price,
+                'image_path' => $imagePath,
+                'is_available' => true,
+                'order' => $idx + 1,
+            ]);
+        }
     }
 
     public function destroy(Product $product): RedirectResponse

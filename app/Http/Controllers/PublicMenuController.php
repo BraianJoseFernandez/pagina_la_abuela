@@ -42,7 +42,11 @@ class PublicMenuController extends Controller
             ->where('is_active', true)
             ->with([
                 'images' => fn($q) => $q->where('is_visible', true)->orderBy('order'),
-                'activeProducts' => fn($q) => $q->with(['category', 'variants' => fn($v) => $v->orderBy('order')])
+                'activeProducts' => fn($q) => $q->with([
+                    'category',
+                    'variants' => fn($v) => $v->orderBy('order'),
+                    'garnishes' => fn($g) => $g->where('is_available', true)->orderBy('order')
+                ])
             ])
             ->firstOrFail();
 
@@ -67,6 +71,9 @@ class PublicMenuController extends Controller
             'customer_email' => 'nullable|email|max:255',
             'delivery_type' => 'required|in:delivery,takeaway',
             'delivery_address' => 'nullable|string|max:500',
+            'delivery_map_url' => 'nullable|string|max:1000',
+            'delivery_latitude' => 'nullable|numeric',
+            'delivery_longitude' => 'nullable|numeric',
             'payment_method' => 'nullable|string|max:100',
             'notes' => 'nullable|string|max:1000',
             'total_amount' => 'required|numeric|min:0',
@@ -76,6 +83,8 @@ class PublicMenuController extends Controller
             'items.*.product_name' => 'required|string',
             'items.*.variant_name' => 'nullable|string',
             'items.*.cooking_method' => 'nullable|string',
+            'items.*.garnish_name' => 'nullable|string',
+            'items.*.garnish_price' => 'nullable|numeric',
             'items.*.unit_price' => 'required|numeric',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.subtotal' => 'required|numeric',
@@ -91,12 +100,26 @@ class PublicMenuController extends Controller
             'items.min' => 'Debes agregar al menos un producto al pedido.',
         ]);
 
+        if ($validated['delivery_type'] === 'delivery') {
+            $hasAddress = !empty(trim($validated['delivery_address'] ?? ''));
+            $hasMap = !empty(trim($validated['delivery_map_url'] ?? '')) || (!empty($validated['delivery_latitude']) && !empty($validated['delivery_longitude']));
+            if (!$hasAddress && !$hasMap) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Para envíos a domicilio debes ingresar una dirección o marcar tu ubicación en el mapa.'
+                ], 422);
+            }
+        }
+
         $order = Order::create([
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
             'customer_email' => $validated['customer_email'] ?? null,
             'delivery_type' => $validated['delivery_type'],
             'delivery_address' => $validated['delivery_address'] ?? null,
+            'delivery_map_url' => $validated['delivery_map_url'] ?? null,
+            'delivery_latitude' => $validated['delivery_latitude'] ?? null,
+            'delivery_longitude' => $validated['delivery_longitude'] ?? null,
             'payment_method' => $validated['payment_method'] ?? 'Efectivo',
             'notes' => $validated['notes'] ?? null,
             'total_amount' => $validated['total_amount'],
@@ -121,6 +144,8 @@ class PublicMenuController extends Controller
                 'product_name' => $item['product_name'],
                 'variant_name' => $item['variant_name'] ?? null,
                 'cooking_method' => $item['cooking_method'] ?? null,
+                'garnish_name' => $item['garnish_name'] ?? null,
+                'garnish_price' => $item['garnish_price'] ?? 0.00,
                 'unit_price' => $item['unit_price'],
                 'quantity' => $item['quantity'],
                 'subtotal' => $item['subtotal'],
@@ -143,4 +168,66 @@ class PublicMenuController extends Controller
             'order_id' => $order->id
         ]);
     }
+
+    /**
+     * Resuelve URLs de Google Maps (incluyendo acortadas como maps.app.goo.gl)
+     * para extraer coordenadas exactas de entrega.
+     */
+    public function resolveMapsUrl(Request $request)
+    {
+        $url = trim($request->input('url', ''));
+        if (empty($url)) {
+            return response()->json(['success' => false, 'message' => 'Enlace no proporcionado.'], 422);
+        }
+
+        // 1. Extraer coordenadas si ya están explícitas en el texto o URL
+        if (preg_match('/^(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)$/', $url, $matches) ||
+            preg_match('/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches) ||
+            preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches) ||
+            preg_match('/(?:place|search)\/(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches) ||
+            preg_match('/geo:(-?\d+\.\d+),(-?\d+\.\d+)/', $url, $matches)) {
+            return response()->json([
+                'success' => true,
+                'lat' => (float)$matches[1],
+                'lng' => (float)$matches[2],
+                'url' => $url
+            ]);
+        }
+
+        // 2. Si es una URL acortada tipo maps.app.goo.gl o goo.gl/maps, seguir redirecciones
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+            curl_exec($ch);
+            $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            curl_close($ch);
+
+            if ($effectiveUrl) {
+                if (preg_match('/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/', $effectiveUrl, $matches) ||
+                    preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $effectiveUrl, $matches) ||
+                    preg_match('/(?:place|search)\/(-?\d+\.\d+),(-?\d+\.\d+)/', $effectiveUrl, $matches)) {
+                    return response()->json([
+                        'success' => true,
+                        'lat' => (float)$matches[1],
+                        'lng' => (float)$matches[2],
+                        'url' => $effectiveUrl
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Error resolviendo URL de Google Maps: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No pudimos extraer las coordenadas exactas de este enlace. Por favor selecciona el punto en el mapa o busca tu calle y número.'
+        ], 400);
+    }
 }
+

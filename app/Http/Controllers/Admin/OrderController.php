@@ -63,7 +63,15 @@ class OrderController extends Controller
     public function show(Order $order): View
     {
         $order->load('items');
-        return view('admin.orders.show', compact('order'));
+        $cadetesJson = \App\Models\Setting::get('delivery_cadetes');
+        $allCadetes = $cadetesJson ? json_decode($cadetesJson, true) : [];
+        // Filtrar estrictamente cadetes que estén activos y tengan teléfono
+        $cadetes = array_values(array_filter($allCadetes, function ($c) {
+            $isActive = !isset($c['is_active']) || $c['is_active'] === true || $c['is_active'] === 1 || $c['is_active'] === '1' || $c['is_active'] === 'true';
+            return $isActive && !empty(trim($c['phone'] ?? ''));
+        }));
+
+        return view('admin.orders.show', compact('order', 'cadetes'));
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse

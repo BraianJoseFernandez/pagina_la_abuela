@@ -271,6 +271,88 @@
             sidebar.classList.toggle('-translate-x-full');
             backdrop.classList.toggle('hidden');
         }
+
+        // Integración global de SweetAlert2 para todo el panel de administración
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: @json(session('success')),
+                        showConfirmButton: false,
+                        timer: 2800,
+                        timerProgressBar: true
+                    });
+                }
+            @endif
+
+            @if(session('error'))
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Atención',
+                        text: @json(session('error')),
+                        confirmButtonColor: '#dc2626',
+                        customClass: {
+                            popup: 'rounded-3xl shadow-2xl font-[Poppins]'
+                        }
+                    });
+                }
+            @endif
+
+            // Interceptar cualquier confirmación nativa de formularios en el sistema
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (!form || form.tagName !== 'FORM') return;
+
+                if (form.dataset.swalApproved === 'true') {
+                    return;
+                }
+
+                const onsubmitAttr = form.getAttribute('onsubmit');
+                if (onsubmitAttr && onsubmitAttr.includes('confirm(')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    const match = onsubmitAttr.match(/confirm\(\s*['"](.*?)['"]\s*\)/);
+                    let confirmMsg = match ? match[1] : '¿Estás seguro de continuar con esta acción?';
+
+                    const txt = document.createElement('textarea');
+                    txt.innerHTML = confirmMsg;
+                    confirmMsg = txt.value;
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: '¿Estás seguro?',
+                            text: confirmMsg,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc2626',
+                            cancelButtonColor: '#64748b',
+                            confirmButtonText: 'Sí, confirmar',
+                            cancelButtonText: 'Cancelar',
+                            reverseButtons: true,
+                            customClass: {
+                                popup: 'rounded-3xl shadow-2xl font-[Poppins]'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.dataset.swalApproved = 'true';
+                                form.submit();
+                            }
+                        });
+                    } else {
+                        if (confirm(confirmMsg)) {
+                            form.dataset.swalApproved = 'true';
+                            form.submit();
+                        }
+                    }
+                    return false;
+                }
+            }, true);
+        });
     </script>
 
     @stack('scripts')

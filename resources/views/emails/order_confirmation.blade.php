@@ -169,6 +169,18 @@
             margin-top: 3px;
             margin-left: 4px;
         }
+        .item-garnish {
+            display: inline-block;
+            background-color: #ecfdf5;
+            color: #065f46;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 6px;
+            margin-top: 3px;
+            margin-left: 4px;
+            border: 1px solid #a7f3d0;
+        }
         .item-note {
             font-size: 12px;
             color: #64748b;
@@ -300,6 +312,11 @@
                                     @if($item->cooking_method)
                                         <span class="item-cooking">
                                             {{ in_array($item->cooking_method, ['Horno', 'Al Horno', '🔥 Horno']) ? '🔥 Horno' : ($item->cooking_method === 'Frita' ? '🍳 Frita' : $item->cooking_method) }}
+                                        </span>
+                                    @endif
+                                    @if($item->garnish_name)
+                                        <span class="item-garnish">
+                                            🥗 Guarnición: {{ $item->garnish_name }}{{ $item->garnish_price > 0 ? ' (+$' . number_format($item->garnish_price, 0, ',', '.') . ')' : '' }}
                                         </span>
                                     @endif
                                     @if($item->notes)

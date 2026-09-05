@@ -22,6 +22,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
+    <!-- Leaflet.js for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <!-- SweetAlert2 & Confetti & GSAP -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.js"></script>
@@ -138,6 +142,17 @@
                 </div>
             </div>
 
+            <!-- Selector de Guarnición en Modal -->
+            <div id="variant-garnish-container" class="mt-3 pt-3 border-t border-gray-100 hidden">
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+                    <i class="fas fa-bowl-food text-emerald-600"></i>
+                    <span>¿Qué guarnición prefieres? *</span>
+                </label>
+                <div id="variant-garnish-options" class="space-y-2 max-h-52 overflow-y-auto pr-1">
+                    <!-- Opciones dinámicas de guarnición -->
+                </div>
+            </div>
+
             <div class="mt-4">
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Notas especiales (opcional):</label>
                 <input type="text" id="variant-item-notes" placeholder="Ej: bien cocido, sin servilletas..." class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition">
@@ -149,7 +164,7 @@
                 </button>
                 <button id="variant-add-confirm-btn" class="w-2/3 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-sm shadow-lg shadow-red-500/30 hover:from-red-700 hover:to-rose-700 transition flex items-center justify-center space-x-2">
                     <i class="fas fa-cart-plus"></i>
-                    <span>Añadir al Pedido</span>
+                    <span id="variant-confirm-btn-text">Añadir al Pedido</span>
                 </button>
             </div>
         </div>
