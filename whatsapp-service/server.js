@@ -32,11 +32,23 @@ let isInitializing = false;
 
 const logger = pino({ level: 'silent' });
 
+function cleanSocket() {
+    if (sock) {
+        try {
+            sock.ev.removeAllListeners();
+            sock.end(undefined);
+        } catch (e) {}
+        sock = null;
+    }
+}
+
 async function initWhatsApp() {
     if (isInitializing) return;
     isInitializing = true;
 
     try {
+        cleanSocket();
+
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
@@ -67,26 +79,30 @@ async function initWhatsApp() {
 
             if (connection === 'close') {
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
-                const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+                const isLoggedOut = statusCode === DisconnectReason.loggedOut;
 
                 connectionState = 'disconnected';
                 currentQR = null;
                 currentQRImage = null;
                 connectedUser = null;
+                isInitializing = false;
 
-                if (shouldReconnect) {
-                    console.log('Conexión cerrada temporalmente. Reconectando en 5s...');
-                    setTimeout(() => {
-                        isInitializing = false;
-                        initWhatsApp();
-                    }, 5000);
-                } else {
-                    console.log('Sesión cerrada por el usuario. Limpiando credenciales...');
+                cleanSocket();
+
+                if (isLoggedOut) {
+                    console.log('Sesión cerrada por el usuario. Limpiando credenciales y generando nuevo QR...');
                     try {
                         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                         fs.mkdirSync(AUTH_DIR, { recursive: true });
                     } catch (err) {}
-                    isInitializing = false;
+                    setTimeout(() => {
+                        initWhatsApp();
+                    }, 2000);
+                } else {
+                    console.log('Conexión cerrada temporalmente. Reconectando en 5s...');
+                    setTimeout(() => {
+                        initWhatsApp();
+                    }, 5000);
                 }
             } else if (connection === 'open') {
                 console.log('✅ Conexión establecida con WhatsApp!');
@@ -101,6 +117,7 @@ async function initWhatsApp() {
         });
     } catch (err) {
         console.error('Error inicializando Baileys:', err);
+        cleanSocket();
         connectionState = 'disconnected';
         isInitializing = false;
     }
@@ -229,6 +246,7 @@ app.post('/disconnect', async (req, res) => {
         if (sock) {
             await sock.logout().catch(() => {});
         }
+        cleanSocket();
         try {
             fs.rmSync(AUTH_DIR, { recursive: true, force: true });
             fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -243,7 +261,32 @@ app.post('/disconnect', async (req, res) => {
         // Reiniciar para generar un nuevo QR
         setTimeout(() => initWhatsApp(), 1500);
 
-        res.json({ success: true, message: 'Sesión de WhatsApp cerrada con éxito.' });
+        res.json({ success: true, message: 'Sesión de WhatsApp cerrada con éxito. Generando nuevo QR...' });
+    } catch (err) {
+        cleanSocket();
+        isInitializing = false;
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 5. Forzar reinicio / regeneración de QR
+app.post('/reset', async (req, res) => {
+    try {
+        cleanSocket();
+        try {
+            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+            fs.mkdirSync(AUTH_DIR, { recursive: true });
+        } catch (e) {}
+
+        connectionState = 'disconnected';
+        connectedUser = null;
+        currentQR = null;
+        currentQRImage = null;
+        isInitializing = false;
+
+        setTimeout(() => initWhatsApp(), 1000);
+
+        res.json({ success: true, message: 'Servicio reiniciado y credenciales limpiadas con éxito.' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
