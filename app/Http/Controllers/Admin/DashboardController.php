@@ -79,4 +79,76 @@ class DashboardController extends Controller
             'shiftCancelledCount'
         ));
     }
+
+    /**
+     * Endpoint ligero para sondeo en tiempo real de nuevos pedidos y métricas de la jornada
+     */
+    public function liveOrders(Request $request)
+    {
+        $currentBusinessDate = BusinessShiftService::getCurrentBusinessDate();
+        $date = $request->has('date') ? $request->query('date') : $currentBusinessDate;
+        $shift = $request->query('shift', 'completo');
+        $status = $request->query('status');
+        $lastOrderId = $request->has('last_order_id') ? (int) $request->query('last_order_id') : null;
+
+        // Consulta base para la jornada/turno
+        $shiftBaseQuery = Order::query();
+        if ($date && $date !== 'all') {
+            $shiftInfo = BusinessShiftService::getShiftRange($date, $shift);
+            $shiftBaseQuery->whereBetween('created_at', [$shiftInfo['start'], $shiftInfo['end']]);
+        }
+
+        // Métricas de la jornada / turno
+        $shiftOrdersCount = (clone $shiftBaseQuery)->count();
+        $shiftTotalSales = (clone $shiftBaseQuery)->whereNotIn('status', ['cancelado'])->sum('total_amount');
+        $shiftDeliveredCount = (clone $shiftBaseQuery)->where('status', 'entregado')->count();
+        $shiftPendingCount = (clone $shiftBaseQuery)->whereIn('status', ['enviado_whatsapp', 'en_preparacion'])->count();
+        $shiftCancelledCount = (clone $shiftBaseQuery)->where('status', 'cancelado')->count();
+
+        // Consulta para pedidos recientes
+        $ordersQuery = clone $shiftBaseQuery;
+        if ($status && in_array($status, ['enviado_whatsapp', 'en_preparacion', 'entregado', 'cancelado'])) {
+            $ordersQuery->where('status', $status);
+        }
+
+        $recentOrders = $ordersQuery->with('items')->latest()->take(15)->get();
+        $latestOrderId = $recentOrders->first()?->id ?? 0;
+
+        // Detectar si hay nuevos pedidos respecto al last_order_id
+        $hasNew = ($lastOrderId !== null && $latestOrderId > $lastOrderId);
+        $newOrders = [];
+
+        if ($hasNew) {
+            $newOrders = $recentOrders->where('id', '>', $lastOrderId)->map(function ($o) {
+                return [
+                    'id' => $o->id,
+                    'customer_name' => $o->customer_name,
+                    'total_amount' => '$' . number_format($o->total_amount, 0, ',', '.'),
+                    'delivery_type' => $o->delivery_type === 'delivery' ? 'Delivery' : 'Retiro en Local',
+                ];
+            })->values()->all();
+        }
+
+        $formattedTotalSales = number_format($shiftTotalSales, 0, ',', '.');
+        $previewTotalSales = '$' . rtrim(substr($formattedTotalSales, 0, 4), '.') . '....';
+
+        return response()->json([
+            'success' => true,
+            'latest_order_id' => $latestOrderId,
+            'has_new' => $hasNew,
+            'new_orders' => $newOrders,
+            'metrics' => [
+                'shiftOrdersCount' => $shiftOrdersCount,
+                'shiftTotalSales' => $shiftTotalSales,
+                'shiftTotalSalesFormatted' => '$' . $formattedTotalSales,
+                'shiftTotalSalesPreview' => $previewTotalSales,
+                'shiftDeliveredCount' => $shiftDeliveredCount,
+                'shiftPendingCount' => $shiftPendingCount,
+                'shiftCancelledCount' => $shiftCancelledCount,
+            ],
+            'html_desktop' => view('admin.partials.dashboard_orders_desktop', compact('recentOrders'))->render(),
+            'html_mobile' => view('admin.partials.dashboard_orders_mobile', compact('recentOrders'))->render(),
+        ]);
+    }
 }
+

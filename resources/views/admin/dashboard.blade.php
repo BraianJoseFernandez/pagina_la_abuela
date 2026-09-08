@@ -172,22 +172,25 @@
                 <div class="py-0.5">
                     @if($shiftTotalSales > 0)
                         <!-- Sin hover: Preview truncado con puntos ($378....) junto al icono -->
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight group-hover:hidden group-[.is-revealed]:hidden transition-all">
+                        <h3 id="metric-shift-total-sales-preview" class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight group-hover:hidden group-[.is-revealed]:hidden transition-all">
                             ${{ rtrim(substr(number_format($shiftTotalSales, 0, ',', '.'), 0, 4), '.') }}....
                         </h3>
                         <!-- Con hover: El icono de $ se elimina y este total ocupa todo el ancho libre (soporta 7+ cifras ej: $1.250.000) -->
-                        <h3 class="hidden group-hover:block group-[.is-revealed]:block text-xl sm:text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight whitespace-nowrap transition-all">
+                        <h3 id="metric-shift-total-sales-full" class="hidden group-hover:block group-[.is-revealed]:block text-xl sm:text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight whitespace-nowrap transition-all">
                             ${{ number_format($shiftTotalSales, 0, ',', '.') }}
                         </h3>
                     @else
                         <!-- Sin ventas en el turno: solo $0 (nunca $$0) -->
-                        <h3 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                        <h3 id="metric-shift-total-sales-preview" class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+                            $0
+                        </h3>
+                        <h3 id="metric-shift-total-sales-full" class="hidden text-xl sm:text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight whitespace-nowrap">
                             $0
                         </h3>
                     @endif
                 </div>
 
-                <span class="text-xs font-semibold text-emerald-600">{{ $shiftDeliveredCount }} entregados</span>
+                <span id="metric-shift-delivered-count" class="text-xs font-semibold text-emerald-600">{{ $shiftDeliveredCount }} entregados</span>
             </div>
         </div>
 
@@ -198,8 +201,8 @@
             </div>
             <div class="min-w-0 flex-grow">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block truncate">Pedidos Turno</span>
-                <h3 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight my-0.5">{{ $shiftOrdersCount }}</h3>
-                <span class="text-xs font-semibold {{ $shiftCancelledCount > 0 ? 'text-rose-500' : 'text-slate-400' }}">
+                <h3 id="metric-shift-orders-count" class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight my-0.5">{{ $shiftOrdersCount }}</h3>
+                <span id="metric-shift-pending-count" class="text-xs font-semibold {{ $shiftCancelledCount > 0 ? 'text-rose-500' : 'text-slate-400' }}">
                     {{ $shiftPendingCount }} activos • {{ $shiftCancelledCount }} cancelados
                 </span>
             </div>
@@ -256,10 +259,19 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
         <div class="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <h3 class="text-lg font-black text-slate-800">
-                    {{ $date && $date !== 'all' ? 'Pedidos del Turno' : 'Últimos Pedidos Armados' }}
-                </h3>
-                <p class="text-xs text-slate-500">
+                <div class="flex items-center space-x-2.5">
+                    <h3 class="text-lg font-black text-slate-800">
+                        {{ $date && $date !== 'all' ? 'Pedidos del Turno' : 'Últimos Pedidos Armados' }}
+                    </h3>
+                    <span id="dashboard-live-indicator" class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>En vivo</span>
+                    </span>
+                    <button type="button" id="btn-toggle-sound" onclick="toggleOrderSound()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer" title="Activar/Silenciar sonido de nuevo pedido">
+                        <i id="sound-icon" class="fas fa-volume-up text-xs text-emerald-600"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">
                     {{ $shiftInfo ? $shiftInfo['label'] : 'Historial de clientes que armaron su pedido' }}
                 </p>
             </div>
@@ -284,157 +296,15 @@
                         <th class="py-3 px-4 text-right sticky-action-col bg-slate-50">Acción</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 font-medium">
-                    @forelse($recentOrders as $order)
-                        <tr class="hover:bg-slate-50/80 transition group">
-                            <td class="py-3.5 px-3.5 font-bold text-slate-800">#{{ $order->id }}</td>
-                            <td class="py-3.5 px-3.5">
-                                <div class="font-bold text-slate-800">{{ $order->customer_name }}</div>
-                                <div class="text-xs text-slate-400">{{ $order->customer_phone }}</div>
-                            </td>
-                            <td class="py-3.5 px-3.5">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $order->delivery_type === 'delivery' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700' }}">
-                                    {{ $order->delivery_type === 'delivery' ? 'Delivery' : 'Retiro en Local' }}
-                                </span>
-                            </td>
-                            <td class="py-3.5 px-3.5 font-black text-slate-900">
-                                ${{ number_format($order->total_amount, 0, ',', '.') }}
-                            </td>
-                            <td class="py-3.5 px-3.5 whitespace-nowrap">
-                                @if($order->status === 'enviado_whatsapp')
-                                    <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700">
-                                        <i class="fab fa-whatsapp text-emerald-600 text-xs"></i>
-                                        <span>WhatsApp</span>
-                                    </span>
-                                @elseif($order->status === 'en_preparacion')
-                                    <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700">
-                                        <i class="fas fa-kitchen-set text-amber-600 text-xs"></i>
-                                        <span>En Prep.</span>
-                                    </span>
-                                @elseif($order->status === 'entregado')
-                                    <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700">
-                                        <i class="fas fa-check-double text-blue-600 text-xs"></i>
-                                        <span>Entregado</span>
-                                    </span>
-                                @elseif($order->status === 'cancelado')
-                                    <span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700">
-                                        <i class="fas fa-times-circle text-rose-500 text-xs"></i>
-                                        <span>Cancelado</span>
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700">{{ $order->status }}</span>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-3.5 text-xs text-slate-400 whitespace-nowrap">
-                                {{ $order->created_at->format('d/m/Y H:i') }}
-                            </td>
-                            <td class="py-3.5 px-4 text-right sticky-action-col bg-white group-hover:bg-slate-50 transition-colors whitespace-nowrap space-x-1.5">
-                                <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition inline-block whitespace-nowrap">
-                                    Ver Detalle
-                                </a>
-                                <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Eliminar pedido #{{ $order->id }}? Se descontará de las ventas y métricas.');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Eliminar pedido">
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-8 text-center text-slate-400 text-sm">
-                                Aún no se han registrado pedidos en este turno.
-                            </td>
-                        </tr>
-                    @endforelse
+                <tbody id="dashboard-orders-table-body" class="divide-y divide-slate-100 font-medium">
+                    @include('admin.partials.dashboard_orders_desktop')
                 </tbody>
             </table>
         </div>
 
         <!-- Vista Mobile: Tarjetas Adaptativas (Sin scroll horizontal) -->
-        <div class="block lg:hidden p-3 space-y-3 bg-slate-100/60">
-            @forelse($recentOrders as $order)
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs space-y-2.5">
-                    <!-- Cabecera Tarjeta: ID + Entrega + Estado -->
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-black text-slate-900 text-sm bg-slate-100 px-2 py-0.5 rounded-lg">
-                                #{{ $order->id }}
-                            </span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $order->delivery_type === 'delivery' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700' }}">
-                                {{ $order->delivery_type === 'delivery' ? 'Delivery' : 'Retiro' }}
-                            </span>
-                        </div>
-
-                        <div>
-                            @if($order->status === 'enviado_whatsapp')
-                                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700">
-                                    <i class="fab fa-whatsapp text-emerald-600 text-[10px]"></i>
-                                    <span>WhatsApp</span>
-                                </span>
-                            @elseif($order->status === 'en_preparacion')
-                                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700">
-                                    <i class="fas fa-kitchen-set text-amber-600 text-[10px]"></i>
-                                    <span>En Prep.</span>
-                                </span>
-                            @elseif($order->status === 'entregado')
-                                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700">
-                                    <i class="fas fa-check-double text-blue-600 text-[10px]"></i>
-                                    <span>Entregado</span>
-                                </span>
-                            @elseif($order->status === 'cancelado')
-                                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700">
-                                    <i class="fas fa-times-circle text-rose-500 text-[10px]"></i>
-                                    <span>Cancelado</span>
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Datos Cliente -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm leading-snug">{{ $order->customer_name }}</h4>
-                            <a href="https://api.whatsapp.com/send?phone={{ preg_replace('/\D/', '', $order->customer_phone) }}" target="_blank"
-                               class="text-xs text-emerald-600 font-semibold hover:underline flex items-center space-x-1 mt-0.5">
-                                <i class="fab fa-whatsapp text-[11px]"></i>
-                                <span>{{ $order->customer_phone }}</span>
-                            </a>
-                        </div>
-                        <span class="text-xs text-slate-400">{{ $order->created_at->format('d/m/Y H:i') }}</span>
-                    </div>
-
-                    <!-- Pie Tarjeta: Total y Botón de Acción -->
-                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <div>
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Total</span>
-                            <span class="text-base font-black text-slate-900">
-                                ${{ number_format($order->total_amount, 0, ',', '.') }}
-                            </span>
-                        </div>
-
-                        <div class="flex items-center space-x-2">
-                            <form action="{{ route('admin.orders.destroy', $order) }}" method="POST" onsubmit="return confirm('¿Eliminar pedido #{{ $order->id }}? Se descontará de las ventas y métricas.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Eliminar pedido">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </form>
-                            <a href="{{ route('admin.orders.show', ['order' => $order, 'return_url' => request()->fullUrl()]) }}"
-                               class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center space-x-1">
-                                <span>Ver Detalle</span>
-                                <i class="fas fa-arrow-right text-[10px]"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            @empty
-                <div class="py-8 text-center text-slate-400 text-xs bg-white rounded-2xl p-6">
-                    Aún no se han registrado pedidos en este turno.
-                </div>
-            @endforelse
+        <div id="dashboard-orders-mobile-container" class="block lg:hidden p-3 space-y-3 bg-slate-100/60">
+            @include('admin.partials.dashboard_orders_mobile')
         </div>
     </div>
 </div>
@@ -456,6 +326,9 @@
                 }
             }
         });
+
+        // Inicializar estado del botón de sonido
+        updateSoundButtonUI();
     });
 
     function clearDashboardDateFilter() {
@@ -466,6 +339,213 @@
         if (hiddenDate) hiddenDate.value = 'all';
         form.submit();
     }
+
+    // --- GESTIÓN DE SONIDO PARA NUEVOS PEDIDOS (Web Audio API) ---
+    let audioCtx = null;
+    let soundEnabled = localStorage.getItem('admin_order_sound') !== 'false';
+
+    function initAudio() {
+        try {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        } catch (e) {
+            console.warn('AudioContext init error:', e);
+        }
+    }
+
+    // Desbloquear audio con el primer clic del usuario en la pantalla
+    document.addEventListener('click', function unlockAudioOnce() {
+        initAudio();
+        document.removeEventListener('click', unlockAudioOnce);
+    }, { once: true });
+
+    function updateSoundButtonUI() {
+        const btn = document.getElementById('btn-toggle-sound');
+        const icon = document.getElementById('sound-icon');
+        if (!btn || !icon) return;
+
+        if (soundEnabled) {
+            icon.className = 'fas fa-volume-up text-xs text-emerald-600';
+            btn.title = 'Sonido de nuevo pedido activado (clic para silenciar)';
+        } else {
+            icon.className = 'fas fa-volume-mute text-xs text-slate-400';
+            btn.title = 'Sonido de nuevo pedido silenciado (clic para activar)';
+        }
+    }
+
+    function toggleOrderSound() {
+        initAudio();
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('admin_order_sound', soundEnabled ? 'true' : 'false');
+        updateSoundButtonUI();
+
+        if (soundEnabled) {
+            playOrderNotificationChime();
+        }
+    }
+
+    function playOrderNotificationChime() {
+        if (!soundEnabled) return;
+        try {
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            // Primer tono (campana suave y agradable: Re5 -> La5)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, now); // D5
+            osc1.frequency.exponentialRampToValueAtTime(880, now + 0.12); // A5
+
+            gain1.gain.setValueAtTime(0.35, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc1.stop(now + 0.55);
+
+            // Segundo tono armónico brillante (Re6)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(880, now + 0.14);
+            osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.32); // D6
+
+            gain2.gain.setValueAtTime(0.28, now + 0.14);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+
+            osc2.start(now + 0.14);
+            osc2.stop(now + 0.75);
+        } catch (err) {
+            console.warn('Audio notification failed:', err);
+        }
+    }
+
+    // --- ACTUALIZACIÓN EN VIVO (POLLING LIGERO) ---
+    let lastOrderId = {{ $recentOrders->first()?->id ?? 0 }};
+    let isPolling = false;
+
+    async function checkLiveOrders() {
+        if (isPolling) return;
+        isPolling = true;
+
+        try {
+            const params = new URLSearchParams(window.location.search);
+            params.set('last_order_id', lastOrderId);
+
+            const url = `{{ route('admin.dashboard.live-orders') }}?${params.toString()}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+            if (!data || !data.success) return;
+
+            // Actualizar vista desktop
+            if (data.html_desktop) {
+                const desktopTbody = document.getElementById('dashboard-orders-table-body');
+                if (desktopTbody) {
+                    desktopTbody.innerHTML = data.html_desktop;
+                }
+            }
+
+            // Actualizar vista móvil
+            if (data.html_mobile) {
+                const mobileContainer = document.getElementById('dashboard-orders-mobile-container');
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = data.html_mobile;
+                }
+            }
+
+            // Actualizar métricas del turno
+            if (data.metrics) {
+                const m = data.metrics;
+                const previewSales = document.getElementById('metric-shift-total-sales-preview');
+                const fullSales = document.getElementById('metric-shift-total-sales-full');
+                const deliveredCount = document.getElementById('metric-shift-delivered-count');
+                const ordersCount = document.getElementById('metric-shift-orders-count');
+                const pendingCount = document.getElementById('metric-shift-pending-count');
+
+                if (previewSales) {
+                    previewSales.textContent = m.shiftTotalSales > 0 ? m.shiftTotalSalesPreview : '$0';
+                }
+                if (fullSales) {
+                    fullSales.textContent = m.shiftTotalSalesFormatted;
+                }
+                if (deliveredCount) {
+                    deliveredCount.textContent = `${m.shiftDeliveredCount} entregados`;
+                }
+                if (ordersCount) {
+                    ordersCount.textContent = m.shiftOrdersCount;
+                }
+                if (pendingCount) {
+                    pendingCount.textContent = `${m.shiftPendingCount} activos • ${m.shiftCancelledCount} cancelados`;
+                    pendingCount.className = m.shiftCancelledCount > 0 ? 'text-xs font-semibold text-rose-500' : 'text-xs font-semibold text-slate-400';
+                }
+            }
+
+            // Si hay pedidos nuevos
+            if (data.has_new && data.new_orders && data.new_orders.length > 0) {
+                playOrderNotificationChime();
+
+                data.new_orders.forEach(order => {
+                    if (typeof Swal !== 'undefined') {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 7000,
+                            timerProgressBar: true,
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: `🔔 ¡Nuevo Pedido #${order.id}!`,
+                            html: `<div class="text-xs text-slate-700 font-bold mt-1">${order.customer_name} &bull; <span class="font-extrabold text-emerald-600">${order.total_amount}</span></div><div class="text-[11px] text-slate-500">${order.delivery_type}</div>`
+                        });
+                    }
+                });
+
+                // Efecto visual en indicador "En vivo"
+                const indicator = document.getElementById('dashboard-live-indicator');
+                if (indicator) {
+                    indicator.classList.add('ring-4', 'ring-emerald-400', 'bg-emerald-200');
+                    setTimeout(() => {
+                        indicator.classList.remove('ring-4', 'ring-emerald-400', 'bg-emerald-200');
+                    }, 2500);
+                }
+            }
+
+            if (data.latest_order_id) {
+                lastOrderId = Math.max(lastOrderId, data.latest_order_id);
+            }
+        } catch (err) {
+            console.warn('Live polling error:', err);
+        } finally {
+            isPolling = false;
+        }
+    }
+
+    // Iniciar sondeo en segundo plano cada 7 segundos
+    setInterval(checkLiveOrders, 7000);
 </script>
 @endpush
 @endsection

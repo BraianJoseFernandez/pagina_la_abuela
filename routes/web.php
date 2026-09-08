@@ -39,6 +39,7 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name(
 Route::middleware(['auth', 'role:admin,personal'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard general
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/live-orders', [DashboardController::class, 'liveOrders'])->name('dashboard.live-orders');
 
     // Gestión de Categorías
     Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
