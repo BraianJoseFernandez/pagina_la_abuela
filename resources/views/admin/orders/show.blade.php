@@ -292,7 +292,7 @@
                     <i class="fas fa-motorcycle text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-black tracking-wide leading-tight">Despachar Pedido #{{ $order->id }}</h3>
+                    <h3 class="text-lg font-black tracking-wide leading-tight">Despachar Pedido</h3>
                     <p class="text-xs text-white/90 font-medium" id="dispatch-modal-cadete-sub">Cadete: ...</p>
                 </div>
             </div>
@@ -453,7 +453,7 @@
         const extraComment = commentInput ? commentInput.value.trim() : '';
 
         // Construcción del mensaje para el repartidor
-        let msg = `🛵 *PEDIDO PARA ENTREGA #${orderData.id}*\n`;
+        let msg = `🛵 *PEDIDO PARA ENTREGA*\n`;
         msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
         msg += `👤 *Cliente:* ${orderData.customerName}\n`;
         msg += `📞 *Teléfono:* ${orderData.customerPhone}\n`;
@@ -481,7 +481,7 @@
                 msg += `   └ 🥗 _Guarnición: ${it.garnish}${it.garnishPrice || ''}_\n`;
             }
             if (it.notes) {
-                msg += `   └ _Nota: ${it.notes}_\n`;
+                msg += `   └ 📝 _Nota: ${it.notes}_\n`;
             }
         });
 

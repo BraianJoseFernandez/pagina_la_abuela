@@ -52,7 +52,7 @@ class WhatsAppController extends Controller
         }
 
         // Construir el texto estructurado del pedido
-        $msg = "🛵 *PEDIDO PARA ENTREGA #{$order->id}*\n";
+        $msg = "🛵 *PEDIDO PARA ENTREGA*\n";
         $msg .= "━━━━━━━━━━━━━━━━━━━━━\n";
         $msg .= "👤 *Cliente:* {$order->customer_name}\n";
         $msg .= "📞 *Teléfono:* {$order->customer_phone}\n";
@@ -76,8 +76,12 @@ class WhatsAppController extends Controller
             if ($item->cooking_method) $details[] = $item->cooking_method;
             $detailsText = count($details) > 0 ? ' (' . implode(' - ', $details) . ')' : '';
             $msg .= "• *{$item->quantity}x* {$item->product_name}{$detailsText}\n";
+            if ($item->garnish_name) {
+                $garnishExtra = $item->garnish_price > 0 ? ' (+$' . number_format($item->garnish_price, 0, ',', '.') . ')' : '';
+                $msg .= "   └ 🥗 _Guarnición: {$item->garnish_name}{$garnishExtra}_\n";
+            }
             if ($item->notes) {
-                $msg .= "   └ _Nota: {$item->notes}_\n";
+                $msg .= "   └ 📝 _Nota: {$item->notes}_\n";
             }
         }
 

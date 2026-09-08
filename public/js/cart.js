@@ -79,6 +79,9 @@ class CartManager {
         if (existingIndex > -1) {
             this.items[existingIndex].quantity += quantity;
             this.items[existingIndex].subtotal = this.items[existingIndex].quantity * unitPrice;
+            if (this.items[existingIndex].basePrice === undefined) {
+                this.items[existingIndex].basePrice = basePrice;
+            }
         } else {
             let availableCookingOptions = ['Horno', 'Frita'];
             if (product.cooking_options) {
@@ -105,6 +108,7 @@ class CartManager {
                 productName: product.name,
                 variantId: variantId,
                 variantName: variantName,
+                basePrice: basePrice,
                 garnishId: garnishId,
                 garnishName: garnishName,
                 garnishPrice: garnishPrice,
@@ -1532,15 +1536,25 @@ async function submitOrderToWhatsApp() {
         if (item.variantName) details.push(item.variantName);
         if (item.cookingMethod) details.push(formatCookingLabel(item.cookingMethod));
         const detailsText = details.length > 0 ? ` (${details.join(' - ')})` : '';
-        const itemSubtotal = '$' + item.subtotal.toLocaleString('es-AR');
         const categoryPrefix = item.categoryName ? `[${item.categoryName}] ` : '';
-        msg += `• *${item.quantity}x* ${categoryPrefix}${item.productName}${detailsText} — ${itemSubtotal}\n`;
+        const itemSubtotal = '$' + item.subtotal.toLocaleString('es-AR');
+
+        const baseUnitPrice = item.basePrice !== undefined ? item.basePrice : (item.unitPrice - (item.garnishPrice || 0));
+        const baseSubtotal = '$' + (baseUnitPrice * item.quantity).toLocaleString('es-AR');
+
         if (item.garnishName) {
+            msg += `• *${item.quantity}x* ${categoryPrefix}${item.productName}${detailsText} — ${baseSubtotal}\n`;
             const extraText = item.garnishPrice > 0 ? ` (+ $${item.garnishPrice.toLocaleString('es-AR')})` : '';
             msg += `   └ 🥗 _Guarnición: ${item.garnishName}${extraText}_\n`;
-        }
-        if (item.notes) {
-            msg += `   └ 📝 _Nota: ${item.notes}_\n`;
+            if (item.notes) {
+                msg += `   └ 📝 _Nota: ${item.notes}_\n`;
+            }
+            msg += `   subtotal: ${itemSubtotal}\n`;
+        } else {
+            msg += `• *${item.quantity}x* ${categoryPrefix}${item.productName}${detailsText} — ${itemSubtotal}\n`;
+            if (item.notes) {
+                msg += `   └ 📝 _Nota: ${item.notes}_\n`;
+            }
         }
     });
 
