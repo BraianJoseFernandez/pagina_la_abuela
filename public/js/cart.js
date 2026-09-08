@@ -356,6 +356,8 @@ function goToCartStep(step) {
         if (step2) {
             step2.classList.remove('hidden');
             step2.classList.add('flex');
+            initCartMap();
+            setupAddressAutocomplete();
             if (cartLeafletMap) {
                 setTimeout(() => cartLeafletMap.invalidateSize(), 150);
             }
@@ -892,146 +894,290 @@ function handleGoogleMapsUrlInput(url) {
     });
 }
 
-function searchAddressOnMap(customQuery = null, isSilent = false) {
+// Bounding Box estricto para Corrientes Capital, Argentina
+const CORRIENTES_VIEWBOX = '-58.89,-27.42,-58.72,-27.56';
+let addressAutocompleteTimeout = null;
+
+// Autocompletado profesional en tiempo real para Corrientes Capital (Photon / OSM)
+function setupAddressAutocomplete() {
+    const input = document.getElementById('order-customer-address');
+    const dropdown = document.getElementById('address-autocomplete-dropdown');
+    if (!input || !dropdown) return;
+
+    if (input.dataset.autocompleteReady === 'true') return;
+    input.dataset.autocompleteReady = 'true';
+
+    input.addEventListener('input', () => {
+        clearTimeout(addressAutocompleteTimeout);
+        const query = input.value.trim();
+
+        if (query.length < 3) {
+            dropdown.innerHTML = '';
+            dropdown.classList.add('hidden');
+            return;
+        }
+
+        addressAutocompleteTimeout = setTimeout(async () => {
+            try {
+                // Photon API con bias a Corrientes Capital (-27.4692, -58.8306)
+                const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=-27.4692&lon=-58.8306&limit=8`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data || !data.features || data.features.length === 0) {
+                    dropdown.innerHTML = '';
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                // Filtrar para dar máxima prioridad a Corrientes Capital y Gran Corrientes
+                const corrientesResults = data.features.filter(f => {
+                    const coords = f.geometry?.coordinates;
+                    if (!coords) return false;
+                    const lon = coords[0];
+                    const lat = coords[1];
+                    const inBBox = (lat >= -27.58 && lat <= -27.42 && lon >= -58.90 && lon <= -58.72);
+                    const isCity = f.properties?.city === 'Corrientes' || f.properties?.county === 'Departamento Capital';
+                    return inBBox || isCity;
+                });
+
+                const listToRender = corrientesResults.length > 0 ? corrientesResults : data.features.slice(0, 4);
+
+                if (listToRender.length === 0) {
+                    dropdown.innerHTML = '';
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                dropdown.innerHTML = '';
+                listToRender.forEach(f => {
+                    const props = f.properties || {};
+                    const street = props.name || props.street || '';
+                    const locality = props.locality || props.district || props.city || 'Corrientes Capital';
+                    const houseNumber = props.housenumber || '';
+                    const coords = f.geometry.coordinates; // [lon, lat]
+
+                    if (!street) return;
+
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'w-full text-left px-3.5 py-2.5 hover:bg-red-50/70 transition flex items-center space-x-2.5 cursor-pointer text-xs border-b border-gray-100 last:border-0';
+                    item.innerHTML = `
+                        <div class="w-6 h-6 rounded-full bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0 text-[11px]">
+                            <i class="fas fa-map-pin"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="font-bold text-slate-800 block truncate text-xs">${street} ${houseNumber}</span>
+                            <span class="text-[10px] text-slate-500 block truncate">${locality}, Corrientes</span>
+                        </div>
+                    `;
+
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Si el usuario ya escribió un número de puerta (ej: 1043), conservarlo
+                        const userNumberMatch = input.value.match(/\d+/);
+                        const userNumber = userNumberMatch ? userNumberMatch[0] : '';
+                        let finalAddress = street;
+                        if (userNumber && !street.includes(userNumber)) {
+                            finalAddress += ' ' + userNumber;
+                        } else if (houseNumber && !street.includes(houseNumber)) {
+                            finalAddress += ' ' + houseNumber;
+                        }
+
+                        input.value = finalAddress;
+                        input.dataset.lastGeocoded = finalAddress;
+                        dropdown.innerHTML = '';
+                        dropdown.classList.add('hidden');
+
+                        const lat = coords[1];
+                        const lng = coords[0];
+
+                        initCartMap(lat, lng);
+                        setCartPin(lat, lng, true, false);
+
+                        const statusText = document.getElementById('cart-map-status-text');
+                        if (statusText) {
+                            statusText.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Ubicación fijada</span>`;
+                        }
+                    });
+
+                    dropdown.appendChild(item);
+                });
+
+                dropdown.classList.remove('hidden');
+            } catch (err) {
+                console.error('Error in address autocomplete:', err);
+            }
+        }, 220);
+    });
+
+    // Cerrar sugerencias al hacer clic afuera
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+}
+
+function handleAddressInputBlur() {
+    const addressInput = document.getElementById('order-customer-address');
+    const dropdown = document.getElementById('address-autocomplete-dropdown');
+
+    // Cerrar menú de sugerencias tras breve timeout para permitir click
+    setTimeout(() => {
+        if (dropdown) dropdown.classList.add('hidden');
+    }, 250);
+
+    if (!addressInput) return;
+    const query = addressInput.value.trim();
+
+    if (query.length < 3) return;
+
+    // Si ya geocodificamos esta misma dirección y las coordenadas ya están fijadas, no repetir
+    const latInput = document.getElementById('order-delivery-lat');
+    if (addressInput.dataset.lastGeocoded === query && latInput && latInput.value) {
+        return;
+    }
+
+    addressInput.dataset.lastGeocoded = query;
+    searchAddressOnMap(query, true);
+}
+
+// Búsqueda robusta y profesional en Corrientes Capital
+async function searchAddressOnMap(customQuery = null, isSilent = false) {
     const addressInput = document.getElementById('order-customer-address');
     const query = (customQuery !== null ? customQuery : (addressInput ? addressInput.value : '')).trim();
 
-    if (!query) {
-        if (!isSilent) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Escribe tu dirección',
-                text: 'Ingresa el nombre de tu calle y número (ej: "Av Libertad 5445") para ubicarla en el mapa.',
-                confirmButtonColor: '#dc2626'
+    if (!query) return;
+
+    // Extraer nombre de calle y numeración
+    const streetOnly = query.replace(/\d+/g, '').replace(/b°|barrio/gi, '').trim();
+
+    const statusText = document.getElementById('cart-map-status-text');
+    if (statusText) {
+        statusText.innerHTML = `<span class="text-blue-600 font-semibold flex items-center gap-1"><i class="fas fa-spinner fa-spin"></i> Localizando en Corrientes...</span>`;
+    }
+
+    // PASO 1: Probar con Photon API (Soporta errores ortográficos y es ultra rápida)
+    try {
+        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=-27.4692&lon=-58.8306&limit=5`;
+        const res = await fetch(photonUrl);
+        const data = await res.json();
+
+        if (data && data.features && data.features.length > 0) {
+            // Filtrar las que pertenezcan a Corrientes Capital
+            const match = data.features.find(f => {
+                const coords = f.geometry?.coordinates;
+                if (!coords) return false;
+                const lon = coords[0];
+                const lat = coords[1];
+                return (lat >= -27.58 && lat <= -27.42 && lon >= -58.90 && lon <= -58.72) ||
+                       (f.properties?.city === 'Corrientes' || f.properties?.county === 'Departamento Capital');
             });
-            if (addressInput) addressInput.focus();
+
+            if (match) {
+                const lat = match.geometry.coordinates[1];
+                const lng = match.geometry.coordinates[0];
+                applyFoundLocation(lat, lng, isSilent);
+                return;
+            }
         }
-        return;
+    } catch (err) {
+        console.warn('Photon lookup fallback:', err);
     }
 
-    // Si el usuario pegó un enlace o coordenadas en el campo de dirección
-    const coordsFromText = parseGoogleMapsUrlOrCoords(query);
-    if (coordsFromText) {
-        const wrapper = document.getElementById('cart-map-wrapper');
-        if (wrapper && wrapper.classList.contains('hidden')) toggleCartMap();
-        initCartMap(coordsFromText.lat, coordsFromText.lng);
-        setCartPin(coordsFromText.lat, coordsFromText.lng, true, true);
-        return;
-    }
+    // PASO 2: Si el número no estaba registrado, buscar solo el nombre de la calle en Photon
+    if (streetOnly.length >= 3 && streetOnly !== query) {
+        try {
+            const photonStreetUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(streetOnly)}&lat=-27.4692&lon=-58.8306&limit=5`;
+            const res = await fetch(photonStreetUrl);
+            const data = await res.json();
 
-    if (query.startsWith('http://') || query.startsWith('https://')) {
-        handleGoogleMapsUrlInput(query);
-        return;
-    }
-
-    const wrapper = document.getElementById('cart-map-wrapper');
-    if (wrapper && wrapper.classList.contains('hidden')) {
-        toggleCartMap();
-    }
-
-    const fullQuery = query.toLowerCase().includes('corrientes') ? query : `${query}, Corrientes, Argentina`;
-
-    if (!isSilent) {
-        Swal.fire({
-            title: 'Buscando en el mapa...',
-            text: `Localizando "${query}"`,
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-    }
-
-    // MODO 1: GOOGLE MAPS OFICIAL GEOCODER (Soporta alturas exactas de casas)
-    if (window.google && window.google.maps) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({
-            address: fullQuery,
-            componentRestrictions: { country: 'AR' }
-        }, function(results, status) {
-            if (!isSilent) Swal.close();
-            if (status === 'OK' && results && results.length > 0) {
-                const loc = results[0].geometry.location;
-                const lat = loc.lat();
-                const lng = loc.lng();
-                initCartMap(lat, lng);
-                setCartPin(lat, lng, true, false);
-
-                if (!isSilent) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: '📍 ¡Dirección exacta ubicada con Google Maps!',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                }
-            } else if (!isSilent) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'No encontramos la dirección exacta',
-                    text: 'Intenta verificar el nombre de la calle y número o toca en el mapa para colocar el pin en tu casa.',
-                    confirmButtonColor: '#dc2626'
+            if (data && data.features && data.features.length > 0) {
+                const match = data.features.find(f => {
+                    const coords = f.geometry?.coordinates;
+                    if (!coords) return false;
+                    const lon = coords[0];
+                    const lat = coords[1];
+                    return (lat >= -27.58 && lat <= -27.42 && lon >= -58.90 && lon <= -58.72) ||
+                           (f.properties?.city === 'Corrientes' || f.properties?.county === 'Departamento Capital');
                 });
+
+                if (match) {
+                    const lat = match.geometry.coordinates[1];
+                    const lng = match.geometry.coordinates[0];
+                    applyFoundLocation(lat, lng, isSilent, true);
+                    return;
+                }
             }
-        });
-        return;
+        } catch (err) {
+            console.warn('Photon street lookup fallback:', err);
+        }
     }
 
-    // MODO 2: NOMINATIM / OPENSTREETMAP (Fallback)
-    const searchUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullQuery)}&limit=5&countrycodes=ar`;
+    // PASO 3: Fallback a Nominatim delimitado estrictamente a Corrientes Capital
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Corrientes, Argentina')}&limit=1&countrycodes=ar&viewbox=${CORRIENTES_VIEWBOX}&bounded=1`;
 
-    fetch(searchUrl, {
-        headers: { 'Accept-Language': 'es' }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!isSilent) Swal.close();
+    try {
+        const res = await fetch(nominatimUrl, {
+            headers: { 'Accept-Language': 'es', 'User-Agent': 'RotiseriaLaAbuelaApp/1.0' }
+        });
+        const data = await res.json();
 
         if (data && data.length > 0) {
-            const result = data[0];
-            const lat = parseFloat(result.lat);
-            const lng = parseFloat(result.lon);
-
-            initCartMap(lat, lng);
-            setCartPin(lat, lng, true, false);
-
-            if (cartLeafletMap) {
-                cartLeafletMap.setView([lat, lng], 17);
-            }
-
-            if (!isSilent) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: '📍 ¡Calle ubicada en el mapa!',
-                    text: '👉 Toca el mapa o arrastra el marcador rojo para señalar tu casa exacta.',
-                    showConfirmButton: false,
-                    timer: 3500
-                });
-            }
-        } else if (!isSilent) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No encontramos la altura exacta',
-                text: 'Intenta buscar solo el nombre de la calle (ej: "Av Libertad") o toca en el mapa para colocar el pin en tu casa.',
-                confirmButtonColor: '#dc2626'
-            });
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            applyFoundLocation(lat, lng, isSilent);
+            return;
         }
-    })
-    .catch(err => {
-        if (!isSilent) {
-            Swal.close();
-            console.error(err);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error de búsqueda',
-                text: 'No se pudo conectar con el buscador de calles. Puedes tocar directamente en el mapa para colocar el pin.',
-                confirmButtonColor: '#dc2626'
+
+        // Reintento Nominatim solo calle
+        if (streetOnly.length >= 3 && streetOnly !== query) {
+            const nomStreetUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(streetOnly + ', Corrientes, Argentina')}&limit=1&countrycodes=ar&viewbox=${CORRIENTES_VIEWBOX}&bounded=1`;
+            const rStreet = await fetch(nomStreetUrl, {
+                headers: { 'Accept-Language': 'es', 'User-Agent': 'RotiseriaLaAbuelaApp/1.0' }
             });
+            const dStreet = await rStreet.json();
+            if (dStreet && dStreet.length > 0) {
+                const lat = parseFloat(dStreet[0].lat);
+                const lng = parseFloat(dStreet[0].lon);
+                applyFoundLocation(lat, lng, isSilent, true);
+                return;
+            }
         }
+    } catch (err) {
+        console.error('Nominatim search error:', err);
+    }
+
+    if (statusText) {
+        statusText.innerHTML = `<span class="text-amber-600 font-medium">Calle aproximada • Toca en el mapa</span>`;
+    }
+}
+
+function applyFoundLocation(lat, lng, isSilent = false, isApproxStreet = false) {
+    initCartMap(lat, lng);
+    setCartPin(lat, lng, true, false);
+
+    if (cartLeafletMap) {
+        cartLeafletMap.flyTo([lat, lng], 17, { duration: 1 });
+        setTimeout(() => cartLeafletMap.invalidateSize(), 200);
+    }
+
+    const statusText = document.getElementById('cart-map-status-text');
+    if (statusText) {
+        statusText.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Ubicación fijada</span>`;
+    }
+
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: isApproxStreet ? '📍 Calle ubicada en Corrientes' : '📍 ¡Ubicación localizada!',
+        text: '👉 Toca el mapa para afinar la puerta exacta de tu casa.',
+        showConfirmButton: false,
+        timer: 3000
     });
 }
 
@@ -1633,6 +1779,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Escuchar pegado directo de enlaces en el campo de dirección
     const addressInput = document.getElementById('order-customer-address');
     if (addressInput) {
+        addressInput.addEventListener('blur', handleAddressInputBlur);
+        addressInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addressInput.blur();
+            }
+        });
         addressInput.addEventListener('paste', (e) => {
             setTimeout(() => {
                 const pastedText = addressInput.value.trim();
@@ -1648,5 +1801,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 50);
         });
     }
+
+    // Inicializar autocompletado inteligente de calles
+    setupAddressAutocomplete();
 });
 
