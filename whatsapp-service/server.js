@@ -30,10 +30,24 @@ let currentQRImage = null;
 let connectionState = 'disconnected';
 let connectedUser = null;
 let isInitializing = false;
+let presenceInterval = null;
 
 const logger = pino({ level: 'silent' });
 
+// Filtrar mensajes internos de libsignal (SessionEntry) que ensucian la consola
+const originalConsoleInfo = console.info;
+console.info = function (...args) {
+    if (typeof args[0] === 'string' && (args[0].includes('Closing session') || args[0].includes('Opening session'))) {
+        return;
+    }
+    originalConsoleInfo.apply(console, args);
+};
+
 function cleanSocket() {
+    if (presenceInterval) {
+        clearInterval(presenceInterval);
+        presenceInterval = null;
+    }
     if (sock) {
         try {
             sock.ev.removeAllListeners();
@@ -73,6 +87,16 @@ async function initWhatsApp() {
 
         sock.ev.on('creds.update', saveCreds);
 
+        // Cuando llegan mensajes nuevos, reafirmar 'unavailable' para que WhatsApp
+        // no asuma foco exclusivo en el cliente web y siga sonando el teléfono
+        sock.ev.on('messages.upsert', async () => {
+            try {
+                if (sock && connectionState === 'connected') {
+                    await sock.sendPresenceUpdate('unavailable');
+                }
+            } catch (e) {}
+        });
+
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
 
@@ -87,6 +111,11 @@ async function initWhatsApp() {
             }
 
             if (connection === 'close') {
+                if (presenceInterval) {
+                    clearInterval(presenceInterval);
+                    presenceInterval = null;
+                }
+
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const isLoggedOut = statusCode === DisconnectReason.loggedOut;
 
@@ -121,17 +150,25 @@ async function initWhatsApp() {
                 connectedUser = sock.user;
                 isInitializing = false;
 
-                // Forzar presencia 'unavailable' inmediatamente para que WhatsApp no silencie las notificaciones en el teléfono
-                setTimeout(async () => {
+                // Función para enviar presencia 'unavailable'
+                const sendUnavailable = async () => {
                     try {
-                        if (sock) {
+                        if (sock && connectionState === 'connected') {
                             await sock.sendPresenceUpdate('unavailable');
                             console.log('📱 Presencia enviada: unavailable (el teléfono sonará normalmente).');
                         }
                     } catch (e) {
-                        console.error('Error enviando presencia unavailable:', e);
+                        // Error silencioso si la conexión está ocupada
                     }
-                }, 1500);
+                };
+
+                // Enviar inmediatamente tras conectar
+                setTimeout(sendUnavailable, 1500);
+
+                // Reafirmar presencia periódicamente cada 45 segundos para que WhatsApp
+                // no silencie las notificaciones en el teléfono móvil
+                if (presenceInterval) clearInterval(presenceInterval);
+                presenceInterval = setInterval(sendUnavailable, 45000);
             } else if (connection === 'connecting') {
                 connectionState = 'connecting';
             }
@@ -245,6 +282,16 @@ app.post('/send', async (req, res) => {
 
         // Enviar mensaje
         const result = await sock.sendMessage(jid, { text: message });
+
+        // Reafirmar inmediatamente 'unavailable' tras el envío para que WhatsApp
+        // no deje la sesión en estado activo/escribiendo y el teléfono continúe sonando
+        setTimeout(async () => {
+            try {
+                if (sock && connectionState === 'connected') {
+                    await sock.sendPresenceUpdate('unavailable');
+                }
+            } catch (e) {}
+        }, 800);
 
         return res.json({
             success: true,
