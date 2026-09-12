@@ -9,7 +9,8 @@ const {
     default: makeWASocket,
     useMultiFileAuthState,
     DisconnectReason,
-    fetchLatestBaileysVersion
+    fetchLatestBaileysVersion,
+    Browsers
 } = require('@whiskeysockets/baileys');
 
 const app = express();
@@ -52,6 +53,11 @@ async function initWhatsApp() {
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
+        // Asegurar que me.name esté presente para que Baileys no ignore el paquete de presencia 'unavailable'
+        if (state.creds && state.creds.me && !state.creds.me.name) {
+            state.creds.me.name = 'Rotisería La Abuela';
+        }
+
         sock = makeWASocket({
             version,
             logger,
@@ -59,8 +65,10 @@ async function initWhatsApp() {
             auth: state,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            browser: ['Rotisería La Abuela', 'Desktop', '1.0.0'],
-            markOnlineOnConnect: false
+            browser: Browsers.macOS('Desktop'),
+            markOnlineOnConnect: false,
+            syncFullHistory: false,
+            shouldSyncHistoryMessage: () => false
         });
 
         sock.ev.on('creds.update', saveCreds);
@@ -112,6 +120,18 @@ async function initWhatsApp() {
                 currentQRImage = null;
                 connectedUser = sock.user;
                 isInitializing = false;
+
+                // Forzar presencia 'unavailable' inmediatamente para que WhatsApp no silencie las notificaciones en el teléfono
+                setTimeout(async () => {
+                    try {
+                        if (sock) {
+                            await sock.sendPresenceUpdate('unavailable');
+                            console.log('📱 Presencia enviada: unavailable (el teléfono sonará normalmente).');
+                        }
+                    } catch (e) {
+                        console.error('Error enviando presencia unavailable:', e);
+                    }
+                }, 1500);
             } else if (connection === 'connecting') {
                 connectionState = 'connecting';
             }
