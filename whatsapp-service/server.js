@@ -59,7 +59,8 @@ async function initWhatsApp() {
             auth: state,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            browser: ['Rotisería La Abuela', 'Desktop', '1.0.0']
+            browser: ['Rotisería La Abuela', 'Desktop', '1.0.0'],
+            markOnlineOnConnect: false
         });
 
         sock.ev.on('creds.update', saveCreds);

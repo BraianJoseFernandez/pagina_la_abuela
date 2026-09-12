@@ -435,7 +435,43 @@ let cartGoogleMap = null;
 let cartGoogleMarker = null;
 let isGoogleMapsLoaded = false;
 let isGoogleMapsLoading = false;
+let isPinConfirmedByUser = false;
+let isGpsLocatedByUser = false;
 const DEFAULT_CORRIENTES_COORDS = [-27.4692, -58.8306];
+
+function updatePinStatusUi(isConfirmed) {
+    isPinConfirmedByUser = isConfirmed;
+    const statusText = document.getElementById('cart-map-status-text');
+    if (statusText) {
+        if (isConfirmed) {
+            statusText.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> ¡Ubicación confirmada!</span>`;
+        } else {
+            statusText.innerHTML = `<span class="text-amber-600 font-bold flex items-center gap-1 animate-pulse"><i class="fas fa-hand-pointer"></i> Toca el mapa para fijar tu casa</span>`;
+        }
+    }
+}
+
+function updateGpsNoticeUi(isLocated) {
+    const notice = document.getElementById('gps-mandatory-notice');
+    if (!notice) return;
+    if (isLocated) {
+        notice.className = 'mt-2 flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[11px] font-bold transition shadow-xs';
+        notice.innerHTML = `
+            <span class="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px]">
+                <i class="fas fa-check"></i>
+            </span>
+            <span>✅ ¡Ubicación satelital fijada con éxito!</span>
+        `;
+    } else {
+        notice.className = 'mt-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-800 text-[11px] font-semibold transition shadow-xs';
+        notice.innerHTML = `
+            <span class="flex-shrink-0 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] animate-bounce">
+                <i class="fas fa-arrow-up"></i>
+            </span>
+            <span><b>Paso obligatorio:</b> Toca el botón rojo <b>"Ubicarme"</b> para detectar tu ubicación satelital.</span>
+        `;
+    }
+}
 
 // Carga dinámica de la Google Maps JavaScript API
 function loadGoogleMapsScript(callback) {
@@ -475,6 +511,8 @@ function initGooglePlacesAutocomplete() {
     const mapSearchInput = document.getElementById('cart-map-search-input');
 
     const options = {
+        bounds: { north: -27.420, south: -27.580, west: -58.900, east: -58.720 },
+        strictBounds: true,
         componentRestrictions: { country: 'ar' },
         fields: ['geometry', 'name', 'formatted_address', 'address_components']
     };
@@ -504,14 +542,16 @@ function initGooglePlacesAutocomplete() {
 
                 initCartMap(lat, lng);
                 setCartPin(lat, lng, true, false);
+                updatePinStatusUi(false);
 
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
-                    icon: 'success',
-                    title: '📍 ¡Ubicación exacta ubicada con Google Maps!',
+                    icon: 'info',
+                    title: '📍 Calle ubicada',
+                    text: 'Toca el mapa para confirmar la puerta exacta de tu casa.',
                     showConfirmButton: false,
-                    timer: 2200
+                    timer: 3500
                 });
             }
         });
@@ -563,6 +603,7 @@ function initCartMap(customLat = null, customLng = null) {
 
             cartGoogleMap.addListener('click', function(e) {
                 setCartPin(e.latLng.lat(), e.latLng.lng(), false, true);
+                updatePinStatusUi(true);
             });
         } else {
             if (customLat && customLng) {
@@ -573,11 +614,6 @@ function initCartMap(customLat = null, customLng = null) {
 
         if (latInput?.value && lngInput?.value && !cartGoogleMarker) {
             setCartPin(parseFloat(latInput.value), parseFloat(lngInput.value), false, false);
-        } else if (!latInput?.value && !lngInput?.value) {
-            const addressVal = document.getElementById('order-customer-address')?.value.trim();
-            if (addressVal && addressVal.length >= 3) {
-                searchAddressOnMap(addressVal, true);
-            }
         }
         return;
     }
@@ -597,6 +633,7 @@ function initCartMap(customLat = null, customLng = null) {
 
         cartLeafletMap.on('click', function(e) {
             setCartPin(e.latlng.lat, e.latlng.lng(), false, true);
+            updatePinStatusUi(true);
         });
     } else {
         cartLeafletMap.invalidateSize();
@@ -607,11 +644,6 @@ function initCartMap(customLat = null, customLng = null) {
 
     if (latInput?.value && lngInput?.value && !cartLeafletMarker) {
         setCartPin(parseFloat(latInput.value), parseFloat(lngInput.value), false, false);
-    } else if (!latInput?.value && !lngInput?.value) {
-        const addressVal = document.getElementById('order-customer-address')?.value.trim();
-        if (addressVal && addressVal.length >= 3) {
-            searchAddressOnMap(addressVal, true);
-        }
     }
 }
 
@@ -659,13 +691,17 @@ function setCartPin(lat, lng, centerMap = false, doReverseGeocode = false) {
     } else if (cartLeafletMap && typeof L !== 'undefined') {
         // MODO LEAFLET
         if (!cartLeafletMarker) {
-            const redIcon = L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
+            const redIcon = L.divIcon({
+                className: 'custom-leaflet-pin',
+                html: `<div style="position: relative; width: 34px; height: 44px; transform: translate(-17px, -44px); cursor: grab;">
+                    <svg viewBox="0 0 384 512" width="34" height="44" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));">
+                        <path fill="#dc2626" stroke="#991b1b" stroke-width="8" d="M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0z"/>
+                        <circle cx="192" cy="192" r="68" fill="#ffffff"/>
+                        <circle cx="192" cy="192" r="38" fill="#dc2626"/>
+                    </svg>
+                </div>`,
+                iconSize: [0, 0],
+                iconAnchor: [0, 0]
             });
 
             cartLeafletMarker = L.marker([lat, lng], {
@@ -676,6 +712,7 @@ function setCartPin(lat, lng, centerMap = false, doReverseGeocode = false) {
             cartLeafletMarker.on('dragend', function(e) {
                 const newPos = e.target.getLatLng();
                 setCartPin(newPos.lat, newPos.lng, false, true);
+                updatePinStatusUi(true);
             });
         } else {
             cartLeafletMarker.setLatLng([lat, lng]);
@@ -828,6 +865,7 @@ function handleGoogleMapsUrlInput(url) {
         }
         initCartMap(directCoords.lat, directCoords.lng);
         setCartPin(directCoords.lat, directCoords.lng, true, true);
+        updatePinStatusUi(true);
         Swal.fire({
             toast: true,
             position: 'top-end',
@@ -866,6 +904,7 @@ function handleGoogleMapsUrlInput(url) {
             }
             initCartMap(data.lat, data.lng);
             setCartPin(data.lat, data.lng, true, true);
+            updatePinStatusUi(true);
             Swal.fire({
                 toast: true,
                 position: 'top-end',
@@ -941,7 +980,7 @@ function setupAddressAutocomplete() {
                     return inBBox || isCity;
                 });
 
-                const listToRender = corrientesResults.length > 0 ? corrientesResults : data.features.slice(0, 4);
+                const listToRender = corrientesResults;
 
                 if (listToRender.length === 0) {
                     dropdown.innerHTML = '';
@@ -996,11 +1035,7 @@ function setupAddressAutocomplete() {
 
                         initCartMap(lat, lng);
                         setCartPin(lat, lng, true, false);
-
-                        const statusText = document.getElementById('cart-map-status-text');
-                        if (statusText) {
-                            statusText.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Ubicación fijada</span>`;
-                        }
+                        updatePinStatusUi(false);
                     });
 
                     dropdown.appendChild(item);
@@ -1035,11 +1070,9 @@ function handleAddressInputBlur() {
 
     if (query.length < 3) return;
 
-    // Si ya geocodificamos esta misma dirección y las coordenadas ya están fijadas, no repetir
-    const latInput = document.getElementById('order-delivery-lat');
-    if (addressInput.dataset.lastGeocoded === query && latInput && latInput.value) {
-        return;
-    }
+    // Si el usuario ya confirmó su pin manualmente o ya buscamos esta dirección, no repetir
+    if (isPinConfirmedByUser) return;
+    if (addressInput.dataset.lastGeocoded === query) return;
 
     addressInput.dataset.lastGeocoded = query;
     searchAddressOnMap(query, true);
@@ -1159,26 +1192,24 @@ async function searchAddressOnMap(customQuery = null, isSilent = false) {
 function applyFoundLocation(lat, lng, isSilent = false, isApproxStreet = false) {
     initCartMap(lat, lng);
     setCartPin(lat, lng, true, false);
+    updatePinStatusUi(false);
 
     if (cartLeafletMap) {
         cartLeafletMap.flyTo([lat, lng], 17, { duration: 1 });
         setTimeout(() => cartLeafletMap.invalidateSize(), 200);
     }
 
-    const statusText = document.getElementById('cart-map-status-text');
-    if (statusText) {
-        statusText.innerHTML = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Ubicación fijada</span>`;
+    if (!isSilent) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: isApproxStreet ? '📍 Calle ubicada' : '📍 Zona localizada',
+            text: '👉 Toca el mapa para confirmar la puerta exacta de tu casa.',
+            showConfirmButton: false,
+            timer: 3500
+        });
     }
-
-    Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: isApproxStreet ? '📍 Calle ubicada en Corrientes' : '📍 ¡Ubicación localizada!',
-        text: '👉 Toca el mapa para afinar la puerta exacta de tu casa.',
-        showConfirmButton: false,
-        timer: 3000
-    });
 }
 
 function clearCartMapPin() {
@@ -1205,6 +1236,22 @@ function clearCartMapPin() {
         badge.classList.remove('flex');
     }
 
+    updatePinStatusUi(false);
+    isGpsLocatedByUser = false;
+    updateGpsNoticeUi(false);
+    const btn = document.getElementById('btn-cart-gps-locate');
+    if (btn) {
+        btn.innerHTML = `
+            <span class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+            </span>
+            <i class="fas fa-crosshairs text-sm"></i>
+            <span class="text-xs font-bold tracking-tight">Ubicarme</span>
+        `;
+        btn.classList.remove('from-emerald-600', 'to-teal-600', 'ring-emerald-400');
+        btn.classList.add('from-red-600', 'to-rose-600', 'ring-red-400/70', 'animate-pulse');
+    }
     handleAddressOrPinChanged();
 }
 
@@ -1220,9 +1267,8 @@ function locateUserGPS() {
     }
 
     const btn = document.getElementById('btn-cart-gps-locate');
-    const originalContent = btn ? btn.innerHTML : '';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i><span>Obteniendo ubicación satelital...</span>';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i><span class="text-xs font-bold">Ubicando...</span>';
         btn.classList.add('opacity-75', 'pointer-events-none');
     }
 
@@ -1233,15 +1279,32 @@ function locateUserGPS() {
 
     navigator.geolocation.getCurrentPosition(
         function(position) {
-            if (btn) {
-                btn.innerHTML = originalContent;
-                btn.classList.remove('opacity-75', 'pointer-events-none');
-            }
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
 
+            isGpsLocatedByUser = true;
+            isPinConfirmedByUser = true;
+
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check text-xs"></i><span class="text-xs font-bold">Ubicado</span>';
+                btn.classList.remove('opacity-75', 'pointer-events-none', 'from-red-600', 'to-rose-600', 'ring-red-400/70', 'animate-pulse');
+                btn.classList.add('from-emerald-600', 'to-teal-600', 'ring-emerald-400');
+            }
+
+            updateGpsNoticeUi(true);
+            isGpsLocatedByUser = true;
+            isPinConfirmedByUser = true;
+
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-check text-xs"></i><span class="text-xs font-bold">Ubicado</span>';
+                btn.classList.remove('opacity-75', 'pointer-events-none', 'from-red-600', 'to-rose-600', 'ring-red-400/70', 'animate-pulse');
+                btn.classList.add('from-emerald-600', 'to-teal-600', 'ring-emerald-400');
+            }
+
+            updateGpsNoticeUi(true);
             initCartMap(lat, lng);
             setCartPin(lat, lng, true, true);
+            updatePinStatusUi(true);
 
             if (cartGoogleMap) {
                 cartGoogleMap.panTo({ lat, lng });
@@ -1261,7 +1324,14 @@ function locateUserGPS() {
         },
         function(error) {
             if (btn) {
-                btn.innerHTML = originalContent;
+                btn.innerHTML = `
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                    </span>
+                    <i class="fas fa-crosshairs text-sm"></i>
+                    <span class="text-xs font-bold tracking-tight">Ubicarme</span>
+                `;
                 btn.classList.remove('opacity-75', 'pointer-events-none');
             }
 
@@ -1617,15 +1687,38 @@ async function submitOrderToWhatsApp() {
     const mapLng = document.getElementById('order-delivery-lng')?.value || '';
     const mapUrl = document.getElementById('order-delivery-map-url')?.value || '';
 
-    if (deliveryType === 'delivery' && !address && !mapUrl) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Lugar de entrega necesario',
-            text: 'Por favor ingresa tu dirección de envío o marca tu ubicación exacta en el mapa.',
-            confirmButtonColor: '#dc2626'
-        });
-        if (addressInput) addressInput.focus();
-        return;
+    if (deliveryType === 'delivery') {
+        if (!address) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Falta tu dirección',
+                text: 'Por favor ingresa tu dirección de envío.',
+                confirmButtonColor: '#dc2626'
+            });
+            if (addressInput) addressInput.focus();
+            return;
+        }
+        if (!isGpsLocatedByUser || !mapLat || !mapLng) {
+            const gpsBtn = document.getElementById('btn-cart-gps-locate');
+            if (gpsBtn) {
+                gpsBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                gpsBtn.classList.add('scale-110', 'ring-4', 'ring-red-500');
+                setTimeout(() => gpsBtn.classList.remove('scale-110', 'ring-4', 'ring-red-500'), 1500);
+            }
+
+            Swal.fire({
+                icon: 'warning',
+                title: '¡Paso obligatorio!',
+                html: 'Debes presionar el botón rojo <b class="text-red-600"><i class="fas fa-crosshairs"></i> Ubicarme</b> al lado de tu dirección para fijar tu ubicación satelital antes de continuar.',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: '📍 Presionar Ubicarme ahora'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    locateUserGPS();
+                }
+            });
+            return;
+        }
     }
 
     // Registrar pedido en la base de datos de Laravel (opcional y transparente)

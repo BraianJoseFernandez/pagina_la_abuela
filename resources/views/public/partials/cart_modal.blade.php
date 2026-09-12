@@ -138,26 +138,41 @@
                             <span class="text-[10px] text-gray-400 font-normal">Corrientes Capital</span>
                         </div>
 
-                        <!-- Input principal con Autocomplete y botón GPS integrado -->
+                        <!-- Input principal con Autocomplete y botón GPS súper destacado -->
                         <div class="relative">
-                            <div class="relative flex items-center">
-                                <span class="absolute left-3.5 text-gray-400 pointer-events-none">
-                                    <i class="fas fa-search text-xs"></i>
-                                </span>
-                                <input type="text"
-                                       id="order-customer-address"
-                                       autocomplete="off"
-                                       placeholder="Ej: av Libertad 5445"
-                                       class="w-full text-sm pl-9 pr-11 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium shadow-xs">
+                            <div class="flex items-center gap-2">
+                                <div class="relative flex-1 flex items-center">
+                                    <span class="absolute left-3.5 text-gray-400 pointer-events-none">
+                                        <i class="fas fa-search text-xs"></i>
+                                    </span>
+                                    <input type="text"
+                                           id="order-customer-address"
+                                           autocomplete="off"
+                                           placeholder="Ej: Juan Manuel de Rosas 1043"
+                                           class="w-full text-sm pl-9 pr-3 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition bg-white font-medium shadow-xs">
+                                </div>
                                 
-                                <!-- Botón GPS integrado dentro del campo -->
+                                <!-- Botón GPS Destacado con Pulso y Círculo de Atención -->
                                 <button type="button"
                                         id="btn-cart-gps-locate"
                                         onclick="locateUserGPS()"
-                                        class="absolute right-2 p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition cursor-pointer"
-                                        title="Usar mi ubicación GPS actual">
+                                        class="relative flex-shrink-0 px-3.5 py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-xs shadow-md shadow-red-500/30 hover:from-red-700 hover:to-rose-700 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer ring-3 ring-red-400/70 ring-offset-2 animate-pulse"
+                                        title="Toca para obtener tu ubicación GPS obligatoria">
+                                    <span class="relative flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+                                    </span>
                                     <i class="fas fa-crosshairs text-sm"></i>
+                                    <span class="text-xs font-bold tracking-tight">Ubicarme</span>
                                 </button>
+                            </div>
+
+                            <!-- Cartel de Aviso de Paso Obligatorio -->
+                            <div id="gps-mandatory-notice" class="mt-2 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-red-800 text-[11px] font-semibold transition shadow-xs">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] animate-bounce">
+                                    <i class="fas fa-arrow-up"></i>
+                                </span>
+                                <span><b>Paso obligatorio:</b> Toca el botón rojo <b>"Ubicarme"</b> para detectar tu ubicación satelital.</span>
                             </div>
 
                             <!-- Menú flotante de sugerencias de calles en Corrientes -->
