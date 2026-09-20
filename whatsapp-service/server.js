@@ -79,23 +79,13 @@ async function initWhatsApp() {
             auth: state,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            browser: Browsers.macOS('Desktop'),
+            browser: ['Rotiseria La Abuela', 'Chrome', '124.0.0.0'],
             markOnlineOnConnect: false,
             syncFullHistory: false,
             shouldSyncHistoryMessage: () => false
         });
 
         sock.ev.on('creds.update', saveCreds);
-
-        // Cuando llegan mensajes nuevos, reafirmar 'unavailable' para que WhatsApp
-        // no asuma foco exclusivo en el cliente web y siga sonando el teléfono
-        sock.ev.on('messages.upsert', async () => {
-            try {
-                if (sock && connectionState === 'connected') {
-                    await sock.sendPresenceUpdate('unavailable');
-                }
-            } catch (e) {}
-        });
 
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
@@ -118,6 +108,7 @@ async function initWhatsApp() {
 
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+                const isAlreadyRegistered = Boolean(state.creds && state.creds.me);
 
                 connectionState = 'disconnected';
                 currentQR = null;
@@ -127,8 +118,10 @@ async function initWhatsApp() {
 
                 cleanSocket();
 
-                if (isLoggedOut) {
-                    console.log('Sesión cerrada por el usuario. Limpiando credenciales y generando nuevo QR...');
+                if (isLoggedOut || !isAlreadyRegistered) {
+                    // Si cerró sesión o si falló antes de estar registrado (QR vencido o loop),
+                    // limpiamos las claves temporales para que genere un QR 100% fresco y limpio
+                    console.log('Sesión no autenticada o cerrada. Limpiando credenciales temporales y generando QR nuevo...');
                     try {
                         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                         fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -137,7 +130,7 @@ async function initWhatsApp() {
                         initWhatsApp();
                     }, 2000);
                 } else {
-                    console.log('Conexión cerrada temporalmente. Reconectando en 5s...');
+                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando sesión guardada en 5s...`);
                     setTimeout(() => {
                         initWhatsApp();
                     }, 5000);
@@ -150,25 +143,15 @@ async function initWhatsApp() {
                 connectedUser = sock.user;
                 isInitializing = false;
 
-                // Función para enviar presencia 'unavailable'
-                const sendUnavailable = async () => {
+                // Enviar unavailable una sola vez tras conectar para que WhatsApp no considere la sesión activa
+                setTimeout(async () => {
                     try {
                         if (sock && connectionState === 'connected') {
                             await sock.sendPresenceUpdate('unavailable');
                             console.log('📱 Presencia enviada: unavailable (el teléfono sonará normalmente).');
                         }
-                    } catch (e) {
-                        // Error silencioso si la conexión está ocupada
-                    }
-                };
-
-                // Enviar inmediatamente tras conectar
-                setTimeout(sendUnavailable, 1500);
-
-                // Reafirmar presencia periódicamente cada 45 segundos para que WhatsApp
-                // no silencie las notificaciones en el teléfono móvil
-                if (presenceInterval) clearInterval(presenceInterval);
-                presenceInterval = setInterval(sendUnavailable, 45000);
+                    } catch (e) {}
+                }, 2000);
             } else if (connection === 'connecting') {
                 connectionState = 'connecting';
             }
