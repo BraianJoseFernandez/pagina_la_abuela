@@ -97,7 +97,7 @@ async function initWhatsApp() {
             auth: state,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            browser: Browsers.ubuntu('Chrome'),
+            browser: ['Rotisería La Abuela', 'Chrome', '20.0.04'],
             markOnlineOnConnect: false,
             syncFullHistory: false,
             shouldSyncHistoryMessage: () => false
