@@ -30,7 +30,7 @@ let currentQRImage = null;
 let connectionState = 'disconnected';
 let connectedUser = null;
 let isInitializing = false;
-let presenceInterval = null;
+let reconnectTimer = null;
 
 const logger = pino({ level: 'silent' });
 
@@ -43,14 +43,25 @@ console.info = function (...args) {
     originalConsoleInfo.apply(console, args);
 };
 
+function scheduleReconnect(delayMs = 4000) {
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        initWhatsApp();
+    }, delayMs);
+}
+
 function cleanSocket() {
-    if (presenceInterval) {
-        clearInterval(presenceInterval);
-        presenceInterval = null;
+    if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
     }
     if (sock) {
         try {
             sock.ev.removeAllListeners();
+            if (sock.ws) {
+                try { sock.ws.close(); } catch (e) {}
+            }
             sock.end(undefined);
         } catch (e) {}
         sock = null;
@@ -67,7 +78,6 @@ async function initWhatsApp() {
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
-        // Asegurar que me.name esté presente para que Baileys no ignore el paquete de presencia 'unavailable'
         if (state.creds && state.creds.me && !state.creds.me.name) {
             state.creds.me.name = 'Rotisería La Abuela';
         }
@@ -101,11 +111,6 @@ async function initWhatsApp() {
             }
 
             if (connection === 'close') {
-                if (presenceInterval) {
-                    clearInterval(presenceInterval);
-                    presenceInterval = null;
-                }
-
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const isLoggedOut = statusCode === DisconnectReason.loggedOut;
                 const isAlreadyRegistered = Boolean(state.creds && state.creds.me);
@@ -119,21 +124,20 @@ async function initWhatsApp() {
                 cleanSocket();
 
                 if (isLoggedOut || !isAlreadyRegistered) {
-                    // Si cerró sesión o si falló antes de estar registrado (QR vencido o loop),
-                    // limpiamos las claves temporales para que genere un QR 100% fresco y limpio
                     console.log('Sesión no autenticada o cerrada. Limpiando credenciales temporales y generando QR nuevo...');
                     try {
                         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                         fs.mkdirSync(AUTH_DIR, { recursive: true });
                     } catch (err) {}
-                    setTimeout(() => {
-                        initWhatsApp();
-                    }, 2000);
+                    scheduleReconnect(2000);
+                } else if (statusCode === 440) {
+                    // Status 440 = connectionReplaced (conflicto con conexión anterior cerrándose)
+                    // Esperar 5s para que WhatsApp limpie el socket en su servidor antes de reconectar
+                    console.log('Conexión reemplazada (status 440). Esperando 5s para reconexión limpia...');
+                    scheduleReconnect(5000);
                 } else {
-                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando sesión guardada en 5s...`);
-                    setTimeout(() => {
-                        initWhatsApp();
-                    }, 5000);
+                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando sesión guardada en 4s...`);
+                    scheduleReconnect(4000);
                 }
             } else if (connection === 'open') {
                 console.log('✅ Conexión establecida con WhatsApp!');
@@ -142,16 +146,10 @@ async function initWhatsApp() {
                 currentQRImage = null;
                 connectedUser = sock.user;
                 isInitializing = false;
-
-                // Enviar unavailable una sola vez tras conectar para que WhatsApp no considere la sesión activa
-                setTimeout(async () => {
-                    try {
-                        if (sock && connectionState === 'connected') {
-                            await sock.sendPresenceUpdate('unavailable');
-                            console.log('📱 Presencia enviada: unavailable (el teléfono sonará normalmente).');
-                        }
-                    } catch (e) {}
-                }, 2000);
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
             } else if (connection === 'connecting') {
                 connectionState = 'connecting';
             }
@@ -161,6 +159,7 @@ async function initWhatsApp() {
         cleanSocket();
         connectionState = 'disconnected';
         isInitializing = false;
+        scheduleReconnect(5000);
     }
 }
 
@@ -218,9 +217,9 @@ app.get('/qr', (req, res) => {
         });
     }
 
-    // Si no hay QR pero no está conectado, reintentar inicializar
-    if (!isInitializing && connectionState === 'disconnected') {
-        initWhatsApp();
+    // Solo programar inicialización si no hay nada corriendo ni en cola
+    if (!isInitializing && !sock && !reconnectTimer && connectionState === 'disconnected') {
+        scheduleReconnect(1000);
     }
 
     return res.json({
@@ -265,16 +264,6 @@ app.post('/send', async (req, res) => {
 
         // Enviar mensaje
         const result = await sock.sendMessage(jid, { text: message });
-
-        // Reafirmar inmediatamente 'unavailable' tras el envío para que WhatsApp
-        // no deje la sesión en estado activo/escribiendo y el teléfono continúe sonando
-        setTimeout(async () => {
-            try {
-                if (sock && connectionState === 'connected') {
-                    await sock.sendPresenceUpdate('unavailable');
-                }
-            } catch (e) {}
-        }, 800);
 
         return res.json({
             success: true,
