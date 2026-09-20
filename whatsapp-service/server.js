@@ -151,6 +151,14 @@ async function initWhatsApp() {
                 }
             } else if (connection === 'open') {
                 console.log('✅ Conexión establecida con WhatsApp!');
+                
+                // Forzar el estado a "desconectado" (invisible) para que el teléfono suene
+                try {
+                    await sock.sendPresenceUpdate('unavailable');
+                } catch (e) {
+                    console.error('Error al forzar presencia oculta:', e);
+                }
+
                 connectionState = 'connected';
                 currentQR = null;
                 currentQRImage = null;
