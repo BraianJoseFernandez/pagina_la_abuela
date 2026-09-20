@@ -483,6 +483,7 @@
         fetch(`{{ route("admin.whatsapp.status") }}?t=${timestamp}`)
             .then(res => res.json())
             .then(data => {
+                console.log('[WhatsApp Debug] Estado recibido:', data);
                 const badge = document.getElementById('wa-status-badge');
                 const text = document.getElementById('wa-status-text');
                 const qrBox = document.getElementById('wa-qr-container');
@@ -509,14 +510,18 @@
                     if (offBox) offBox.classList.add('hidden');
                     if (qrBox) qrBox.classList.remove('hidden');
 
-                    const qrTimestamp = new Date().getTime();
-                    fetch(`{{ route("admin.whatsapp.qr") }}?t=${qrTimestamp}`)
-                        .then(r => r.json())
-                        .then(qrData => {
-                            if (qrData.qr_image && qrImg) {
-                                qrImg.src = qrData.qr_image;
-                            }
-                        });
+                    if (data.qr_image && qrImg) {
+                        qrImg.src = data.qr_image;
+                    } else {
+                        const qrTimestamp = new Date().getTime();
+                        fetch(`{{ route("admin.whatsapp.qr") }}?t=${qrTimestamp}`)
+                            .then(r => r.json())
+                            .then(qrData => {
+                                if (qrData.qr_image && qrImg) {
+                                    qrImg.src = qrData.qr_image;
+                                }
+                            });
+                    }
                 } else if (data.status === 'offline') {
                     badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-500 flex-shrink-0';
                     text.innerText = '⚪ Servicio Inactivo';
