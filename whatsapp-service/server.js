@@ -97,8 +97,8 @@ async function initWhatsApp() {
 
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
-        if (state.creds && state.creds.me && !state.creds.me.name) {
-            state.creds.me.name = 'Rotisería La Abuela';
+        if (authState.creds && authState.creds.me && !authState.creds.me.name) {
+            authState.creds.me.name = 'Rotisería La Abuela';
         }
 
         sock = makeWASocket({
