@@ -20,6 +20,7 @@ let currentQR = null;
 let currentQRImage = null;
 let connectionState = 'disconnected'; // 'disconnected', 'qr_ready', 'connected'
 let connectedUser = null;
+let client = null;
 
 let isInitializing = false;
 let initTimer = null;
