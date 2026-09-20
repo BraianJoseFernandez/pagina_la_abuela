@@ -195,7 +195,7 @@ app.post('/send', async (req, res) => {
 
         return res.json({
             success: true,
-            messageId: response.id.id,
+            messageId: response?.id?._serialized || response?.id?.id || 'unknown',
             targetJid: jid,
             message: 'Mensaje enviado con éxito.'
         });
