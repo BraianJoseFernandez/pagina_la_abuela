@@ -43,6 +43,14 @@ console.info = function (...args) {
     originalConsoleInfo.apply(console, args);
 };
 
+process.on('uncaughtException', (err) => {
+    console.error('Error no capturado (evitando crash):', err?.message || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('Promesa rechazada no capturada (evitando crash):', reason?.message || reason);
+});
+
 function scheduleReconnect(delayMs = 4000) {
     if (reconnectTimer) clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(() => {
@@ -89,7 +97,7 @@ async function initWhatsApp() {
             auth: state,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
-            browser: ['Rotiseria La Abuela', 'Chrome', '124.0.0.0'],
+            browser: Browsers.ubuntu('Chrome'),
             markOnlineOnConnect: false,
             syncFullHistory: false,
             shouldSyncHistoryMessage: () => false
@@ -113,7 +121,6 @@ async function initWhatsApp() {
             if (connection === 'close') {
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const isLoggedOut = statusCode === DisconnectReason.loggedOut;
-                const isAlreadyRegistered = Boolean(state.creds && state.creds.me);
 
                 connectionState = 'disconnected';
                 currentQR = null;
@@ -123,21 +130,24 @@ async function initWhatsApp() {
 
                 cleanSocket();
 
-                if (isLoggedOut || !isAlreadyRegistered) {
-                    console.log('Sesión no autenticada o cerrada. Limpiando credenciales temporales y generando QR nuevo...');
+                if (isLoggedOut) {
+                    console.log('Sesión cerrada por el usuario (401). Limpiando credenciales y generando QR nuevo...');
                     try {
                         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                         fs.mkdirSync(AUTH_DIR, { recursive: true });
                     } catch (err) {}
                     scheduleReconnect(2000);
+                } else if (statusCode === DisconnectReason.restartRequired) {
+                    // 515 = restartRequired: WhatsApp lo envía justo después de escanear el QR
+                    // para recargar las nuevas claves criptográficas. ¡NUNCA borrar auth_info aquí!
+                    console.log('WhatsApp completó el escaneo y solicitó reinicio (515 restartRequired). Reconectando en 1s...');
+                    scheduleReconnect(1000);
                 } else if (statusCode === 440) {
-                    // Status 440 = connectionReplaced (conflicto con conexión anterior cerrándose)
-                    // Esperar 5s para que WhatsApp limpie el socket en su servidor antes de reconectar
                     console.log('Conexión reemplazada (status 440). Esperando 5s para reconexión limpia...');
                     scheduleReconnect(5000);
                 } else {
-                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando sesión guardada en 4s...`);
-                    scheduleReconnect(4000);
+                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando en 3s...`);
+                    scheduleReconnect(3000);
                 }
             } else if (connection === 'open') {
                 console.log('✅ Conexión establecida con WhatsApp!');
