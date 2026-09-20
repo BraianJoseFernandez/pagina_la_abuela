@@ -1,21 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const QRCode = require('qrcode');
-const pino = require('pino');
-const path = require('path');
+const qrcode = require('qrcode');
+const { Client, LocalAuth } = require('whatsapp-web.js');
 const fs = require('fs');
-const dns = require('dns');
-
-// Solución para servidores VPS: Forzar IPv4 para evitar el error 408 (Timeout) de WhatsApp
-dns.setDefaultResultOrder('ipv4first');
-
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    DisconnectReason,
-    fetchLatestBaileysVersion,
-    Browsers
-} = require('@whiskeysockets/baileys');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,207 +16,128 @@ if (!fs.existsSync(AUTH_DIR)) {
 app.use(cors());
 app.use(express.json());
 
-let sock = null;
 let currentQR = null;
 let currentQRImage = null;
-let connectionState = 'disconnected';
+let connectionState = 'disconnected'; // 'disconnected', 'qr_ready', 'connected'
 let connectedUser = null;
-let isInitializing = false;
-let reconnectTimer = null;
-let authState = null;
-let authSaveCreds = null;
 
-const logger = pino({ level: 'silent' });
+// Initialize whatsapp-web.js client
+let client;
 
-// Filtrar mensajes internos de libsignal (SessionEntry) que ensucian la consola
-const originalConsoleInfo = console.info;
-console.info = function (...args) {
-    if (typeof args[0] === 'string' && (args[0].includes('Closing session') || args[0].includes('Opening session'))) {
-        return;
-    }
-    originalConsoleInfo.apply(console, args);
-};
+function initClient() {
+    client = new Client({
+        authStrategy: new LocalAuth({ dataPath: AUTH_DIR }),
+        puppeteer: {
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+            headless: true
+        }
+    });
 
-process.on('uncaughtException', (err) => {
-    console.error('Error no capturado (evitando crash):', err?.message || err);
-});
-
-process.on('unhandledRejection', (reason) => {
-    console.error('Promesa rechazada no capturada (evitando crash):', reason?.message || reason);
-});
-
-function scheduleReconnect(delayMs = 4000) {
-    if (reconnectTimer) clearTimeout(reconnectTimer);
-    reconnectTimer = setTimeout(() => {
-        reconnectTimer = null;
-        initWhatsApp();
-    }, delayMs);
-}
-
-function cleanSocket() {
-    if (reconnectTimer) {
-        clearTimeout(reconnectTimer);
-        reconnectTimer = null;
-    }
-    if (sock) {
+    client.on('qr', async (qr) => {
+        console.log('Generando nuevo QR...');
+        currentQR = qr;
+        connectionState = 'qr_ready';
         try {
-            sock.ev.removeAllListeners();
-            if (sock.ws) {
-                try { sock.ws.close(); } catch (e) {}
-            }
-            sock.end(undefined);
-        } catch (e) {}
-        sock = null;
-    }
-}
-
-async function initWhatsApp() {
-    if (isInitializing) return;
-    isInitializing = true;
-
-    try {
-        cleanSocket();
-
-        if (!authState || !fs.existsSync(path.join(AUTH_DIR, 'creds.json'))) {
-            const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-            authState = state;
-            authSaveCreds = saveCreds;
+            currentQRImage = await qrcode.toDataURL(qr);
+        } catch (err) {
+            console.error('Error procesando QR:', err);
         }
+    });
 
-        const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
+    client.on('ready', () => {
+        console.log('✅ Conexión establecida con WhatsApp (whatsapp-web.js)!');
+        connectionState = 'connected';
+        currentQR = null;
+        currentQRImage = null;
+        
+        // El bot ya tiene el nombre por defecto en whatsapp-web.js, pero podemos obtener la info del dispositivo
+        connectedUser = {
+            id: client.info.wid.user,
+            name: client.info.pushname || 'Rotisería La Abuela'
+        };
+    });
 
-        if (authState.creds && authState.creds.me && !authState.creds.me.name) {
-            authState.creds.me.name = 'Rotisería La Abuela';
-        }
+    client.on('authenticated', () => {
+        console.log('Autenticado exitosamente.');
+    });
 
-        sock = makeWASocket({
-            version,
-            logger,
-            printQRInTerminal: false,
-            auth: authState,
-            connectTimeoutMs: 60000,
-            defaultQueryTimeoutMs: 60000,
-            browser: ['Rotisería La Abuela', 'Chrome', '20.0.04'],
-            markOnlineOnConnect: false,
-            syncFullHistory: false,
-            shouldSyncHistoryMessage: () => false
-        });
-
-        sock.ev.on('creds.update', authSaveCreds);
-
-        sock.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect, qr } = update;
-
-            if (qr) {
-                currentQR = qr;
-                connectionState = 'qr_ready';
-                try {
-                    currentQRImage = await QRCode.toDataURL(qr);
-                } catch (e) {
-                    console.error('Error generando imagen QR:', e);
-                }
-            }
-
-            if (connection === 'close') {
-                const statusCode = lastDisconnect?.error?.output?.statusCode;
-                const isLoggedOut = statusCode === DisconnectReason.loggedOut;
-
-                connectionState = 'disconnected';
-                currentQR = null;
-                currentQRImage = null;
-                connectedUser = null;
-                isInitializing = false;
-
-                cleanSocket();
-
-                if (isLoggedOut) {
-                    console.log('Sesión cerrada por el usuario (401). Limpiando credenciales y generando QR nuevo...');
-                    try {
-                        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-                        fs.mkdirSync(AUTH_DIR, { recursive: true });
-                        authState = null;
-                        authSaveCreds = null;
-                    } catch (err) {}
-                    scheduleReconnect(2000);
-                } else if (statusCode === DisconnectReason.restartRequired) {
-                    // 515 = restartRequired: WhatsApp lo envía justo después de escanear el QR
-                    // para recargar las nuevas claves criptográficas. ¡NUNCA borrar auth_info aquí!
-                    console.log('WhatsApp completó el escaneo y solicitó reinicio (515 restartRequired). Reconectando en 1s...');
-                    scheduleReconnect(1000);
-                } else if (statusCode === 440) {
-                    console.log('Conexión reemplazada (status 440). Esperando 5s para reconexión limpia...');
-                    scheduleReconnect(5000);
-                } else {
-                    console.log(`Conexión cerrada temporalmente (status: ${statusCode}). Reconectando en 3s...`);
-                    scheduleReconnect(3000);
-                }
-            } else if (connection === 'open') {
-                console.log('✅ Conexión establecida con WhatsApp!');
-                
-                // Forzar el estado a "desconectado" (invisible) para que el teléfono suene
-                try {
-                    await sock.sendPresenceUpdate('unavailable');
-                } catch (e) {
-                    console.error('Error al forzar presencia oculta:', e);
-                }
-
-                connectionState = 'connected';
-                currentQR = null;
-                currentQRImage = null;
-                connectedUser = sock.user;
-                isInitializing = false;
-                if (reconnectTimer) {
-                    clearTimeout(reconnectTimer);
-                    reconnectTimer = null;
-                }
-            } else if (connection === 'connecting') {
-                connectionState = 'connecting';
-            }
-        });
-    } catch (err) {
-        console.error('Error inicializando Baileys:', err);
-        cleanSocket();
+    client.on('auth_failure', msg => {
+        console.error('Fallo de autenticación:', msg);
         connectionState = 'disconnected';
-        isInitializing = false;
-        scheduleReconnect(5000);
-    }
+        currentQR = null;
+        currentQRImage = null;
+        
+        // Borrar credenciales porque la sesión caducó
+        try {
+            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+            fs.mkdirSync(AUTH_DIR, { recursive: true });
+        } catch (e) {}
+
+        console.log('Reiniciando el cliente para pedir QR nuevamente...');
+        setTimeout(() => {
+            initClient();
+        }, 3000);
+    });
+
+    client.on('disconnected', (reason) => {
+        console.log('Cliente desconectado:', reason);
+        connectionState = 'disconnected';
+        currentQR = null;
+        currentQRImage = null;
+        connectedUser = null;
+
+        // Limpiamos credenciales si el usuario cerro sesión
+        if (reason === 'LOGOUT') {
+            try {
+                fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+                fs.mkdirSync(AUTH_DIR, { recursive: true });
+            } catch (e) {}
+        }
+        
+        console.log('Reiniciando cliente en 5s...');
+        setTimeout(() => {
+            initClient();
+        }, 5000);
+    });
+
+    client.initialize().catch(err => {
+        console.error('Error fatal inicializando Puppeteer:', err);
+        console.error('¡Asegúrate de instalar las dependencias de Chromium (ej: libgbm-dev, libnss3, etc) en tu servidor!');
+    });
 }
+
+// Iniciar el cliente al arrancar el servidor
+initClient();
 
 // Formatear número argentino a JID internacional de WhatsApp
 function formatToJid(rawPhone) {
     let clean = (rawPhone || '').toString().replace(/\D/g, '');
     if (!clean) return null;
 
-    // Si comienza con 0 (ej: 03794123456), quitar el 0
     if (clean.startsWith('0')) {
         clean = clean.substring(1);
     }
 
-    // Si no tiene código de país (ej: 3794123456 con 10 dígitos)
     if (clean.length === 10) {
         clean = '549' + clean;
     } else if (clean.startsWith('54') && !clean.startsWith('549') && clean.length === 12) {
-        // ej: 543794123456 -> 5493794123456
         clean = '549' + clean.substring(2);
     }
 
-    return `${clean}@s.whatsapp.net`;
+    return `${clean}@c.us`; // whatsapp-web.js usa @c.us en vez de @s.whatsapp.net
 }
 
-// 1. Estado de la conexión
+// --- RUTAS DE LA API ---
+
 app.get('/status', (req, res) => {
     res.json({
         success: true,
         status: connectionState,
         connected: connectionState === 'connected',
-        user: connectedUser ? {
-            id: connectedUser.id,
-            name: connectedUser.name || 'Rotisería La Abuela'
-        } : null
+        user: connectedUser
     });
 });
 
-// 2. Obtener QR en caso de necesitar escanear
 app.get('/qr', (req, res) => {
     if (connectionState === 'connected') {
         return res.json({
@@ -248,11 +157,6 @@ app.get('/qr', (req, res) => {
         });
     }
 
-    // Solo programar inicialización si no hay nada corriendo ni en cola
-    if (!isInitializing && !sock && !reconnectTimer && connectionState === 'disconnected') {
-        scheduleReconnect(1000);
-    }
-
     return res.json({
         success: true,
         status: connectionState,
@@ -260,10 +164,9 @@ app.get('/qr', (req, res) => {
     });
 });
 
-// 3. Enviar mensaje por WhatsApp en segundo plano
 app.post('/send', async (req, res) => {
     try {
-        if (connectionState !== 'connected' || !sock) {
+        if (connectionState !== 'connected' || !client) {
             return res.status(503).json({
                 success: false,
                 error: 'El servicio de WhatsApp no está conectado. Escanea el código QR en la configuración.'
@@ -287,18 +190,12 @@ app.post('/send', async (req, res) => {
             });
         }
 
-        // Verificar si el número existe en WhatsApp
-        const [onWa] = await sock.onWhatsApp(jid).catch(() => []);
-        if (onWa && onWa.jid) {
-            jid = onWa.jid;
-        }
-
-        // Enviar mensaje
-        const result = await sock.sendMessage(jid, { text: message });
+        // Enviar el mensaje usando whatsapp-web.js
+        const response = await client.sendMessage(jid, message);
 
         return res.json({
             success: true,
-            messageId: result?.key?.id,
+            messageId: response.id.id,
             targetJid: jid,
             message: 'Mensaje enviado con éxito.'
         });
@@ -311,13 +208,14 @@ app.post('/send', async (req, res) => {
     }
 });
 
-// 4. Desconectar sesión
 app.post('/disconnect', async (req, res) => {
     try {
-        if (sock) {
-            await sock.logout().catch(() => {});
+        if (client && connectionState === 'connected') {
+            await client.logout().catch(() => {});
+        } else if (client) {
+            await client.destroy().catch(() => {});
         }
-        cleanSocket();
+        
         try {
             fs.rmSync(AUTH_DIR, { recursive: true, force: true });
             fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -327,23 +225,21 @@ app.post('/disconnect', async (req, res) => {
         connectedUser = null;
         currentQR = null;
         currentQRImage = null;
-        isInitializing = false;
 
-        // Reiniciar para generar un nuevo QR
-        setTimeout(() => initWhatsApp(), 1500);
+        setTimeout(() => initClient(), 1500);
 
         res.json({ success: true, message: 'Sesión de WhatsApp cerrada con éxito. Generando nuevo QR...' });
     } catch (err) {
-        cleanSocket();
-        isInitializing = false;
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// 5. Forzar reinicio / regeneración de QR
 app.post('/reset', async (req, res) => {
     try {
-        cleanSocket();
+        if (client) {
+            await client.destroy().catch(() => {});
+        }
+        
         try {
             fs.rmSync(AUTH_DIR, { recursive: true, force: true });
             fs.mkdirSync(AUTH_DIR, { recursive: true });
@@ -353,9 +249,8 @@ app.post('/reset', async (req, res) => {
         connectedUser = null;
         currentQR = null;
         currentQRImage = null;
-        isInitializing = false;
 
-        setTimeout(() => initWhatsApp(), 1000);
+        setTimeout(() => initClient(), 1000);
 
         res.json({ success: true, message: 'Servicio reiniciado y credenciales limpiadas con éxito.' });
     } catch (err) {
@@ -365,5 +260,4 @@ app.post('/reset', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`WhatsApp Microservice escuchando en puerto ${PORT}`);
-    initWhatsApp();
 });
