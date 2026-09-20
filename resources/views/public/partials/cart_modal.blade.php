@@ -220,6 +220,10 @@
                         <option value="Transferencia / Mercado Pago">💳 Transferencia / Mercado Pago</option>
                         <option value="Tarjeta">💳 Tarjeta Débito/Crédito</option>
                     </select>
+                    <div id="payment-transfer-info" class="hidden mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm flex items-start space-x-2">
+                        <i class="fas fa-info-circle mt-0.5"></i>
+                        <span>Coordinaremos el alias por WhatsApp y te pediremos el comprobante.</span>
+                    </div>
                 </div>
 
                 <!-- Notas del pedido -->

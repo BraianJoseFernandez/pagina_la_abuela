@@ -1897,5 +1897,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar autocompletado inteligente de calles
     setupAddressAutocomplete();
+
+    // Mostrar leyenda informativa según método de pago
+    const paymentMethodSelect = document.getElementById('order-payment-method');
+    const paymentTransferInfo = document.getElementById('payment-transfer-info');
+    if (paymentMethodSelect && paymentTransferInfo) {
+        paymentMethodSelect.addEventListener('change', () => {
+            if (paymentMethodSelect.value === 'Transferencia / Mercado Pago' || paymentMethodSelect.value === 'Tarjeta') {
+                paymentTransferInfo.classList.remove('hidden');
+            } else {
+                paymentTransferInfo.classList.add('hidden');
+            }
+        });
+    }
 });
 
