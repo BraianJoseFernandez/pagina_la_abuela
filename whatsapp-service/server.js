@@ -21,98 +21,120 @@ let currentQRImage = null;
 let connectionState = 'disconnected'; // 'disconnected', 'qr_ready', 'connected'
 let connectedUser = null;
 
-// Initialize whatsapp-web.js client
-let client;
+let isInitializing = false;
+let initTimer = null;
 
-function initClient() {
-    client = new Client({
-        authStrategy: new LocalAuth({ dataPath: AUTH_DIR }),
-        puppeteer: {
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu'
-            ]
-        },
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-    });
+function scheduleInitClient(delayMs = 1500) {
+    if (initTimer) clearTimeout(initTimer);
+    initTimer = setTimeout(() => {
+        initTimer = null;
+        initClient();
+    }, delayMs);
+}
 
-    client.on('qr', async (qr) => {
-        console.log('Generando nuevo QR...');
-        currentQR = qr;
-        connectionState = 'qr_ready';
-        try {
-            currentQRImage = await qrcode.toDataURL(qr);
-        } catch (err) {
-            console.error('Error procesando QR:', err);
+async function initClient() {
+    if (isInitializing) {
+        console.log('initClient ya se encuentra en ejecución. Omitiendo llamada duplicada.');
+        return;
+    }
+    isInitializing = true;
+
+    try {
+        if (client) {
+            console.log('Cerrando instancia previa de cliente...');
+            try {
+                await client.destroy();
+            } catch (e) {}
+            client = null;
         }
-    });
 
-    client.on('ready', () => {
-        console.log('✅ Conexión establecida con WhatsApp (whatsapp-web.js)!');
-        connectionState = 'connected';
-        currentQR = null;
-        currentQRImage = null;
-        
-        // El bot ya tiene el nombre por defecto en whatsapp-web.js, pero podemos obtener la info del dispositivo
-        connectedUser = {
-            id: client.info.wid.user,
-            name: client.info.pushname || 'Rotisería La Abuela'
-        };
-    });
+        console.log('Iniciando nueva instancia de Client (whatsapp-web.js)...');
+        client = new Client({
+            authStrategy: new LocalAuth({ dataPath: AUTH_DIR }),
+            puppeteer: {
+                headless: true,
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu'
+                ]
+            },
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        });
 
-    client.on('authenticated', () => {
-        console.log('Autenticado exitosamente.');
-    });
+        client.on('qr', async (qr) => {
+            console.log('Generando nuevo QR...');
+            currentQR = qr;
+            connectionState = 'qr_ready';
+            try {
+                currentQRImage = await qrcode.toDataURL(qr);
+            } catch (err) {
+                console.error('Error procesando QR:', err);
+            }
+        });
 
-    client.on('auth_failure', msg => {
-        console.error('Fallo de autenticación:', msg);
-        connectionState = 'disconnected';
-        currentQR = null;
-        currentQRImage = null;
-        
-        // Borrar credenciales porque la sesión caducó
-        try {
-            fs.rmSync(AUTH_DIR, { recursive: true, force: true });
-            fs.mkdirSync(AUTH_DIR, { recursive: true });
-        } catch (e) {}
+        client.on('ready', () => {
+            console.log('✅ Conexión establecida con WhatsApp (whatsapp-web.js)!');
+            connectionState = 'connected';
+            currentQR = null;
+            currentQRImage = null;
+            
+            connectedUser = {
+                id: client.info?.wid?.user || '',
+                name: client.info?.pushname || 'Rotisería La Abuela'
+            };
+        });
 
-        console.log('Reiniciando el cliente para pedir QR nuevamente...');
-        setTimeout(() => {
-            initClient();
-        }, 3000);
-    });
+        client.on('authenticated', () => {
+            console.log('Autenticado exitosamente.');
+        });
 
-    client.on('disconnected', (reason) => {
-        console.log('Cliente desconectado:', reason);
-        connectionState = 'disconnected';
-        currentQR = null;
-        currentQRImage = null;
-        connectedUser = null;
-
-        // Limpiamos credenciales si el usuario cerro sesión
-        if (reason === 'LOGOUT') {
+        client.on('auth_failure', msg => {
+            console.error('Fallo de autenticación:', msg);
+            connectionState = 'disconnected';
+            currentQR = null;
+            currentQRImage = null;
+            
             try {
                 fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                 fs.mkdirSync(AUTH_DIR, { recursive: true });
             } catch (e) {}
-        }
-        
-        console.log('Reiniciando cliente en 5s...');
-        setTimeout(() => {
-            initClient();
-        }, 5000);
-    });
 
-    client.initialize().catch(err => {
-        console.error('Error fatal inicializando Puppeteer:', err);
-        console.error('¡Asegúrate de instalar las dependencias de Chromium (ej: libgbm-dev, libnss3, etc) en tu servidor!');
-    });
+            console.log('Reiniciando cliente en 3s tras fallo de auth...');
+            scheduleInitClient(3000);
+        });
+
+        client.on('disconnected', (reason) => {
+            console.log('Cliente desconectado:', reason);
+            connectionState = 'disconnected';
+            currentQR = null;
+            currentQRImage = null;
+            connectedUser = null;
+
+            if (reason === 'LOGOUT') {
+                try {
+                    fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+                    fs.mkdirSync(AUTH_DIR, { recursive: true });
+                } catch (e) {}
+            }
+            
+            console.log('Reiniciando cliente en 4s tras desconexión...');
+            scheduleInitClient(4000);
+        });
+
+        await client.initialize().catch(err => {
+            console.error('Error fatal inicializando Puppeteer:', err);
+            console.error('¡Asegúrate de instalar las dependencias de Chromium (ej: libgbm-dev, libnss3, etc) en tu servidor!');
+        });
+    } catch (err) {
+        console.error('Error durante initClient:', err);
+    } finally {
+        isInitializing = false;
+    }
 }
 
 // Iniciar el cliente al arrancar el servidor
@@ -200,13 +222,41 @@ app.post('/send', async (req, res) => {
             });
         }
 
-        // Enviar el mensaje usando whatsapp-web.js
-        const response = await client.sendMessage(jid, message);
+        // Asegurar que las funciones inyectadas de WWebJS sigan activas en el navegador
+        if (client.pupPage) {
+            try {
+                const isReady = await client.pupPage.evaluate(() => {
+                    return typeof window.WWebJS !== 'undefined' && typeof window.WWebJS.getChat === 'function';
+                }).catch(() => false);
+
+                if (!isReady) {
+                    console.log('WWebJS no encontrado o no inicializado. Reinyectando utilidades en WhatsApp Web...');
+                    const { LoadUtils } = require('whatsapp-web.js/src/util/Injected/Utils');
+                    await client.pupPage.evaluate(LoadUtils);
+                }
+            } catch (evalErr) {
+                console.warn('Advertencia verificando WWebJS:', evalErr.message);
+            }
+        }
+
+        // Resolver el ID exacto que WhatsApp tiene registrado para este número
+        let targetJid = jid;
+        try {
+            const numberDetails = await client.getNumberId(jid);
+            if (numberDetails && numberDetails._serialized) {
+                targetJid = numberDetails._serialized;
+            }
+        } catch (e) {
+            console.warn('No se pudo verificar getNumberId, usando formato directo:', e.message);
+        }
+
+        console.log(`Enviando comanda a ${targetJid}...`);
+        const response = await client.sendMessage(targetJid, message);
 
         return res.json({
             success: true,
             messageId: response?.id?._serialized || response?.id?.id || 'unknown',
-            targetJid: jid,
+            targetJid: targetJid,
             message: 'Mensaje enviado con éxito.'
         });
     } catch (err) {
@@ -236,7 +286,7 @@ app.post('/disconnect', async (req, res) => {
         currentQR = null;
         currentQRImage = null;
 
-        setTimeout(() => initClient(), 1500);
+        scheduleInitClient(2000);
 
         res.json({ success: true, message: 'Sesión de WhatsApp cerrada con éxito. Generando nuevo QR...' });
     } catch (err) {
@@ -260,7 +310,7 @@ app.post('/reset', async (req, res) => {
         currentQR = null;
         currentQRImage = null;
 
-        setTimeout(() => initClient(), 1000);
+        scheduleInitClient(1000);
 
         res.json({ success: true, message: 'Servicio reiniciado y credenciales limpiadas con éxito.' });
     } catch (err) {
