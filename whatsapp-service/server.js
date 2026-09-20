@@ -4,6 +4,10 @@ const QRCode = require('qrcode');
 const pino = require('pino');
 const path = require('path');
 const fs = require('fs');
+const dns = require('dns');
+
+// Solución para servidores VPS: Forzar IPv4 para evitar el error 408 (Timeout) de WhatsApp
+dns.setDefaultResultOrder('ipv4first');
 
 const {
     default: makeWASocket,
@@ -31,6 +35,8 @@ let connectionState = 'disconnected';
 let connectedUser = null;
 let isInitializing = false;
 let reconnectTimer = null;
+let authState = null;
+let authSaveCreds = null;
 
 const logger = pino({ level: 'silent' });
 
@@ -83,7 +89,12 @@ async function initWhatsApp() {
     try {
         cleanSocket();
 
-        const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+        if (!authState || !fs.existsSync(path.join(AUTH_DIR, 'creds.json'))) {
+            const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+            authState = state;
+            authSaveCreds = saveCreds;
+        }
+
         const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] }));
 
         if (state.creds && state.creds.me && !state.creds.me.name) {
@@ -94,7 +105,7 @@ async function initWhatsApp() {
             version,
             logger,
             printQRInTerminal: false,
-            auth: state,
+            auth: authState,
             connectTimeoutMs: 60000,
             defaultQueryTimeoutMs: 60000,
             browser: ['Rotisería La Abuela', 'Chrome', '20.0.04'],
@@ -103,7 +114,7 @@ async function initWhatsApp() {
             shouldSyncHistoryMessage: () => false
         });
 
-        sock.ev.on('creds.update', saveCreds);
+        sock.ev.on('creds.update', authSaveCreds);
 
         sock.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
@@ -135,6 +146,8 @@ async function initWhatsApp() {
                     try {
                         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
                         fs.mkdirSync(AUTH_DIR, { recursive: true });
+                        authState = null;
+                        authSaveCreds = null;
                     } catch (err) {}
                     scheduleReconnect(2000);
                 } else if (statusCode === DisconnectReason.restartRequired) {
