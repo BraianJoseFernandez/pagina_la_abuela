@@ -479,7 +479,8 @@
     let waCheckTimer = null;
 
     function checkWhatsAppStatus() {
-        fetch('{{ route("admin.whatsapp.status") }}')
+        const timestamp = new Date().getTime();
+        fetch(`{{ route("admin.whatsapp.status") }}?t=${timestamp}`)
             .then(res => res.json())
             .then(data => {
                 const badge = document.getElementById('wa-status-badge');
@@ -508,7 +509,8 @@
                     if (offBox) offBox.classList.add('hidden');
                     if (qrBox) qrBox.classList.remove('hidden');
 
-                    fetch('{{ route("admin.whatsapp.qr") }}')
+                    const qrTimestamp = new Date().getTime();
+                    fetch(`{{ route("admin.whatsapp.qr") }}?t=${qrTimestamp}`)
                         .then(r => r.json())
                         .then(qrData => {
                             if (qrData.qr_image && qrImg) {
