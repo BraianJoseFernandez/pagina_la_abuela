@@ -116,7 +116,7 @@ class WhatsAppService
                 ->post("/message/sendText/{$this->instance}", [
                     'number' => $number,
                     'text' => $message,
-                    'delay' => random_int(800, 2000),
+                    // Sin 'delay': evita que Evolution emita presencia "escribiendo…" en cada envío
                     'linkPreview' => false,
                 ]);
 
