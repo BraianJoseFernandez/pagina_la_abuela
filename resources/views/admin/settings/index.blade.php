@@ -115,6 +115,83 @@
                 </div>
             </div>
 
+            <!-- Conexión de WhatsApp Automático (API Baileys) -->
+            <div class="border-t border-slate-100 pt-6">
+                <div class="bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/80 rounded-3xl p-5 sm:p-6 border border-emerald-200 shadow-xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-sm flex-shrink-0">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+                                    <span>WhatsApp Automático (Sin WhatsApp Web)</span>
+                                </h4>
+                                <p class="text-xs text-slate-500 mt-0.5">
+                                    Conecta el WhatsApp del negocio una sola vez para enviar comandas y pedidos automáticamente en segundo plano.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Badge de estado -->
+                        <div id="wa-status-badge" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-600 flex-shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+                            <span id="wa-status-text">Verificando conexión...</span>
+                        </div>
+                    </div>
+
+                    <!-- Contenedor QR para Escaneo -->
+                    <div id="wa-qr-container" class="hidden p-5 bg-white rounded-2xl border border-emerald-200/90 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xs">
+                        <div class="space-y-2.5 text-center sm:text-left">
+                            <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <i class="fas fa-qrcode text-xs text-amber-600"></i>
+                                <span>Vincular Cuenta de WhatsApp</span>
+                            </span>
+                            <h5 class="text-sm font-black text-slate-800">Escanea este código QR desde tu celular</h5>
+                            <ol class="text-xs text-slate-600 space-y-1.5 list-decimal list-inside leading-relaxed">
+                                <li>Abre WhatsApp en tu teléfono celular.</li>
+                                <li>Ve a <b>Ajustes / Configuración</b> o los 3 puntos y elige <b>Dispositivos vinculados</b>.</li>
+                                <li>Toca en <b>Vincular un dispositivo</b> y apunta la cámara a este código QR.</li>
+                            </ol>
+                            <p class="text-[11px] text-emerald-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 pt-1">
+                                <i class="fas fa-sync-alt fa-spin text-[10px]"></i>
+                                <span>El código QR se actualiza en tiempo real automáticamente.</span>
+                            </p>
+                        </div>
+                        <div class="w-48 h-48 p-2.5 bg-white rounded-2xl border-2 border-emerald-400 shadow-md flex items-center justify-center flex-shrink-0">
+                            <img id="wa-qr-image" src="" alt="Código QR WhatsApp" class="w-full h-full object-contain">
+                        </div>
+                    </div>
+
+                    <!-- Contenedor cuando está Conectado -->
+                    <div id="wa-connected-container" class="hidden p-4 bg-emerald-100/70 rounded-2xl border border-emerald-300 flex items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center space-x-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-xs font-black text-emerald-950 block">¡WhatsApp Conectado y Listo!</span>
+                                <span id="wa-connected-phone" class="text-xs text-emerald-800 font-mono truncate block">Sesión activa para envíos en segundo plano</span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="disconnectWhatsApp()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold transition shadow-xs flex-shrink-0 cursor-pointer">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Desvincular
+                        </button>
+                    </div>
+
+                    <!-- Contenedor cuando el Microservicio está apagado -->
+                    <div id="wa-offline-container" class="hidden p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                        <div class="flex items-center space-x-2.5">
+                            <i class="fas fa-exclamation-triangle text-amber-600 text-base flex-shrink-0"></i>
+                            <span>El microservicio local de WhatsApp no está iniciado en el puerto 3001.</span>
+                        </div>
+                        <button type="button" onclick="checkWhatsAppStatus()" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition cursor-pointer flex-shrink-0">
+                            Reintentar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Motomandados / Cadetes de Entrega -->
             <div class="border-t border-slate-100 pt-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
@@ -395,6 +472,120 @@
             }
         }
     }
+
+    // ====================================================
+    // GESTIÓN DE WHATSAPP AUTOMÁTICO (EVOLUTION API)
+    // ====================================================
+    let waCheckTimer = null;
+
+    function checkWhatsAppStatus() {
+        const timestamp = new Date().getTime();
+        fetch(`{{ route("admin.whatsapp.status") }}?t=${timestamp}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log('[WhatsApp Debug] Estado recibido:', data);
+                const badge = document.getElementById('wa-status-badge');
+                const text = document.getElementById('wa-status-text');
+                const qrBox = document.getElementById('wa-qr-container');
+                const connBox = document.getElementById('wa-connected-container');
+                const offBox = document.getElementById('wa-offline-container');
+                const qrImg = document.getElementById('wa-qr-image');
+                const phoneLabel = document.getElementById('wa-connected-phone');
+
+                if (!badge || !text) return;
+
+                if (data.connected) {
+                    badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-100 border border-emerald-300 text-xs font-bold text-emerald-800 flex-shrink-0';
+                    text.innerText = '🟢 Conectado';
+                    if (connBox) connBox.classList.remove('hidden');
+                    if (qrBox) qrBox.classList.add('hidden');
+                    if (offBox) offBox.classList.add('hidden');
+                    if (phoneLabel && data.user) {
+                        phoneLabel.innerText = `Número vinculado: ${data.user.id ? data.user.id.split(':')[0] : ''} (${data.user.name || 'Negocio'})`;
+                    }
+                } else if (data.status === 'qr_ready') {
+                    badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-xs font-bold text-amber-800 flex-shrink-0';
+                    text.innerText = '🟡 Esperando escaneo de QR';
+                    if (connBox) connBox.classList.add('hidden');
+                    if (offBox) offBox.classList.add('hidden');
+                    if (qrBox) qrBox.classList.remove('hidden');
+
+                    if (data.qr_image && qrImg) {
+                        qrImg.src = data.qr_image;
+                    } else {
+                        const qrTimestamp = new Date().getTime();
+                        fetch(`{{ route("admin.whatsapp.qr") }}?t=${qrTimestamp}`)
+                            .then(r => r.json())
+                            .then(qrData => {
+                                if (qrData.qr_image && qrImg) {
+                                    qrImg.src = qrData.qr_image;
+                                }
+                            });
+                    }
+                } else if (data.status === 'offline') {
+                    badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-500 flex-shrink-0';
+                    text.innerText = '⚪ Servicio Inactivo';
+                    if (connBox) connBox.classList.add('hidden');
+                    if (qrBox) qrBox.classList.add('hidden');
+                    if (offBox) offBox.classList.remove('hidden');
+                } else {
+                    badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700 flex-shrink-0';
+                    text.innerText = '🔵 Conectando...';
+                }
+            })
+            .catch(() => {
+                const badge = document.getElementById('wa-status-badge');
+                const text = document.getElementById('wa-status-text');
+                const offBox = document.getElementById('wa-offline-container');
+                if (badge && text) {
+                    badge.className = 'inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-bold text-slate-500';
+                    text.innerText = '⚪ Desconectado';
+                }
+                if (offBox) offBox.classList.remove('hidden');
+            });
+    }
+
+    function disconnectWhatsApp() {
+        Swal.fire({
+            title: '¿Desvincular WhatsApp?',
+            text: 'Se cerrará la sesión de WhatsApp del sistema. Deberás volver a escanear el código QR para usar el envío automático.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, desvincular',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true,
+            customClass: { popup: 'rounded-3xl shadow-2xl font-[Poppins]' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('{{ route("admin.whatsapp.disconnect") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: data.message || 'Sesión desvinculada',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    setTimeout(checkWhatsAppStatus, 1000);
+                });
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkWhatsAppStatus();
+        waCheckTimer = setInterval(checkWhatsAppStatus, 3500);
+    });
 </script>
 @endpush
 @endsection

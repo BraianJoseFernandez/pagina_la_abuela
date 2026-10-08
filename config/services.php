@@ -14,6 +14,13 @@ return [
     |
     */
 
+    // Gateway de WhatsApp (Evolution API, ver docker/evolution)
+    'evolution' => [
+        'url' => env('EVOLUTION_API_URL', 'http://127.0.0.1:8090'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+        'instance' => env('EVOLUTION_INSTANCE', 'laabuela'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

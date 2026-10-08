@@ -505,19 +505,93 @@
         msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
         msg += `_¡Buen viaje y con cuidado!_ 🛵💨`;
 
-        // Normalizar número argentino al formato internacional (549...)
-        let cleanNumber = currentCadete.phone.replace(/\D/g, '');
-        if (cleanNumber.startsWith('0')) cleanNumber = cleanNumber.substring(1);
-        if (cleanNumber.length === 10) {
-            cleanNumber = '549' + cleanNumber;
-        } else if (cleanNumber.startsWith('54') && !cleanNumber.startsWith('549') && cleanNumber.length === 12) {
-            cleanNumber = '549' + cleanNumber.substring(2);
+        const cleanNumber = currentCadete.phone.replace(/\D/g, '');
+        const encodedMsg = encodeURIComponent(msg);
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || navigator.vendor || window.opera) ||
+                         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        const btnSend = document.getElementById('dispatch-modal-btn-send');
+        const originalContent = btnSend ? btnSend.innerHTML : '';
+        if (btnSend) {
+            btnSend.disabled = true;
+            btnSend.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i><span>Despachando automáticamente...</span>';
+            btnSend.classList.add('opacity-75', 'pointer-events-none');
         }
 
-        // Abre WhatsApp (app o web) con el chat del cadete y la comanda ya escrita
-        const url = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
-        closeDispatchCadeteModal();
-        window.open(url, '_blank');
+        // Petición al backend para despacho 100% automático en segundo plano
+        fetch('{{ route("admin.orders.dispatch-whatsapp", $order) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                cadete_name: currentCadete.name,
+                cadete_phone: currentCadete.phone,
+                comment: extraComment
+            })
+        })
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+
+            if (btnSend) {
+                btnSend.disabled = false;
+                btnSend.innerHTML = originalContent;
+                btnSend.classList.remove('opacity-75', 'pointer-events-none');
+            }
+
+            if (res.ok && data.success) {
+                closeDispatchCadeteModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Comanda Enviada!',
+                    text: `El pedido #${orderData.id} fue enviado automáticamente y en segundo plano al WhatsApp de ${currentCadete.name}.`,
+                    confirmButtonColor: '#059669',
+                    customClass: { popup: 'rounded-3xl shadow-2xl font-[Poppins]' }
+                });
+            } else {
+                // Si el servicio automático no está vinculado, ofrecer apertura manual
+                const fallbackUrl = data.fallback_url || `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedMsg}`;
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Envío Automático no vinculado',
+                    text: data.error || 'La sesión de WhatsApp automático no está iniciada en la configuración. Puedes escanear el QR en Configuración o enviar manualmente.',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Abrir WhatsApp Manual',
+                    cancelButtonText: 'Cerrar',
+                    reverseButtons: true,
+                    customClass: { popup: 'rounded-3xl shadow-2xl font-[Poppins]' }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        closeDispatchCadeteModal();
+                        if (isMobile) {
+                            window.location.href = `whatsapp://send?phone=${cleanNumber}&text=${encodedMsg}`;
+                        } else {
+                            window.open(fallbackUrl, '_blank');
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btnSend) {
+                btnSend.disabled = false;
+                btnSend.innerHTML = originalContent;
+                btnSend.classList.remove('opacity-75', 'pointer-events-none');
+            }
+
+            // Fallback en caso de fallo de red
+            closeDispatchCadeteModal();
+            if (isMobile) {
+                window.location.href = `whatsapp://send?phone=${cleanNumber}&text=${encodedMsg}`;
+            } else {
+                window.open(`https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodedMsg}`, '_blank');
+            }
+        });
     }
 
     function confirmDeleteOrder() {
