@@ -23,6 +23,28 @@ let connectedUser = null;
 let client = null;
 
 let isInitializing = false;
+let presenceTimer = null;
+
+// Mantener la sesión como "no disponible" para que el teléfono siga recibiendo notificaciones
+async function setOffline() {
+    if (!client || connectionState !== 'connected') return;
+    try {
+        await client.sendPresenceUnavailable();
+    } catch (e) {
+        console.warn('No se pudo marcar presencia como no disponible:', e.message);
+    }
+}
+
+function startPresenceLoop() {
+    stopPresenceLoop();
+    setOffline();
+    presenceTimer = setInterval(setOffline, 30000);
+}
+
+function stopPresenceLoop() {
+    if (presenceTimer) clearInterval(presenceTimer);
+    presenceTimer = null;
+}
 let initTimer = null;
 
 function scheduleInitClient(delayMs = 1500) {
@@ -88,6 +110,8 @@ async function initClient() {
                 id: client.info?.wid?.user || '',
                 name: client.info?.pushname || 'Rotisería La Abuela'
             };
+
+            startPresenceLoop();
         });
 
         client.on('authenticated', () => {
@@ -115,6 +139,7 @@ async function initClient() {
             currentQR = null;
             currentQRImage = null;
             connectedUser = null;
+            stopPresenceLoop();
 
             if (reason === 'LOGOUT') {
                 try {
@@ -223,36 +248,25 @@ app.post('/send', async (req, res) => {
             });
         }
 
-        // Asegurar que las funciones inyectadas de WWebJS sigan activas en el navegador
-        if (client.pupPage) {
-            try {
-                const isReady = await client.pupPage.evaluate(() => {
-                    return typeof window.WWebJS !== 'undefined' && typeof window.WWebJS.getChat === 'function';
-                }).catch(() => false);
-
-                if (!isReady) {
-                    console.log('WWebJS no encontrado o no inicializado. Reinyectando utilidades en WhatsApp Web...');
-                    const { LoadUtils } = require('whatsapp-web.js/src/util/Injected/Utils');
-                    await client.pupPage.evaluate(LoadUtils);
-                }
-            } catch (evalErr) {
-                console.warn('Advertencia verificando WWebJS:', evalErr.message);
-            }
-        }
-
         // Resolver el ID exacto que WhatsApp tiene registrado para este número
         let targetJid = jid;
         try {
             const numberDetails = await client.getNumberId(jid);
             if (numberDetails && numberDetails._serialized) {
                 targetJid = numberDetails._serialized;
+            } else {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Ese número no tiene WhatsApp registrado.'
+                });
             }
         } catch (e) {
             console.warn('No se pudo verificar getNumberId, usando formato directo:', e.message);
         }
 
         console.log(`Enviando comanda a ${targetJid}...`);
-        const response = await client.sendMessage(targetJid, message);
+        // sendSeen:false evita window.WWebJS.sendSeen/getChat, que rompe con versiones nuevas de WhatsApp Web
+        const response = await client.sendMessage(targetJid, message, { sendSeen: false });
 
         return res.json({
             success: true,
@@ -282,6 +296,7 @@ app.post('/disconnect', async (req, res) => {
             fs.mkdirSync(AUTH_DIR, { recursive: true });
         } catch (e) {}
 
+        stopPresenceLoop();
         connectionState = 'disconnected';
         connectedUser = null;
         currentQR = null;
@@ -306,6 +321,7 @@ app.post('/reset', async (req, res) => {
             fs.mkdirSync(AUTH_DIR, { recursive: true });
         } catch (e) {}
 
+        stopPresenceLoop();
         connectionState = 'disconnected';
         connectedUser = null;
         currentQR = null;
