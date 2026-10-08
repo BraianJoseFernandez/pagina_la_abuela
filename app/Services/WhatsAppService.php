@@ -147,13 +147,15 @@ class WhatsAppService
     }
 
     /**
-     * Cierra la sesión vinculada para poder escanear otro QR.
+     * Cierra la sesión y borra la instancia, así el próximo QR sale de una instancia
+     * limpia (y se vuelven a aplicar los ajustes de presencia al recrearla).
      */
     public function disconnect(): array
     {
         if ($this->isConfigured()) {
             try {
-                $response = $this->client()->delete("/instance/logout/{$this->instance}");
+                $this->client()->delete("/instance/logout/{$this->instance}");
+                $response = $this->client()->delete("/instance/delete/{$this->instance}");
                 Cache::forget('whatsapp_qr_'.$this->instance);
 
                 if ($response->successful() || $response->status() === 404) {
