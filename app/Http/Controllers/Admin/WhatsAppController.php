@@ -108,7 +108,7 @@ class WhatsAppController extends Controller
         // URL manual de respaldo por si el servicio no está conectado
         $manualUrl = "https://web.whatsapp.com/send?phone={$cadetePhone}&text=" . urlencode($msg);
 
-        // Despachar a través del servicio Baileys
+        // Despachar a través del gateway Evolution
         $sendResult = $this->whatsAppService->sendMessage($cadetePhone, $msg);
 
         if ($sendResult['success']) {

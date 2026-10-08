@@ -474,7 +474,7 @@
     }
 
     // ====================================================
-    // GESTIÓN DE WHATSAPP AUTOMÁTICO (API BAILEYS)
+    // GESTIÓN DE WHATSAPP AUTOMÁTICO (EVOLUTION API)
     // ====================================================
     let waCheckTimer = null;
 

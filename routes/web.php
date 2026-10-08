@@ -65,7 +65,7 @@ Route::middleware(['auth', 'role:admin,personal'])->prefix('admin')->name('admin
     Route::post('orders/{order}/dispatch-whatsapp', [WhatsAppController::class, 'dispatchOrder'])->name('orders.dispatch-whatsapp');
     Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
-    // Gestión de WhatsApp Automático (Baileys API)
+    // Gestión de WhatsApp Automático (Evolution API)
     Route::get('whatsapp/status', [WhatsAppController::class, 'status'])->name('whatsapp.status');
     Route::get('whatsapp/qr', [WhatsAppController::class, 'qr'])->name('whatsapp.qr');
     Route::post('whatsapp/disconnect', [WhatsAppController::class, 'disconnect'])->name('whatsapp.disconnect');
