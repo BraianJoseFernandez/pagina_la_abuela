@@ -35,10 +35,37 @@ async function setOffline() {
     }
 }
 
+// Impide que WhatsApp Web se anuncie "en línea": la página se ve siempre oculta
+// y sendPresenceAvailable queda anulada. Así el teléfono sigue recibiendo notificaciones.
+async function patchPresence() {
+    if (!client || !client.pupPage) return;
+    try {
+        await client.pupPage.evaluate(() => {
+            try {
+                Object.defineProperty(document, 'hidden', { get: () => true, configurable: true });
+                Object.defineProperty(document, 'visibilityState', { get: () => 'hidden', configurable: true });
+                document.hasFocus = () => false;
+            } catch (e) {}
+            try {
+                const mod = window.require('WAWebPresenceChatAction');
+                if (!mod.__patched) {
+                    mod.sendPresenceAvailable = async () => {};
+                    mod.__patched = true;
+                }
+            } catch (e) {}
+        });
+    } catch (e) {
+        console.warn('No se pudo parchear presencia:', e.message);
+    }
+}
+
 function startPresenceLoop() {
     stopPresenceLoop();
-    setOffline();
-    presenceTimer = setInterval(setOffline, 30000);
+    patchPresence().then(setOffline);
+    presenceTimer = setInterval(async () => {
+        await patchPresence();
+        await setOffline();
+    }, 5000);
 }
 
 function stopPresenceLoop() {
@@ -113,6 +140,8 @@ async function initClient() {
 
             startPresenceLoop();
         });
+
+        client.on('message_create', () => { setOffline(); });
 
         client.on('authenticated', () => {
             console.log('Autenticado exitosamente.');
