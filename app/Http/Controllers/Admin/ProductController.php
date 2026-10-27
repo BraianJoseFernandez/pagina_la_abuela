@@ -71,6 +71,8 @@ class ProductController extends Controller
             'garnish_descriptions' => 'nullable|array',
             'garnish_descriptions.*' => 'nullable|string|max:500',
             'garnish_cropped_base64' => 'nullable|array',
+            'garnish_images' => 'nullable|array',
+            'garnish_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
             'garnish_existing_images' => 'nullable|array',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
@@ -93,7 +95,7 @@ class ProductController extends Controller
         // Si viene imagen recortada en Base64 (con Cropper.js)
         if (!empty($request->input('cropped_image_base64'))) {
             $data = $request->input('cropped_image_base64');
-            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+            if (preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/i', $data, $type)) {
                 $data = substr($data, strpos($data, ',') + 1);
                 $type = strtolower($type[1]);
                 $data = base64_decode($data);
@@ -108,7 +110,7 @@ class ProductController extends Controller
             }
         } elseif ($request->hasFile('image_file')) {
             $file = $request->file('image_file');
-            $filename = 'dish_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $filename = 'dish_' . time() . '_' . Str::random(8) . '.' . $file->extension();
             $destinationPath = public_path('imagenes/uploads');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
@@ -202,6 +204,8 @@ class ProductController extends Controller
             'garnish_descriptions' => 'nullable|array',
             'garnish_descriptions.*' => 'nullable|string|max:500',
             'garnish_cropped_base64' => 'nullable|array',
+            'garnish_images' => 'nullable|array',
+            'garnish_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
             'garnish_existing_images' => 'nullable|array',
         ], [
             'category_id.required' => 'Debes seleccionar una categoría para el producto.',
@@ -224,7 +228,7 @@ class ProductController extends Controller
         // Si viene nueva imagen recortada en Base64
         if (!empty($request->input('cropped_image_base64'))) {
             $data = $request->input('cropped_image_base64');
-            if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
+            if (preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/i', $data, $type)) {
                 $data = substr($data, strpos($data, ',') + 1);
                 $type = strtolower($type[1]);
                 $data = base64_decode($data);
@@ -239,7 +243,7 @@ class ProductController extends Controller
             }
         } elseif ($request->hasFile('image_file')) {
             $file = $request->file('image_file');
-            $filename = 'dish_' . time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
+            $filename = 'dish_' . time() . '_' . Str::random(8) . '.' . $file->extension();
             $destinationPath = public_path('imagenes/uploads');
             if (!file_exists($destinationPath)) {
                 mkdir($destinationPath, 0755, true);
@@ -329,7 +333,7 @@ class ProductController extends Controller
             $imagePath = $existingImages[$idx] ?? null;
 
             // Si se envió imagen recortada en Base64 con el Cropper circular
-            if (!empty($croppedImages[$idx]) && preg_match('/^data:image\/(\w+);base64,/', $croppedImages[$idx], $type)) {
+            if (!empty($croppedImages[$idx]) && preg_match('/^data:image\/(jpeg|jpg|png|webp);base64,/i', $croppedImages[$idx], $type)) {
                 $base64Str = substr($croppedImages[$idx], strpos($croppedImages[$idx], ',') + 1);
                 $ext = strtolower($type[1]);
                 $binaryData = base64_decode($base64Str);
@@ -339,7 +343,7 @@ class ProductController extends Controller
                 $imagePath = 'imagenes/uploads/garnishes/' . $filename;
             } elseif ($request->hasFile("garnish_images.{$idx}")) {
                 $file = $request->file("garnish_images.{$idx}");
-                $filename = 'garnish_' . time() . '_' . $idx . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+                $filename = 'garnish_' . time() . '_' . $idx . '_' . Str::random(6) . '.' . $file->extension();
                 $file->move($destinationPath, $filename);
                 $imagePath = 'imagenes/uploads/garnishes/' . $filename;
             }

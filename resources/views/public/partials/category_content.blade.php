@@ -22,7 +22,7 @@
                     @foreach($category->images as $img)
                         <div class="swiper-slide !w-auto px-2">
                             <div class="category-thumb-wrapper group"
-                                 onclick="showImageSweetAlert('{{ asset($img->image_path) }}', '{{ addslashes($img->alt_text ?: $category->name) }}')">
+                                 onclick="showImageSweetAlert(@js(asset($img->image_path)), @js($img->alt_text ?: $category->name))">
                                 <div class="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-purple-300 group-hover:border-purple-600 transition-all duration-300 shadow-sm group-hover:shadow-lg group-hover:scale-105">
                                     <img src="{{ asset($img->image_path) }}"
                                          alt="{{ $img->alt_text ?: $category->name }}"
@@ -32,7 +32,7 @@
                                     </div>
                                 </div>
                                 @if($img->alt_text)
-                                    <span class="text-xs font-bold text-gray-700 mt-2 max-w-[120px] truncate text-center block">
+                                    <span class="text-xs font-bold text-gray-700 mt-2 mx-auto w-28 sm:w-36 leading-tight line-clamp-2 text-center block" title="{{ $img->alt_text }}">
                                         {{ $img->alt_text }}
                                     </span>
                                 @endif
@@ -53,15 +53,30 @@
         @forelse($category->activeProducts as $product)
             <div class="menu-card rounded-2xl shadow-sm hover:shadow-md overflow-hidden relative border border-purple-100/60 bg-white/90 backdrop-blur-md transition-all duration-200 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 {{ !$product->is_available ? 'opacity-60 grayscale' : '' }}">
 
-                <!-- Badge Especial (ej: ⭐ La Abuela) -->
-                @if($product->badge)
-                    <div class="menu-item-badge">
-                        {{ $product->badge }}
-                    </div>
-                @endif
+                <!-- Información del Producto (con foto redonda si el plato tiene) -->
+                <div class="flex-grow pr-2 flex items-start gap-4 min-w-0">
+                    @if($product->image_path)
+                        <button type="button"
+                                onclick="showImageSweetAlert(@js(asset($product->image_path)), @js($product->name), { round: true })"
+                                class="product-photo group/photo relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-purple-200 hover:border-purple-500 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-purple-300"
+                                aria-label="Ver foto de {{ $product->name }}">
+                            <img src="{{ asset($product->image_path) }}"
+                                 alt="{{ $product->name }}"
+                                 loading="lazy"
+                                 class="w-full h-full object-cover rounded-full">
+                            <span class="absolute inset-0 rounded-full bg-black/25 opacity-0 group-hover/photo:opacity-100 flex items-center justify-center transition-opacity">
+                                <i class="fas fa-search-plus text-white text-lg"></i>
+                            </span>
+                        </button>
+                    @endif
 
-                <!-- Información del Producto -->
-                <div class="flex-grow pr-2">
+                    <div class="flex-1 min-w-0">
+                    <!-- Badge Especial (ej: ⭐ La Abuela), arriba a la izquierda sobre el nombre -->
+                    @if($product->badge)
+                        <span class="inline-flex items-center mb-1.5 bg-gradient-to-br from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-[11px] sm:text-xs font-extrabold uppercase tracking-wider leading-none shadow-md shadow-red-500/30">
+                            {{ $product->badge }}
+                        </span>
+                    @endif
                     <div class="flex items-center space-x-2 mb-1">
                         <h3 class="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">
                             {{ $product->name }}
@@ -101,6 +116,7 @@
                                 ${{ number_format($product->price, 0, ',', '.') }}
                             </span>
                         @endif
+                    </div>
                     </div>
                 </div>
 

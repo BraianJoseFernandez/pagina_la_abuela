@@ -124,14 +124,13 @@
                 </div>
             </div>
 
-            <!-- Fotos del Carrusel de la Categoría -->
+            <!-- Fotos del Carrusel de la Categoría (cada una con su título) -->
             <div class="border-t border-slate-100 pt-6">
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Fotos de Muestra para el Carrusel de la Categoría (opcional)
-                </label>
-                <p class="text-xs text-slate-500 mb-3">Puedes seleccionar una o varias imágenes de platos para que los clientes las vean en el carrusel superior.</p>
-                <input type="file" name="carousel_images[]" multiple accept="image/*"
-                       class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                @include('admin.categories.partials.carousel-uploader', [
+                    'label' => 'Fotos de Muestra para el Carrusel (opcional)',
+                    'hint' => 'Sumá fotos de los platos y ponele un título a cada una (ej: Pizza Napolitana). Si lo dejás vacío se mostrará el nombre de la categoría.',
+                    'categoryName' => old('name', ''),
+                ])
             </div>
 
             <!-- Visibilidad -->

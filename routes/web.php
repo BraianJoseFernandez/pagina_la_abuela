@@ -45,6 +45,7 @@ Route::middleware(['auth', 'role:admin,personal'])->prefix('admin')->name('admin
     Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
     Route::post('categories/images/reorder', [CategoryController::class, 'reorderImages'])->name('categories.images.reorder');
     Route::post('categories/images/{image}/toggle-visibility', [CategoryController::class, 'toggleImageVisibility'])->name('categories.images.toggle-visibility');
+    Route::post('categories/images/{image}/title', [CategoryController::class, 'updateImageTitle'])->name('categories.images.title');
     Route::resource('categories', CategoryController::class);
     Route::delete('categories/image/{image}', [CategoryController::class, 'deleteImage'])->name('categories.delete-image');
 

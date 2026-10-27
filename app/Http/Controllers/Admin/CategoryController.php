@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\CategoryImage;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -38,6 +39,10 @@ class CategoryController extends Controller
             'order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
             'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
+            'carousel_titles' => 'nullable|array',
+            'carousel_titles.*' => 'nullable|string|max:120',
+            'image_titles' => 'nullable|array',
+            'image_titles.*' => 'nullable|string|max:120',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
@@ -45,6 +50,8 @@ class CategoryController extends Controller
             'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
             'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
             'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 6 GB.',
+            'carousel_titles.*.max' => 'El título de cada foto no puede superar los 120 caracteres.',
+            'image_titles.*.max' => 'El título de cada foto no puede superar los 120 caracteres.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
@@ -66,25 +73,8 @@ class CategoryController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        // Procesar subida de imágenes para el carrusel de la categoría
-        if ($request->hasFile('carousel_images')) {
-            $destinationPath = public_path('imagenes/uploads');
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0775, true);
-            }
-
-            foreach ($request->file('carousel_images') as $idx => $file) {
-                $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                $file->move($destinationPath, $filename);
-
-                CategoryImage::create([
-                    'category_id' => $category->id,
-                    'image_path' => 'imagenes/uploads/' . $filename,
-                    'alt_text' => $category->name,
-                    'order' => $idx + 1,
-                ]);
-            }
-        }
+        // Procesar subida de imágenes para el carrusel de la categoría (cada una con su título)
+        $this->storeCarouselImages($request, $category, 0);
 
         return redirect()->route('admin.categories.index')
             ->with('success', '¡Categoría "' . $category->name . '" creada exitosamente!');
@@ -106,6 +96,10 @@ class CategoryController extends Controller
             'order' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
             'carousel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:6291456',
+            'carousel_titles' => 'nullable|array',
+            'carousel_titles.*' => 'nullable|string|max:120',
+            'image_titles' => 'nullable|array',
+            'image_titles.*' => 'nullable|string|max:120',
         ], [
             'name.required' => 'El nombre de la categoría es obligatorio.',
             'name.max' => 'El nombre no puede superar los 255 caracteres.',
@@ -113,6 +107,8 @@ class CategoryController extends Controller
             'carousel_images.*.image' => 'Cada archivo del carrusel debe ser una imagen válida.',
             'carousel_images.*.mimes' => 'Las imágenes del carrusel deben ser de formato JPG, JPEG, PNG o WEBP.',
             'carousel_images.*.max' => 'Ninguna imagen del carrusel puede superar los 6 GB.',
+            'carousel_titles.*.max' => 'El título de cada foto no puede superar los 120 caracteres.',
+            'image_titles.*.max' => 'El título de cada foto no puede superar los 120 caracteres.',
         ]);
 
         $slug = !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['name']);
@@ -126,26 +122,15 @@ class CategoryController extends Controller
             'is_active' => $request->has('is_active'),
         ]);
 
-        // Procesar subida de imágenes nuevas
-        if ($request->hasFile('carousel_images')) {
-            $destinationPath = public_path('imagenes/uploads');
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0775, true);
-            }
-
-            $currentMaxOrder = $category->images()->max('order') ?? 0;
-            foreach ($request->file('carousel_images') as $idx => $file) {
-                $filename = time() . '_' . Str::random(8) . '.' . $file->getClientOriginalExtension();
-                $file->move($destinationPath, $filename);
-
-                CategoryImage::create([
-                    'category_id' => $category->id,
-                    'image_path' => 'imagenes/uploads/' . $filename,
-                    'alt_text' => $category->name,
-                    'order' => $currentMaxOrder + $idx + 1,
-                ]);
-            }
+        // Actualizar títulos de las fotos existentes (solo las que pertenecen a esta categoría)
+        foreach ((array) $request->input('image_titles', []) as $imageId => $title) {
+            $category->images()
+                ->whereKey((int) $imageId)
+                ->update(['alt_text' => $this->normalizeTitle($title)]);
         }
+
+        // Procesar subida de imágenes nuevas (cada una con su título)
+        $this->storeCarouselImages($request, $category, (int) ($category->images()->max('order') ?? 0));
 
         return redirect()->route('admin.categories.index')
             ->with('success', '¡Categoría "' . $category->name . '" actualizada exitosamente!');
@@ -195,6 +180,73 @@ class CategoryController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => '¡Orden de fotos actualizado!']);
+    }
+
+    /**
+     * Cambiar el título de una foto del carrusel (se muestra debajo de la miniatura y en el SweetAlert).
+     */
+    public function updateImageTitle(Request $request, CategoryImage $image): JsonResponse
+    {
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:120',
+        ], [
+            'title.max' => 'El título no puede superar los 120 caracteres.',
+        ]);
+
+        $image->alt_text = $this->normalizeTitle($validated['title'] ?? null);
+        $image->save();
+
+        return response()->json([
+            'success' => true,
+            'title' => $image->alt_text,
+            'message' => $image->alt_text ? 'Título de la foto guardado.' : 'Título quitado: se mostrará el nombre de la categoría.',
+        ]);
+    }
+
+    /**
+     * Guarda las fotos nuevas del carrusel respetando el título que se escribió para cada una.
+     */
+    private function storeCarouselImages(Request $request, Category $category, int $startOrder): void
+    {
+        if (!$request->hasFile('carousel_images')) {
+            return;
+        }
+
+        $destinationPath = public_path('imagenes/uploads');
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0775, true);
+        }
+
+        $titles = array_values((array) $request->input('carousel_titles', []));
+        $files = array_values($request->file('carousel_images'));
+
+        foreach ($files as $idx => $file) {
+            if (!$file instanceof UploadedFile || !$file->isValid()) {
+                continue;
+            }
+            // extension() se basa en el contenido real del archivo, no en el nombre que manda el navegador
+            $extension = $file->extension() === 'jpeg' ? 'jpg' : $file->extension();
+            $filename = time() . '_' . Str::random(8) . '.' . $extension;
+            $file->move($destinationPath, $filename);
+
+            CategoryImage::create([
+                'category_id' => $category->id,
+                'image_path' => 'imagenes/uploads/' . $filename,
+                'alt_text' => $this->normalizeTitle($titles[$idx] ?? null),
+                'order' => $startOrder + $idx + 1,
+            ]);
+        }
+    }
+
+    /**
+     * Título vacío = null (la carta muestra el nombre de la categoría como respaldo).
+     */
+    private function normalizeTitle(?string $title): ?string
+    {
+        // Sin saltos de línea ni espacios dobles (el título se muestra en una sola línea en la carta)
+        $title = trim(preg_replace('/\s+/u', ' ', (string) $title));
+
+        return $title === '' ? null : Str::limit($title, 120, '');
     }
 
     /**

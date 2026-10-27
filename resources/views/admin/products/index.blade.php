@@ -214,7 +214,7 @@
                     <!-- Fila Central: Foto + Nombre + Badges + Descripción -->
                     <div class="flex items-start space-x-3">
                         @if($product->image_path)
-                            <img src="{{ asset($product->image_path) }}" alt="{{ $product->name }}" class="w-14 h-14 rounded-2xl object-cover border border-slate-200 flex-shrink-0 shadow-xs">
+                            <img src="{{ asset($product->image_path) }}" alt="{{ $product->name }}" class="w-14 h-14 rounded-full object-cover border-2 border-purple-200 flex-shrink-0 shadow-xs">
                         @else
                             <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl flex-shrink-0 border border-slate-200">
                                 <i class="fas fa-utensils"></i>

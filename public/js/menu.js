@@ -154,20 +154,36 @@ function initSwipers() {
     }
 }
 
-// Modal SweetAlert2 para ampliar fotos
-function showImageSweetAlert(imageUrl, title) {
+// Escapa texto cargado desde el panel antes de insertarlo como HTML en SweetAlert
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Modal SweetAlert2 para ampliar fotos (muestra el título propio de cada foto)
+// options.round = true → la foto se muestra en círculo (fotos de platos)
+function showImageSweetAlert(imageUrl, title, options = {}) {
+    const safeTitle = escapeHtml(title || '');
+    const round = !!options.round;
+    const roundSize = 'min(78vw, 380px)';
     Swal.fire({
         imageUrl: imageUrl,
-        imageAlt: title,
-        imageWidth: 'auto',
-        imageHeight: 'auto',
-        title: `<span class="text-xl font-bold text-gray-800">${title}</span>`,
+        imageAlt: title || '',
+        imageWidth: round ? roundSize : 'auto',
+        imageHeight: round ? roundSize : 'auto',
+        title: safeTitle ? `<span class="text-xl font-bold text-gray-800">${safeTitle}</span>` : '',
         showConfirmButton: false,
         showCloseButton: true,
         background: 'rgba(255, 255, 255, 0.95)',
         backdrop: 'rgba(0, 0, 0, 0.65)',
         customClass: {
-            image: 'rounded-2xl max-h-[70vh] object-contain shadow-xl mx-auto',
+            image: round
+                ? 'rounded-full object-cover shadow-xl mx-auto border-[6px] border-purple-200'
+                : 'rounded-2xl max-h-[70vh] object-contain shadow-xl mx-auto',
             popup: 'rounded-3xl p-4'
         }
     });
@@ -196,15 +212,19 @@ function parseConfettiEmojis(rawEmojis) {
 
 // Modal interactivo de Promociones / Eventos con Confeti personalizable y Emotes
 function showEventAlertDynamic(eventData) {
+    if (!eventData) return;
     const title = eventData?.title || 'Promoción Especial';
     const subtitle = eventData?.subtitle || '';
-    const imagePath = eventData?.image_path ? `/${eventData.image_path}` : '/imagenes/eventos/mundial/oferta_mundial.jpeg';
+    const safeTitle = escapeHtml(title);
+    const safeSubtitle = escapeHtml(subtitle);
+    const imagePath = eventData?.image_url
+        || (eventData?.image_path ? `/${eventData.image_path}` : '/imagenes/eventos/mundial/oferta_mundial.jpeg');
     const rawEmojis = eventData?.confetti_emojis || '⚽,🇦🇷,🏆,🎉';
     const emojis = parseConfettiEmojis(rawEmojis);
     const colors = (eventData?.confetti_colors || '#75AADB,#FFFFFF,#F6B40E').split(',').map(c => c.trim()).filter(c => c.length > 0);
     const customWhatsAppText = eventData?.whatsapp_custom_text || `Hola! Quiero consultar por la promo: ${title}`;
 
-    Swal.fire({
+    return Swal.fire({
         showConfirmButton: true,
         confirmButtonText: '<i class="fab fa-whatsapp mr-1.5"></i> Consultar Promo',
         confirmButtonColor: '#16a34a',
@@ -212,15 +232,16 @@ function showEventAlertDynamic(eventData) {
         background: '#ffffff',
         width: 'auto',
         customClass: {
-            popup: 'rounded-3xl p-4 sm:p-6 shadow-2xl max-w-xl',
+            popup: 'rounded-3xl p-3 sm:p-5 shadow-2xl max-w-xl',
+            htmlContainer: '!m-0 !px-1 !pt-2',
             confirmButton: 'rounded-xl font-bold px-6 py-3 shadow-lg'
         },
         html: `
-            <div class="text-center space-y-3">
-                <h3 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">${title}</h3>
-                ${subtitle ? `<p class="text-sm sm:text-base text-gray-600 font-medium">${subtitle}</p>` : ''}
-                <div class="relative overflow-hidden rounded-2xl shadow-xl my-3">
-                    <img src="${imagePath}" alt="${title}" class="w-full max-h-[60vh] object-contain rounded-2xl mx-auto">
+            <div class="text-center space-y-2">
+                <h3 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight px-8">${safeTitle}</h3>
+                ${safeSubtitle ? `<p class="text-sm sm:text-base text-gray-600 font-medium px-2">${safeSubtitle}</p>` : ''}
+                <div class="relative inline-block max-w-full overflow-hidden rounded-2xl shadow-xl mt-3 align-top">
+                    <img src="${escapeHtml(imagePath)}" alt="${safeTitle}" class="block max-w-full w-auto h-auto max-h-[62vh] object-contain mx-auto">
                 </div>
             </div>
         `,
@@ -331,4 +352,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const initialSlug = window.APP_CONFIG?.initialCategorySlug || 'pizzas';
     loadCategoryDynamic(initialSlug, true, false);
+
+    maybeAutoOpenEventPopup();
 });
+
+// ===== Modal automático del evento / flyer al entrar a la carta =====
+function eventPopupStorageKey(eventData) {
+    return `la-abuela:event-popup:${eventData.id}:${eventData.version || 0}`;
+}
+
+function wasEventPopupAlreadyShown(eventData) {
+    const frequency = eventData.popup_frequency || 'always';
+    if (frequency === 'always') return false;
+
+    try {
+        const key = eventPopupStorageKey(eventData);
+        if (frequency === 'session') {
+            return sessionStorage.getItem(key) === '1';
+        }
+        if (frequency === 'daily') {
+            const today = new Date().toLocaleDateString('en-CA'); // AAAA-MM-DD local
+            return localStorage.getItem(key) === today;
+        }
+    } catch (e) {
+        // Navegación privada o almacenamiento bloqueado: se muestra igual
+    }
+    return false;
+}
+
+function markEventPopupAsShown(eventData) {
+    try {
+        const key = eventPopupStorageKey(eventData);
+        if (eventData.popup_frequency === 'session') {
+            sessionStorage.setItem(key, '1');
+        } else if (eventData.popup_frequency === 'daily') {
+            localStorage.setItem(key, new Date().toLocaleDateString('en-CA'));
+        }
+    } catch (e) { /* sin almacenamiento disponible */ }
+}
+
+function maybeAutoOpenEventPopup() {
+    const eventData = window.EVENT_DATA;
+    if (!eventData || !eventData.auto_popup || typeof Swal === 'undefined') return;
+    if (wasEventPopupAlreadyShown(eventData)) return;
+
+    let opened = false;
+    const open = () => {
+        if (opened) return;
+        opened = true;
+        // Si el cliente ya abrió otro modal (ej: el carrito), no lo pisamos
+        if (Swal.isVisible()) return;
+        markEventPopupAsShown(eventData);
+        showEventAlertDynamic(eventData);
+    };
+
+    // Precargar el flyer para que el modal aparezca con la imagen ya lista (sin saltos)
+    const preload = new Image();
+    preload.onload = () => setTimeout(open, 700);   // deja ver la entrada animada del logo
+    preload.onerror = () => setTimeout(open, 700);
+    preload.src = eventData.image_url || `/${eventData.image_path}`;
+
+    // Respaldo por si la imagen tarda demasiado en conexiones lentas
+    setTimeout(open, 3500);
+}

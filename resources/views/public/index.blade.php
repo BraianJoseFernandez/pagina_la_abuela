@@ -46,21 +46,34 @@
                         <span class="text-2xl sm:text-4xl">{{ $event->badge_left_emoji ?? '⚽🇦🇷' }}</span>
                     </div>
 
-                    <!-- Banner de Evento Clickeable -->
-                    <div class="cursor-pointer group relative overflow-hidden rounded-3xl shadow-xl max-w-md w-full border-4 border-yellow-300/80 transition-all duration-300 hover:scale-105 hover:shadow-yellow-500/30"
-                         onclick="showEventAlertDynamic(@js($event))">
-                        <img src="{{ asset($event->image_path ?: 'imagenes/eventos/mundial/oferta_mundial.jpeg') }}"
-                             alt="{{ $event->title }}"
-                             class="w-full h-auto max-h-48 sm:max-h-56 object-cover rounded-2xl mx-auto block group-hover:brightness-105 transition-all">
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 text-white text-center">
+                    <!-- Banner de Evento Clickeable (muestra el flyer completo sin recortes) -->
+                    @php $eventImageUrl = asset($event->image_path ?: 'imagenes/eventos/mundial/oferta_mundial.jpeg'); @endphp
+                    <button type="button"
+                            class="event-flyer-card group relative block overflow-hidden rounded-3xl shadow-xl max-w-md w-full border-4 border-yellow-300/80 transition-all duration-300 hover:scale-[1.03] hover:shadow-yellow-500/30 bg-gray-950 cursor-pointer text-white"
+                            onclick="showEventAlertDynamic(window.EVENT_DATA)"
+                            aria-label="Ver promoción: {{ $event->title }}">
+                        <!-- Flyer completo sobre un fondo difuminado del mismo flyer -->
+                        <span class="relative block overflow-hidden py-2.5">
+                            <span class="absolute inset-0 bg-center bg-cover scale-125 blur-2xl opacity-80" style="background-image: url('{{ $eventImageUrl }}')" aria-hidden="true"></span>
+                            <span class="absolute inset-0 bg-black/25" aria-hidden="true"></span>
+                            <img src="{{ $eventImageUrl }}"
+                                 alt="{{ $event->title }}"
+                                 class="relative z-[1] w-auto max-w-full h-56 sm:h-72 object-contain mx-auto block drop-shadow-2xl group-hover:brightness-105 transition-all">
+                            <span class="absolute top-2.5 right-2.5 z-[2] inline-flex items-center gap-1 bg-white/90 text-gray-900 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full shadow uppercase tracking-wider">
+                                <i class="fas fa-expand text-[10px]"></i> Ver flyer
+                            </span>
+                        </span>
+
+                        <!-- Título debajo del flyer (no tapa el diseño) -->
+                        <span class="relative block bg-gradient-to-b from-gray-900 to-black px-3 py-2.5 text-center border-t border-yellow-300/40">
                             <span class="inline-block bg-yellow-400 text-gray-900 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow">
                                 <i class="fas fa-star text-xs mr-1"></i> {{ $event->title }}
                             </span>
                             @if($event->subtitle)
-                                <p class="text-xs sm:text-sm text-gray-200 mt-0.5 font-medium">{{ $event->subtitle }}</p>
+                                <span class="block text-xs sm:text-sm text-gray-200 mt-1 font-medium">{{ $event->subtitle }}</span>
                             @endif
-                        </div>
-                    </div>
+                        </span>
+                    </button>
 
                     <!-- Badge Derecho -->
                     <div class="animate-bounce flex flex-col items-center select-none" style="animation-duration: 2s; animation-delay: 1s;">
@@ -138,5 +151,8 @@
         googleMapsApiKey: "{{ $settings['google_maps_api_key'] ?? env('GOOGLE_MAPS_API_KEY', '') }}",
         resolveMapsUrl: "{{ route('maps.resolve') }}"
     };
+
+    // Datos del evento / flyer activo (null si la sección está apagada)
+    window.EVENT_DATA = @js(isset($event) && $event->is_active ? $event->toPublicPayload() : null);
 </script>
 @endpush

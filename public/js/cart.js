@@ -1440,6 +1440,19 @@ function handleAddToCartClick(product) {
     if (hasVariants || hasCooking || hasGarnishes) {
         currentSelectedProductForModal = product;
         document.getElementById('variant-modal-title').innerText = product.name;
+
+        // Foto redonda del plato en el encabezado (si tiene)
+        const modalImg = document.getElementById('variant-modal-img');
+        if (modalImg) {
+            if (product.image_path) {
+                modalImg.src = /^(https?:)?\//.test(product.image_path) ? product.image_path : '/' + product.image_path;
+                modalImg.alt = product.name;
+                modalImg.classList.remove('hidden');
+            } else {
+                modalImg.removeAttribute('src');
+                modalImg.classList.add('hidden');
+            }
+        }
         
         let descParts = [];
         if (hasVariants) descParts.push('tamaño/variante');

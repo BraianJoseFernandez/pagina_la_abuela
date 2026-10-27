@@ -22,12 +22,55 @@
             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <div>
                     <span class="text-sm font-black text-slate-800 block">Mostrar Sección de Eventos en la Portada</span>
-                    <span class="text-xs text-slate-500">Si está activa, los clientes verán el banner interactivo con animaciones, modal y confeti al ingresar.</span>
+                    <span class="text-xs text-slate-500">Si está activa, los clientes verán el flyer en la portada con animaciones, modal y confeti.</span>
                 </div>
                 <label class="inline-flex items-center cursor-pointer select-none">
                     <input type="checkbox" name="is_active" value="1" {{ old('is_active', $event->is_active) ? 'checked' : '' }} class="sr-only peer">
                     <div class="relative w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
                 </label>
+            </div>
+
+            <!-- Modal automático al entrar a la carta -->
+            @php
+                $autoPopup = (bool) old('auto_popup', $event->auto_popup ?? true);
+                $popupFrequency = old('popup_frequency', $event->popup_frequency ?? 'always');
+                $frequencyOptions = [
+                    'always'  => ['icon' => 'fa-bolt',          'label' => 'Siempre',             'hint' => 'Cada vez que alguien entra o recarga la carta'],
+                    'session' => ['icon' => 'fa-door-open',     'label' => 'Una vez por visita',  'hint' => 'Se vuelve a mostrar cuando cierran y abren el navegador'],
+                    'daily'   => ['icon' => 'fa-calendar-day',  'label' => 'Una vez al día',      'hint' => 'Ideal si tus clientes entran varias veces por día'],
+                ];
+            @endphp
+            <div class="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-5 space-y-4">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 flex-shrink-0">
+                            <i class="fas fa-window-restore"></i>
+                        </div>
+                        <div>
+                            <span class="text-sm font-black text-slate-800 block">Abrir el flyer automáticamente al entrar</span>
+                            <span class="text-xs text-slate-500">Lo primero que ve el cliente es el modal con el flyer completo, el confeti y el botón de WhatsApp.</span>
+                        </div>
+                    </div>
+                    <label class="inline-flex items-center cursor-pointer select-none flex-shrink-0">
+                        <input type="checkbox" name="auto_popup" value="1" id="auto_popup_toggle" {{ $autoPopup ? 'checked' : '' }} class="sr-only peer">
+                        <div class="relative w-14 h-7 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                </div>
+
+                <div id="popup_frequency_group" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 transition-opacity {{ $autoPopup ? '' : 'opacity-40 pointer-events-none' }}">
+                    @foreach($frequencyOptions as $value => $opt)
+                        <label class="relative cursor-pointer">
+                            <input type="radio" name="popup_frequency" value="{{ $value }}" class="sr-only peer" {{ $popupFrequency === $value ? 'checked' : '' }}>
+                            <div class="h-full rounded-xl border-2 border-slate-200 bg-white p-3 transition peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:shadow-sm hover:border-amber-300">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas {{ $opt['icon'] }} text-amber-600 text-xs"></i>
+                                    <span class="text-xs font-black text-slate-800">{{ $opt['label'] }}</span>
+                                </div>
+                                <span class="text-[11px] text-slate-500 leading-snug block mt-1">{{ $opt['hint'] }}</span>
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
             </div>
 
             <!-- Título y Subtítulo -->
@@ -156,35 +199,48 @@
                 </div>
             </div>
 
-            <!-- Imagen Promocional con Cropper.js (Redondeada y con zoom) -->
-            <div class="border-t border-slate-100 pt-6 space-y-3">
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    Imagen del Banner Promocional (Recorte y Zoom Redondeado)
-                </label>
-                <p class="text-xs text-slate-500">Sube la foto del banner y utiliza la herramienta para agrandar, recortar y centrar la imagen.</p>
+            <!-- Flyer / Imagen Promocional (completo o recortado con Cropper.js) -->
+            <div class="border-t border-slate-100 pt-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Flyer del Evento / Promoción
+                    </label>
+                    <p class="text-xs text-slate-500 mt-1">Subí el flyer tal cual lo diseñaste: por defecto se usa <strong>completo</strong>. Si querés, podés recortarlo, girarlo o elegir un formato.</p>
+                </div>
 
-                <div class="flex flex-col sm:flex-row items-center gap-5">
-                    @if($event->image_path)
-                        <div class="bg-slate-50 p-2.5 rounded-2xl border border-slate-200 flex items-center space-x-3">
-                            <img src="{{ asset($event->image_path) }}" alt="{{ $event->title }}" class="w-24 h-24 rounded-2xl object-cover shadow-sm border border-slate-200">
-                            <div>
-                                <span class="text-xs font-bold text-slate-700 block">Imagen Actual</span>
-                                <span class="text-[10px] text-slate-400">{{ basename($event->image_path) }}</span>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+                    <!-- Flyer actual -->
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 flex flex-col">
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-500" id="flyer-preview-label">Flyer actual</span>
+                            <span id="flyer-preview-badge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700"></span>
                         </div>
-                    @endif
-
-                    <input type="file" id="event_image_input" accept="image/*"
-                           class="w-full sm:w-auto text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer">
-
-                    <!-- Preview recortada -->
-                    <div id="event-cropped-preview-container" class="hidden items-center space-x-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
-                        <img id="event-cropped-preview-img" src="" alt="Vista previa" class="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-red-500">
-                        <span class="text-xs font-bold text-emerald-600 flex items-center space-x-1">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Imagen recortada lista</span>
-                        </span>
+                        <div class="flyer-checker relative flex-1 min-h-[220px] rounded-xl overflow-hidden flex items-center justify-center">
+                            @if($event->image_path)
+                                <img id="flyer-preview-img" src="{{ asset($event->image_path) }}" alt="{{ $event->title }}" class="max-h-[340px] w-auto max-w-full object-contain rounded-lg shadow-lg">
+                            @else
+                                <img id="flyer-preview-img" src="" alt="" class="hidden max-h-[340px] w-auto max-w-full object-contain rounded-lg shadow-lg">
+                                <span id="flyer-preview-empty" class="text-xs text-slate-400 font-bold">Todavía no hay flyer cargado</span>
+                            @endif
+                        </div>
+                        <span id="flyer-preview-meta" class="text-[11px] text-slate-400 mt-2 px-1 truncate">{{ $event->image_path ? basename($event->image_path) : '' }}</span>
                     </div>
+
+                    <!-- Zona de carga -->
+                    <label for="event_image_input" id="flyer-dropzone"
+                           class="rounded-2xl border-2 border-dashed border-red-200 bg-red-50/40 hover:bg-red-50 hover:border-red-400 transition p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[220px]">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-red-500/30 mb-3">
+                            <i class="fas fa-cloud-arrow-up text-xl"></i>
+                        </div>
+                        <span class="text-sm font-black text-slate-800">Elegir o arrastrar un flyer nuevo</span>
+                        <span class="text-xs text-slate-500 mt-1">JPG, PNG o WEBP · vertical, cuadrado u horizontal</span>
+                        <span class="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-red-700 bg-white border border-red-200 px-3 py-1 rounded-full">
+                            <i class="fas fa-expand"></i> Se sube completo, sin cortes
+                        </span>
+                        <input type="file" id="event_image_input" accept="image/jpeg,image/png,image/webp" class="sr-only">
+                    </label>
+                    <!-- Solo se usa si eligen "Subir original sin cambios" -->
+                    <input type="file" id="event_image_original" name="image_file" class="hidden" disabled>
                 </div>
             </div>
 
@@ -207,44 +263,93 @@
     </div>
 </div>
 
-<!-- Modal de Recorte Cropper.js para Banner de Evento -->
-<div id="event-cropper-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
-        <div class="flex justify-between items-center pb-2 border-b border-slate-100">
-            <h3 class="text-lg font-black text-slate-800">Ajustar Imagen de Promoción</h3>
-            <button onclick="closeEventCropperModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-lg"></i></button>
+<!-- Modal para ajustar el flyer (Cropper.js con formato libre) -->
+<div id="event-cropper-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[96vh] overflow-y-auto">
+        <div class="flex justify-between items-start pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="text-lg font-black text-slate-800">Ajustar Flyer de la Promoción</h3>
+                <p class="text-xs text-slate-500">Por defecto se toma el flyer <strong>completo</strong>. Elegí un formato solo si querés recortarlo.</p>
+            </div>
+            <button type="button" onclick="closeEventCropperModal(true)" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
         </div>
 
-        <div class="max-h-[50vh] overflow-hidden bg-slate-900 rounded-2xl flex items-center justify-center">
-            <img id="event-cropper-image-target" src="" class="max-w-full block">
+        <!-- Formatos -->
+        <div class="flex flex-wrap gap-2" id="event-aspect-presets">
+            <button type="button" data-aspect="full" class="aspect-chip is-active"><i class="fas fa-expand"></i> Flyer completo</button>
+            <button type="button" data-aspect="free" class="aspect-chip"><i class="fas fa-crop-simple"></i> Libre</button>
+            <button type="button" data-aspect="0.8" class="aspect-chip"><i class="fas fa-mobile-screen"></i> Vertical 4:5</button>
+            <button type="button" data-aspect="0.5625" class="aspect-chip"><i class="fas fa-mobile"></i> Historia 9:16</button>
+            <button type="button" data-aspect="1" class="aspect-chip"><i class="far fa-square"></i> Cuadrado</button>
+            <button type="button" data-aspect="1.7778" class="aspect-chip"><i class="fas fa-tv"></i> Horizontal 16:9</button>
         </div>
 
-        <!-- Controles de Zoom -->
-        <div class="flex items-center justify-center space-x-4 pt-2">
-            <button type="button" onclick="eventCropper.zoom(0.1)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center space-x-1.5">
-                <i class="fas fa-search-plus"></i>
-                <span>Agrandar</span>
-            </button>
-            <button type="button" onclick="eventCropper.zoom(-0.1)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center space-x-1.5">
-                <i class="fas fa-search-minus"></i>
-                <span>Alejar</span>
-            </button>
-            <button type="button" onclick="eventCropper.rotate(90)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center space-x-1.5">
-                <i class="fas fa-rotate-right"></i>
-                <span>Girar</span>
-            </button>
+        <div class="event-cropper-stage flyer-checker rounded-2xl overflow-hidden">
+            <img id="event-cropper-image-target" src="" alt="" class="max-w-full block">
         </div>
 
-        <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
-            <button type="button" onclick="closeEventCropperModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="eventCropper && eventCropper.zoom(0.1)" class="cropper-tool-btn"><i class="fas fa-search-plus"></i><span>Agrandar</span></button>
+                <button type="button" onclick="eventCropper && eventCropper.zoom(-0.1)" class="cropper-tool-btn"><i class="fas fa-search-minus"></i><span>Alejar</span></button>
+                <button type="button" onclick="rotateEventFlyer()" class="cropper-tool-btn"><i class="fas fa-rotate-right"></i><span>Girar</span></button>
+                <button type="button" onclick="setEventAspect('full')" class="cropper-tool-btn"><i class="fas fa-arrows-rotate"></i><span>Restablecer</span></button>
+            </div>
+            <span id="event-crop-size" class="text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full"></span>
+        </div>
+
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-between gap-3 pt-4 border-t border-slate-100">
+            <button type="button" onclick="closeEventCropperModal(true)" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition">
                 Cancelar
             </button>
-            <button type="button" onclick="applyEventCrop()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-xs shadow-md transition">
-                Aplicar Imagen
-            </button>
+            <div class="flex flex-col-reverse sm:flex-row gap-3">
+                <button type="button" onclick="useOriginalEventFlyer()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5"
+                        title="Sube el archivo exactamente como está, sin girar ni recortar">
+                    <i class="fas fa-file-image"></i> Subir original sin cambios
+                </button>
+                <button type="button" onclick="applyEventCrop()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+                    <i class="fas fa-check"></i> Aplicar Flyer
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* El layout admin redondea el recorte (para platos); el flyer necesita un recorte rectangular */
+    #event-cropper-modal .cropper-view-box,
+    #event-cropper-modal .cropper-face { border-radius: 0 !important; }
+    #event-cropper-modal .cropper-view-box { outline: 2px solid #ef4444; outline-color: rgba(239, 68, 68, .9); }
+    #event-cropper-modal .cropper-line,
+    #event-cropper-modal .cropper-point { background-color: #ef4444; }
+    .event-cropper-stage { height: min(58vh, 560px); }
+    .event-cropper-stage img { max-height: 100%; }
+    .flyer-checker {
+        background-color: #0f172a;
+        background-image:
+            linear-gradient(45deg, #1e293b 25%, transparent 25%),
+            linear-gradient(-45deg, #1e293b 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #1e293b 75%),
+            linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+        background-size: 18px 18px;
+        background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+    }
+    .aspect-chip {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .45rem .8rem; border-radius: 9999px;
+        font-size: .7rem; font-weight: 800; color: #475569;
+        background: #f1f5f9; border: 2px solid transparent; transition: all .15s ease;
+    }
+    .aspect-chip:hover { background: #fee2e2; color: #b91c1c; }
+    .aspect-chip.is-active { background: #fef2f2; color: #b91c1c; border-color: #ef4444; box-shadow: 0 4px 12px -4px rgba(239,68,68,.45); }
+    .cropper-tool-btn {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: .55rem .8rem; border-radius: .75rem;
+        background: #f1f5f9; color: #334155; font-size: .72rem; font-weight: 700; transition: background .15s ease;
+    }
+    .cropper-tool-btn:hover { background: #e2e8f0; }
+    #flyer-dropzone.is-dragover { background: #fee2e2; border-color: #ef4444; transform: scale(1.01); }
+</style>
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.js"></script>
@@ -362,64 +467,233 @@
 
     document.addEventListener('DOMContentLoaded', initColors);
 
-    // Cropper.js para imagen de Evento
+    // ===== Modal automático: habilitar / deshabilitar opciones de frecuencia =====
+    (function () {
+        const toggle = document.getElementById('auto_popup_toggle');
+        const group = document.getElementById('popup_frequency_group');
+        if (!toggle || !group) return;
+        toggle.addEventListener('change', () => {
+            group.classList.toggle('opacity-40', !toggle.checked);
+            group.classList.toggle('pointer-events-none', !toggle.checked);
+        });
+    })();
+
+    // ===== Flyer del evento con Cropper.js (completo por defecto, recorte opcional) =====
+    const FLYER_MAX_WIDTH = 1600;
+    const FLYER_MAX_HEIGHT = 2400;
+
     let eventCropper = null;
+    let eventSelectedFile = null;
+    let eventAspectMode = 'full';
+
     const eventFileInput = document.getElementById('event_image_input');
     const eventModal = document.getElementById('event-cropper-modal');
     const eventImageTarget = document.getElementById('event-cropper-image-target');
+    const eventBase64Input = document.getElementById('cropped_image_base64');
+    const flyerDropzone = document.getElementById('flyer-dropzone');
+
+    function openEventCropperWithFile(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            Swal.fire({ icon: 'error', title: 'Archivo no válido', text: 'Elegí una imagen JPG, PNG o WEBP.' });
+            return;
+        }
+
+        eventSelectedFile = file;
+        eventAspectMode = 'full';
+        // Se limpia el selector para poder volver a elegir el mismo archivo (el navegador no dispara "change" si no)
+        eventFileInput.value = '';
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            eventImageTarget.src = event.target.result;
+            eventModal.classList.remove('hidden');
+            eventModal.classList.add('flex');
+
+            if (eventCropper) eventCropper.destroy();
+            eventCropper = new Cropper(eventImageTarget, {
+                aspectRatio: NaN,          // Sin forzar formato: se respeta el flyer completo
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,           // El recorte inicial cubre el 100% del flyer
+                restore: false,
+                guides: true,
+                center: true,
+                highlight: false,
+                background: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false,
+                ready() {
+                    setEventAspect(eventAspectMode);
+                },
+                crop() {
+                    updateEventCropSizeLabel();
+                },
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setEventAspect(mode) {
+        if (!eventCropper) return;
+        eventAspectMode = mode;
+
+        document.querySelectorAll('#event-aspect-presets .aspect-chip').forEach(chip => {
+            chip.classList.toggle('is-active', chip.dataset.aspect === String(mode));
+        });
+
+        if (mode === 'full') {
+            eventCropper.setAspectRatio(NaN);
+            const canvas = eventCropper.getCanvasData();
+            eventCropper.setCropBoxData({ left: canvas.left, top: canvas.top, width: canvas.width, height: canvas.height });
+        } else if (mode === 'free') {
+            eventCropper.setAspectRatio(NaN);
+        } else {
+            eventCropper.setAspectRatio(parseFloat(mode));
+        }
+        updateEventCropSizeLabel();
+    }
+
+    // Gira la imagen de verdad (no solo la vista) para que "Flyer completo" siga tomando todo el diseño
+    function rotateEventFlyer() {
+        if (!eventCropper) return;
+        const source = new Image();
+        source.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = source.naturalHeight;
+            canvas.height = source.naturalWidth;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.drawImage(source, -source.naturalWidth / 2, -source.naturalHeight / 2);
+            eventCropper.replace(canvas.toDataURL('image/jpeg', 0.95));
+        };
+        source.src = eventCropper.url;
+    }
+
+    function getEventOutputSize() {
+        if (!eventCropper) return null;
+        const data = eventCropper.getData(true);
+        if (!data.width || !data.height) return null;
+        const scale = Math.min(1, FLYER_MAX_WIDTH / data.width, FLYER_MAX_HEIGHT / data.height);
+        return { width: Math.round(data.width * scale), height: Math.round(data.height * scale) };
+    }
+
+    function updateEventCropSizeLabel() {
+        const label = document.getElementById('event-crop-size');
+        const size = getEventOutputSize();
+        if (label && size) {
+            label.textContent = `Tamaño final: ${size.width} × ${size.height} px`;
+        }
+    }
+
+    document.querySelectorAll('#event-aspect-presets .aspect-chip').forEach(chip => {
+        chip.addEventListener('click', () => setEventAspect(chip.dataset.aspect));
+    });
 
     if (eventFileInput) {
         eventFileInput.addEventListener('change', function (e) {
             const files = e.target.files;
-            if (files && files.length > 0) {
-                const file = files[0];
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    eventImageTarget.src = event.target.result;
-                    eventModal.classList.remove('hidden');
-
-                    if (eventCropper) eventCropper.destroy();
-                    eventCropper = new Cropper(eventImageTarget, {
-                        aspectRatio: 16 / 9,
-                        viewMode: 1,
-                        dragMode: 'move',
-                        autoCropArea: 0.95,
-                        restore: false,
-                        guides: true,
-                        center: true,
-                        highlight: false,
-                        cropBoxMovable: true,
-                        cropBoxResizable: true,
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
+            if (files && files.length > 0) openEventCropperWithFile(files[0]);
         });
     }
 
-    function closeEventCropperModal() {
+    // Arrastrar y soltar el flyer sobre la zona de carga
+    if (flyerDropzone) {
+        ['dragenter', 'dragover'].forEach(evt => flyerDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            flyerDropzone.classList.add('is-dragover');
+        }));
+        ['dragleave', 'drop'].forEach(evt => flyerDropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            flyerDropzone.classList.remove('is-dragover');
+        }));
+        flyerDropzone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer?.files?.[0];
+            if (file) openEventCropperWithFile(file);
+        });
+    }
+
+    function closeEventCropperModal(cancelled = false) {
         eventModal.classList.add('hidden');
-        if (eventCropper) eventCropper.destroy();
+        eventModal.classList.remove('flex');
+        if (eventCropper) {
+            eventCropper.destroy();
+            eventCropper = null;
+        }
+        // Al cancelar se descarta solo el archivo recién elegido; lo aplicado antes se mantiene
+        if (cancelled) eventSelectedFile = null;
+    }
+
+    function setOriginalFlyerFile(file) {
+        const originalInput = document.getElementById('event_image_original');
+        if (!file) {
+            originalInput.value = '';
+            originalInput.disabled = true;
+            return true;
+        }
+        try {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            originalInput.files = dt.files;
+            originalInput.disabled = false;
+            return true;
+        } catch (err) {
+            return false; // navegador muy viejo sin DataTransfer
+        }
+    }
+
+    function showFlyerPreview(src, badgeText, metaText) {
+        const img = document.getElementById('flyer-preview-img');
+        const empty = document.getElementById('flyer-preview-empty');
+        const badge = document.getElementById('flyer-preview-badge');
+        const label = document.getElementById('flyer-preview-label');
+        const meta = document.getElementById('flyer-preview-meta');
+
+        img.src = src;
+        img.classList.remove('hidden');
+        if (empty) empty.classList.add('hidden');
+        label.textContent = 'Nuevo flyer (se guarda al confirmar)';
+        badge.textContent = badgeText;
+        badge.classList.remove('hidden');
+        meta.textContent = metaText;
     }
 
     function applyEventCrop() {
         if (!eventCropper) return;
+
+        const size = getEventOutputSize();
         const canvas = eventCropper.getCroppedCanvas({
-            width: 1200,
-            height: 675,
+            width: size?.width,
+            height: size?.height,
+            fillColor: '#ffffff',
             imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high',
         });
 
-        const base64Data = canvas.toDataURL('image/jpeg', 0.9);
-        document.getElementById('cropped_image_base64').value = base64Data;
+        const base64Data = canvas.toDataURL('image/jpeg', 0.92);
+        eventBase64Input.value = base64Data;
+        // Se envía solo la versión ajustada (evita subir el archivo dos veces)
+        setOriginalFlyerFile(null);
 
-        // Preview
-        document.getElementById('event-cropped-preview-img').src = base64Data;
-        document.getElementById('event-cropped-preview-container').classList.remove('hidden');
-        document.getElementById('event-cropped-preview-container').classList.add('flex');
+        const badge = eventAspectMode === 'full' ? 'Completo' : 'Recortado';
+        showFlyerPreview(base64Data, badge, `${canvas.width} × ${canvas.height} px · ${eventSelectedFile?.name || ''}`);
+        closeEventCropperModal(false);
+    }
 
-        closeEventCropperModal();
+    function useOriginalEventFlyer() {
+        if (!eventSelectedFile) return;
+
+        if (!setOriginalFlyerFile(eventSelectedFile)) {
+            Swal.fire({ icon: 'info', title: 'Navegador no compatible', text: 'Usá "Aplicar Flyer": se sube completo igual.' });
+            return;
+        }
+        eventBase64Input.value = '';
+
+        const sizeMb = (eventSelectedFile.size / (1024 * 1024)).toFixed(1);
+        showFlyerPreview(URL.createObjectURL(eventSelectedFile), 'Original', `${eventSelectedFile.name} · ${sizeMb} MB`);
+        closeEventCropperModal(false);
     }
 </script>
 @endpush

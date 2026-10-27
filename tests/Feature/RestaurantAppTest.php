@@ -547,5 +547,39 @@ class RestaurantAppTest extends TestCase
         // Limpiar
         $img->delete();
     }
-}
 
+    public function test_admin_can_update_category_image_title(): void
+    {
+        $admin = User::where('email', 'admin@laabuela.com')->first();
+        $category = Category::where('slug', 'pizzas')->first();
+
+        $img = CategoryImage::create([
+            'category_id' => $category->id,
+            'image_path' => 'imagenes/pizzas/test_title.jpg',
+            'alt_text' => null,
+            'order' => 98,
+            'is_visible' => true,
+        ]);
+
+        // 1. Guardar un título propio (con espacios de más)
+        $res = $this->actingAs($admin)->postJson('/admin/categories/images/' . $img->id . '/title', [
+            'title' => '  Pizza   Test Con Título  ',
+        ]);
+        $res->assertStatus(200)->assertJson(['success' => true, 'title' => 'Pizza Test Con Título']);
+        $this->assertSame('Pizza Test Con Título', $img->fresh()->alt_text);
+
+        // 2. La carta pública lo muestra (miniatura + SweetAlert)
+        $this->get('/categoria/pizzas')->assertStatus(200)->assertSee('Pizza Test Con Título');
+
+        // 3. Vaciarlo vuelve al nombre de la categoría
+        $this->actingAs($admin)->postJson('/admin/categories/images/' . $img->id . '/title', ['title' => ''])
+            ->assertStatus(200)->assertJson(['success' => true, 'title' => null]);
+        $this->assertNull($img->fresh()->alt_text);
+
+        // 4. Validación de largo máximo
+        $this->actingAs($admin)->postJson('/admin/categories/images/' . $img->id . '/title', ['title' => str_repeat('a', 121)])
+            ->assertStatus(422);
+
+        $img->delete();
+    }
+}

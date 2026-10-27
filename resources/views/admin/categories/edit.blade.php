@@ -132,13 +132,13 @@
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
                                 Fotos Actuales del Carrusel (Arrastrar para Reordenar)
                             </label>
-                            <p class="text-xs text-slate-400">Arrastra para reordenar. Haz clic en el ícono del <i class="fas fa-eye text-emerald-600"></i> ojo para ocultar o mostrar cada foto en la carta pública sin borrarla del disco.</p>
+                            <p class="text-xs text-slate-400">Para reordenar, arrastrá desde los puntitos <i class="fas fa-grip-vertical text-purple-500"></i> de la esquina superior derecha de cada foto (así en el celular podés deslizar la pantalla tranquilo). Haz clic en el ícono del <i class="fas fa-eye text-emerald-600"></i> ojo para ocultar o mostrar cada foto en la carta pública sin borrarla del disco. Tocá el <i class="fas fa-pen text-purple-500"></i> título debajo de cada foto para cambiarlo (se guarda solo).</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3.5" id="category-photos-sortable-grid">
                         @foreach($category->images->sortBy('order') as $img)
-                            <div class="relative group rounded-2xl overflow-hidden border-2 {{ $img->is_visible ? 'border-slate-200 bg-white' : 'border-dashed border-slate-300 bg-slate-50/80 opacity-75' }} p-2 flex flex-col items-center cursor-grab active:cursor-grabbing hover:border-purple-400 hover:shadow-md transition photo-sort-card"
+                            <div class="relative group rounded-2xl overflow-hidden border-2 {{ $img->is_visible ? 'border-slate-200 bg-white' : 'border-dashed border-slate-300 bg-slate-50/80 opacity-75' }} p-2 flex flex-col items-center hover:border-purple-400 hover:shadow-md transition photo-sort-card"
                                  id="photo-card-{{ $img->id }}"
                                  data-id="{{ $img->id }}"
                                  data-visible="{{ $img->is_visible ? '1' : '0' }}">
@@ -147,6 +147,21 @@
                                          id="photo-img-{{ $img->id }}"
                                          class="w-full h-full object-cover transition duration-200 {{ $img->is_visible ? '' : 'grayscale-[60%] brightness-90' }}">
                                     
+                                    <button type="button"
+                                            onclick="previewExistingPhoto({{ $img->id }}, @js(asset($img->image_path)))"
+                                            class="absolute bottom-1.5 right-1.5 z-10 px-2 py-1 rounded-full bg-white/95 text-purple-700 text-[10px] font-black flex items-center gap-1 shadow transition [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus:opacity-100"
+                                            title="Ver cómo se verá en la carta">
+                                        <i class="fas fa-magnifying-glass-plus"></i> Ver
+                                    </button>
+
+                                    <!-- Botón Eliminar Foto -->
+                                    <button type="button"
+                                            onclick="confirmDeleteCarouselImage({{ $img->id }})"
+                                            class="absolute bottom-1.5 left-1.5 z-10 w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition shadow-md [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus:opacity-100"
+                                            title="Eliminar foto permanentemente">
+                                        <i class="fas fa-trash-can text-[10px]"></i>
+                                    </button>
+
                                     <div id="photo-hidden-badge-{{ $img->id }}" class="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center {{ $img->is_visible ? 'hidden' : '' }}">
                                         <span class="px-2 py-0.5 rounded-full bg-slate-900/90 text-white text-[10px] font-black uppercase tracking-wider flex items-center space-x-1 shadow-sm">
                                             <i class="fas fa-eye-slash text-[9px] text-rose-400"></i>
@@ -155,7 +170,20 @@
                                     </div>
                                 </div>
 
-                                <span class="text-[11px] font-bold text-slate-700 truncate w-full text-center">{{ $img->alt_text ?: 'Foto' }}</span>
+                                <div class="relative w-full mt-0.5">
+                                    <textarea name="image_titles[{{ $img->id }}]"
+                                              id="photo-title-{{ $img->id }}"
+                                              data-image-id="{{ $img->id }}"
+                                              data-saved="{{ $img->alt_text }}"
+                                              rows="2"
+                                              maxlength="120"
+                                              placeholder="{{ $category->name }}"
+                                              title="Título de la foto (se muestra en la carta)"
+                                              style="field-sizing: content;"
+                                              class="photo-title-input block w-full resize-none overflow-hidden text-center text-[11px] leading-snug font-bold text-slate-700 placeholder:text-slate-400 placeholder:font-semibold bg-transparent border border-dashed border-transparent hover:border-slate-300 hover:bg-slate-50 focus:border-solid focus:border-purple-400 focus:bg-white focus:ring-2 focus:ring-purple-100 rounded-lg px-4 py-1 outline-none transition cursor-text">{{ old('image_titles.' . $img->id, $img->alt_text) }}</textarea>
+                                    <i class="fas fa-pen absolute left-1 top-1.5 text-[8px] text-purple-300 pointer-events-none"></i>
+                                    <i id="photo-title-status-{{ $img->id }}" class="fas fa-check-circle absolute right-1 top-1.5 text-[10px] text-emerald-500 opacity-0 transition-opacity pointer-events-none"></i>
+                                </div>
                                 <span class="text-[10px] text-purple-600 font-black photo-order-num">#{{ $img->order }}</span>
 
                                 <!-- Botón Ojo: Visibilidad (Mostrar / Ocultar) -->
@@ -167,26 +195,25 @@
                                     <i class="fas {{ $img->is_visible ? 'fa-eye' : 'fa-eye-slash' }} text-xs"></i>
                                 </button>
 
-                                <!-- Botón Eliminar Foto -->
-                                <button type="button"
-                                        onclick="confirmDeleteCarouselImage({{ $img->id }})"
-                                        class="absolute top-2 right-2 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
-                                        title="Eliminar foto permanentemente">
-                                    <i class="fas fa-times text-xs"></i>
-                                </button>
+                                <!-- Manija de arrastre: SOLO desde acá se reordena (el resto de la tarjeta deja scrollear) -->
+                                <div class="photo-drag-handle absolute top-2 right-2 z-10 w-8 h-8 rounded-xl bg-white/95 border border-slate-200 text-slate-500 hover:text-purple-700 hover:border-purple-300 active:bg-purple-100 active:text-purple-700 shadow-md flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                                     style="touch-action: none;"
+                                     title="Mantener y arrastrar para cambiar el orden">
+                                    <i class="fas fa-grip-vertical text-sm"></i>
+                                </div>
+
                             </div>
                         @endforeach
                     </div>
                 </div>
             @endif
 
-            <!-- Subir nuevas fotos -->
+            <!-- Subir nuevas fotos (cada una con su título) -->
             <div class="border-t border-slate-100 pt-6">
-                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Agregar Más Fotos al Carrusel
-                </label>
-                <input type="file" name="carousel_images[]" multiple accept="image/*"
-                       class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer">
+                @include('admin.categories.partials.carousel-uploader', [
+                    'label' => 'Agregar Más Fotos al Carrusel',
+                    'categoryName' => $category->name,
+                ])
             </div>
 
             <!-- Visibilidad -->
@@ -251,7 +278,9 @@
         Sortable.create(photoGrid, {
             animation: 200,
             ghostClass: 'opacity-40',
-            filter: 'button, button *',
+            chosenClass: 'ring-2',
+            handle: '.photo-drag-handle', // Solo se mueve arrastrando los puntitos; el resto permite scrollear
+            filter: 'button, button *, input, textarea',
             preventOnFilter: false,
             onEnd: function () {
                 const cards = photoGrid.querySelectorAll('.photo-sort-card');
@@ -291,6 +320,67 @@
             }
         });
     });
+
+    // ===== Títulos de fotos existentes: se guardan solos al salir del campo o con Enter =====
+    const PHOTO_TITLE_URL = @js(url('admin/categories/images')) + '/';
+    const CATEGORY_FALLBACK_TITLE = @js($category->name);
+
+    function savePhotoTitle(input) {
+        const imgId = input.dataset.imageId;
+        const title = input.value.trim();
+        if (title === (input.dataset.saved || '')) return;
+
+        const status = document.getElementById(`photo-title-status-${imgId}`);
+        status.className = 'fas fa-circle-notch fa-spin absolute right-1 top-1.5 text-[10px] text-purple-400 transition-opacity pointer-events-none';
+
+        fetch(`${PHOTO_TITLE_URL}${imgId}/title`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ title })
+        })
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) throw new Error(data.message || 'No se pudo guardar el título.');
+            return data;
+        })
+        .then(data => {
+            input.value = data.title || '';
+            input.dataset.saved = data.title || '';
+            const img = document.getElementById(`photo-img-${imgId}`);
+            if (img) img.alt = data.title || CATEGORY_FALLBACK_TITLE;
+            status.className = 'fas fa-check-circle absolute right-1 top-1.5 text-[10px] text-emerald-500 opacity-100 transition-opacity pointer-events-none';
+            setTimeout(() => status.classList.replace('opacity-100', 'opacity-0'), 1600);
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: data.message, showConfirmButton: false, timer: 1500, timerProgressBar: true });
+        })
+        .catch(err => {
+            console.error(err);
+            status.className = 'fas fa-triangle-exclamation absolute right-1 top-1.5 text-[10px] text-red-500 opacity-100 pointer-events-none';
+            Swal.fire('Error', err.message || 'No se pudo guardar el título de la foto.', 'error');
+        });
+    }
+
+    document.querySelectorAll('.photo-title-input').forEach(input => {
+        input.addEventListener('blur', () => savePhotoTitle(input));
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // no enviar todo el formulario
+                input.blur();
+            } else if (e.key === 'Escape') {
+                input.value = input.dataset.saved || '';
+                input.blur();
+            }
+        });
+    });
+
+    function previewExistingPhoto(imgId, imageUrl) {
+        const input = document.getElementById(`photo-title-${imgId}`);
+        const title = (input && input.value.trim()) || CATEGORY_FALLBACK_TITLE;
+        previewPublicPhoto(imageUrl, title);
+    }
 
     function toggleImageVisibility(imgId, event) {
         if (event) {

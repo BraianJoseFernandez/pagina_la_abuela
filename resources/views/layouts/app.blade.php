@@ -61,6 +61,10 @@
         .swiper-slide {
             width: auto !important;
         }
+        /* Los modales de SweetAlert (flyer del evento, fotos) siempre por encima del botón flotante del carrito */
+        .swal2-container {
+            z-index: 10000 !important;
+        }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -118,9 +122,12 @@
     <div id="variant-modal" class="fixed inset-0 z-[9999] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 transform transition-all scale-95 opacity-0 duration-300" id="variant-modal-card">
             <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 id="variant-modal-title" class="text-2xl font-bold text-gray-800">Seleccionar Opción</h3>
-                    <p id="variant-modal-desc" class="text-sm text-gray-500 mt-1"></p>
+                <div class="flex items-start gap-3.5 min-w-0">
+                    <img id="variant-modal-img" src="" alt="" class="hidden w-16 h-16 rounded-full object-cover border-4 border-purple-200 shadow-md flex-shrink-0">
+                    <div class="min-w-0">
+                        <h3 id="variant-modal-title" class="text-2xl font-bold text-gray-800">Seleccionar Opción</h3>
+                        <p id="variant-modal-desc" class="text-sm text-gray-500 mt-1"></p>
+                    </div>
                 </div>
                 <button onclick="closeVariantModal()" class="text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
                     <i class="fas fa-times text-lg"></i>
