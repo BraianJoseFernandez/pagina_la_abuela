@@ -210,6 +210,59 @@ function parseConfettiEmojis(rawEmojis) {
     return list;
 }
 
+// Las formas de emoji se rasterizan una sola vez (shapeFromText es costoso y bloquea el hilo principal)
+const emojiShapeCache = new Map();
+function getEmojiShapes(emojis, scalar) {
+    if (typeof confetti.shapeFromText !== 'function') return [];
+    const shapes = [];
+    emojis.forEach(emoji => {
+        const key = `${emoji}|${scalar}`;
+        if (!emojiShapeCache.has(key)) {
+            try {
+                emojiShapeCache.set(key, confetti.shapeFromText({ text: emoji, scalar }));
+            } catch (e) {
+                console.warn('Error al generar forma de confeti para:', emoji, e);
+                emojiShapeCache.set(key, null);
+            }
+        }
+        const shape = emojiShapeCache.get(key);
+        if (shape) shapes.push(shape);
+    });
+    return shapes;
+}
+
+// Lluvia continua de confeti desde ambos laterales.
+// La emisión va por tiempo y no por cuadro: la cantidad total es la misma que a 60 FPS,
+// pero se agrupa en menos llamadas y no se duplica en pantallas de 90/120 Hz.
+function runConfettiStream(colors, emojiShapes, durationMs) {
+    const FRAME_MS = 1000 / 60;
+    const EMIT_EVERY_MS = FRAME_MS * 2;
+    const end = performance.now() + durationMs;
+    let last = performance.now();
+    let pending = 0;
+
+    function emit(frames) {
+        confetti({ particleCount: 3 * frames, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors, disableForReducedMotion: true });
+        confetti({ particleCount: 3 * frames, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors, disableForReducedMotion: true });
+
+        if (emojiShapes.length > 0) {
+            confetti({ particleCount: frames, angle: 60, spread: 50, origin: { x: 0, y: 0.7 }, shapes: emojiShapes, scalar: 2.8, flat: true, disableForReducedMotion: true });
+            confetti({ particleCount: frames, angle: 120, spread: 50, origin: { x: 1, y: 0.7 }, shapes: emojiShapes, scalar: 2.8, flat: true, disableForReducedMotion: true });
+        }
+    }
+
+    (function frame(now) {
+        pending += now - last;
+        last = now;
+        if (pending >= EMIT_EVERY_MS) {
+            // Tope de 4 cuadros para no soltar una ráfaga enorme si el teléfono se trabó
+            emit(Math.min(Math.round(pending / FRAME_MS), 4));
+            pending = 0;
+        }
+        if (now < end) requestAnimationFrame(frame);
+    }(last));
+}
+
 // Modal interactivo de Promociones / Eventos con Confeti personalizable y Emotes
 function showEventAlertDynamic(eventData) {
     if (!eventData) return;
@@ -245,29 +298,25 @@ function showEventAlertDynamic(eventData) {
                 </div>
             </div>
         `,
-        didOpen: () => {
+        didOpen: async (popup) => {
             if (typeof confetti !== 'function') return;
 
-            // Generar formas para los emoticones
-            let emojiShapes = [];
-            if (typeof confetti.shapeFromText === 'function' && emojis.length > 0) {
-                const scalar = 3;
-                emojis.forEach(emoji => {
-                    try {
-                        const shape = confetti.shapeFromText({ text: emoji, scalar });
-                        if (shape) emojiShapes.push(shape);
-                    } catch (e) {
-                        console.warn('Error al generar forma de confeti para:', emoji, e);
-                    }
-                });
+            // Esperar a que el flyer esté decodificado para no competir con el confeti por el hilo principal
+            const flyer = popup.querySelector('img');
+            if (flyer && typeof flyer.decode === 'function') {
+                await flyer.decode().catch(() => {});
             }
+
+            const confettiColors = colors.length > 0 ? colors : ['#75AADB', '#FFFFFF', '#F6B40E'];
+            const emojiShapes = getEmojiShapes(emojis, 3);
 
             // 1. Ráfaga inicial de bienvenida (Colores + Emotes en el centro)
             confetti({
                 particleCount: 50,
                 spread: 80,
                 origin: { x: 0.5, y: 0.6 },
-                colors: colors.length > 0 ? colors : ['#75AADB', '#FFFFFF', '#F6B40E']
+                colors: confettiColors,
+                disableForReducedMotion: true
             });
 
             if (emojiShapes.length > 0) {
@@ -277,55 +326,13 @@ function showEventAlertDynamic(eventData) {
                     origin: { x: 0.5, y: 0.6 },
                     shapes: emojiShapes,
                     scalar: 3,
-                    flat: true
+                    flat: true,
+                    disableForReducedMotion: true
                 });
             }
 
             // 2. Efecto de Confeti festivo continuo por 3.5 segundos desde ambos laterales
-            const end = Date.now() + 3500;
-            (function frame() {
-                // Confeti de colores
-                confetti({
-                    particleCount: 3,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0, y: 0.7 },
-                    colors: colors
-                });
-                confetti({
-                    particleCount: 3,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1, y: 0.7 },
-                    colors: colors
-                });
-
-                // Confeti de emoticones
-                if (emojiShapes.length > 0) {
-                    confetti({
-                        particleCount: 1,
-                        angle: 60,
-                        spread: 50,
-                        origin: { x: 0, y: 0.7 },
-                        shapes: emojiShapes,
-                        scalar: 2.8,
-                        flat: true
-                    });
-                    confetti({
-                        particleCount: 1,
-                        angle: 120,
-                        spread: 50,
-                        origin: { x: 1, y: 0.7 },
-                        shapes: emojiShapes,
-                        scalar: 2.8,
-                        flat: true
-                    });
-                }
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
+            runConfettiStream(confettiColors, emojiShapes, 3500);
         }
     }).then((result) => {
         if (result.isConfirmed) {
