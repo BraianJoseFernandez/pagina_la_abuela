@@ -18,6 +18,7 @@
             @method('PUT')
 
             <input type="hidden" name="cropped_image_base64" id="cropped_image_base64">
+            <input type="hidden" name="remove_image" id="remove_image" value="0">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <!-- Categoría -->
@@ -245,9 +246,22 @@
 
                 <div class="flex flex-col sm:flex-row items-center gap-5">
                     @if($product->image_path)
-                        <div class="flex items-center space-x-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+                        <div id="current-image-container" class="flex items-center space-x-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
                             <img src="{{ asset($product->image_path) }}" alt="{{ $product->name }}" class="w-16 h-16 rounded-full object-cover shadow-md border-2 border-purple-300">
                             <span class="text-xs font-bold text-slate-600">Foto Actual</span>
+                            <button type="button" onclick="toggleRemoveDishImage(true)" title="Quitar foto" class="w-8 h-8 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+
+                        <div id="removed-image-notice" class="hidden items-center space-x-3 bg-red-50 p-2.5 rounded-2xl border border-red-200">
+                            <span class="text-xs font-bold text-red-700 flex items-center space-x-1.5">
+                                <i class="fas fa-image"></i>
+                                <span>La foto se eliminará al guardar</span>
+                            </span>
+                            <button type="button" onclick="toggleRemoveDishImage(false)" class="text-xs font-black text-slate-600 hover:text-slate-900 underline">
+                                Deshacer
+                            </button>
                         </div>
                     @endif
 
@@ -491,6 +505,17 @@
             });
         }
     });
+
+    // Quitar / restaurar la foto actual del plato
+    function toggleRemoveDishImage(remove) {
+        document.getElementById('remove_image').value = remove ? '1' : '0';
+        const current = document.getElementById('current-image-container');
+        const notice = document.getElementById('removed-image-notice');
+        current.classList.toggle('hidden', remove);
+        current.classList.toggle('flex', !remove);
+        notice.classList.toggle('hidden', !remove);
+        notice.classList.toggle('flex', remove);
+    }
 
     // Manejo de Cropper.js (Plato principal y Guarniciones)
     let cropper = null;

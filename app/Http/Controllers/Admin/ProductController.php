@@ -225,6 +225,14 @@ class ProductController extends Controller
 
         $imagePath = $product->image_path;
 
+        // Si se pidió quitar la foto actual
+        if ($request->boolean('remove_image')) {
+            if ($imagePath && str_starts_with($imagePath, 'imagenes/uploads/') && file_exists(public_path($imagePath))) {
+                @unlink(public_path($imagePath));
+            }
+            $imagePath = null;
+        }
+
         // Si viene nueva imagen recortada en Base64
         if (!empty($request->input('cropped_image_base64'))) {
             $data = $request->input('cropped_image_base64');
