@@ -3,7 +3,9 @@
 services:
   evolution-api:
     container_name: laabuela_evolution_api
-    image: evoapicloud/evolution-api:v2.3.7
+    # Imagen propia: 2.3.7 + Baileys rc14 (arreglo de vinculacion, PR #2759 de evolution-api).
+    # Se construye en el VPS; volver a evoapicloud/evolution-api cuando salga la version oficial con el arreglo.
+    image: laabuela/evolution-api:2.3.7-pairfix
     restart: always
     # Solo escucha en la máquina local: Laravel se conecta por 127.0.0.1:8090 (EVOLUTION_PORT)
     ports:
