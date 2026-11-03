@@ -125,6 +125,10 @@ class WhatsAppService
             $payload = $response->json() ?? [];
 
             if ($response->successful()) {
+                // Enviar desde el dispositivo vinculado lo marca como "activo" y WhatsApp deja
+                // de notificar al teléfono. Soltamos la presencia enseguida.
+                $this->releasePresence();
+
                 return [
                     'success' => true,
                     'messageId' => $payload['key']['id'] ?? 'unknown',
@@ -237,6 +241,16 @@ class WhatsAppService
             $this->client()->post("/settings/set/{$this->instance}", $this->presenceSettings());
         } catch (\Throwable $e) {
             Log::warning('Evolution API: no se pudieron aplicar los ajustes: '.$e->getMessage());
+        }
+    }
+
+    protected function releasePresence(): void
+    {
+        try {
+            $this->client()->timeout(5)
+                ->post("/instance/setPresence/{$this->instance}", ['presence' => 'unavailable']);
+        } catch (\Throwable $e) {
+            Log::warning('Evolution API: no se pudo soltar la presencia: '.$e->getMessage());
         }
     }
 
