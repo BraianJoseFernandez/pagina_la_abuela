@@ -36,6 +36,8 @@ class WhatsAppService
         $state = $this->connectionState();
 
         if ($state === 'open') {
+            $this->ensureSettings();
+
             return [
                 'success' => true,
                 'status' => 'connected',
@@ -202,11 +204,13 @@ class WhatsAppService
     {
         try {
             if ($this->connectionState() === 'missing') {
-                $created = $this->client()->post('/instance/create', [
+                // Los ajustes van en el create: Evolution los lee al abrir el socket
+                // (markOnlineOnConnect), así que aplicarlos después llega tarde.
+                $created = $this->client()->post('/instance/create', array_merge([
                     'instanceName' => $this->instance,
                     'qrcode' => true,
                     'integration' => 'WHATSAPP-BAILEYS',
-                ]);
+                ], $this->presenceSettings()));
 
                 $this->applySettings();
 
@@ -230,18 +234,45 @@ class WhatsAppService
     protected function applySettings(): void
     {
         try {
-            $this->client()->post("/settings/set/{$this->instance}", [
-                'rejectCall' => false,
-                'msgCall' => '',
-                'groupsIgnore' => true,
-                'alwaysOnline' => false,
-                'readMessages' => false,
-                'readStatus' => false,
-                'syncFullHistory' => false,
-            ]);
+            $this->client()->post("/settings/set/{$this->instance}", $this->presenceSettings());
         } catch (\Throwable $e) {
             Log::warning('Evolution API: no se pudieron aplicar los ajustes: '.$e->getMessage());
         }
+    }
+
+    protected function presenceSettings(): array
+    {
+        return [
+            'rejectCall' => false,
+            'msgCall' => '',
+            'groupsIgnore' => true,
+            'alwaysOnline' => false,
+            'readMessages' => false,
+            'readStatus' => false,
+            'syncFullHistory' => false,
+        ];
+    }
+
+    /**
+     * Si la instancia ya existía (creada antes o a mano), puede tener alwaysOnline=true.
+     * Lo revisa una vez por hora y corrige; además suelta la presencia.
+     */
+    protected function ensureSettings(): void
+    {
+        Cache::remember('whatsapp_settings_ok_'.$this->instance, 3600, function () {
+            try {
+                $current = $this->client()->get("/settings/find/{$this->instance}")->json() ?? [];
+                if (($current['alwaysOnline'] ?? true) || ($current['readMessages'] ?? true)) {
+                    Log::info('Evolution API: corrigiendo ajustes de presencia', $current);
+                    $this->applySettings();
+                }
+                $this->client()->post("/instance/setPresence/{$this->instance}", ['presence' => 'unavailable']);
+            } catch (\Throwable $e) {
+                Log::warning('Evolution API: no se pudieron verificar los ajustes: '.$e->getMessage());
+            }
+
+            return true;
+        });
     }
 
     protected function connectedUser(): array
